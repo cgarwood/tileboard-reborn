@@ -1,1 +1,120 @@
 // app global css
+
+.page-wrapper {
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+:root {
+  font-size: 15px;
+}
+
+body {
+  background: var(--page-background);
+  font-family: 'Noto Sans';
+  //font-family: 'Source Sans Pro';
+  //font-family: 'Open Sans';
+  //font-family: Roboto;
+}
+
+.q-card.widget {
+  border-radius: var(--widget-border-radius, 0px);
+}
+
+.section-header {
+  color: var(--text-light);
+  font-size: 1.2rem;
+  font-weight: 300;
+  margin-bottom: 16px;
+}
+
+.animation-pulsate {
+  animation: pulse 2s linear infinite;
+}
+@keyframes pulse {
+  from {
+    opacity: 0.35;
+  }
+  45% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.35;
+  }
+}
+
+.z-over-screensaver {
+  z-index: 7000;
+}
+
+/* Weather Alert Colors */
+.weather-alert-badge {
+  background-color: $blue-10;
+}
+
+.weather-alert-footer-toolbar {
+  background-color: $blue-10;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.4s ease;
+}
+.severe-thunderstorm-watch {
+  background-color: $orange-5;
+}
+.severe-thunderstorm-warning {
+  background-color: $orange-9;
+}
+.tornado-watch {
+  background-color: $red-6;
+}
+.tornado-warning {
+  background-color: $red-10;
+}
+.flood-watch,
+.flash-flood-watch {
+  background-color: $green-5;
+}
+.flood-warning,
+.flash-flood-warning {
+  background-color: $green-9;
+}
+.winter-storm-watch {
+  background-color: $blue-5;
+}
+.winter-storm-warning {
+  background-color: $blue-9;
+}
+.winter-weather-advisory {
+  background-color: $indigo-4;
+}
+.blizzard-warning {
+  background-color: $indigo-9;
+}
+.blizzard-watch {
+  background-color: $indigo-5;
+}
+.freeze-watch {
+  background-color: $light-blue-4;
+}
+.freeze-warning {
+  background-color: $light-blue-7;
+}
+.wind-chill-advisory {
+  background-color: $purple-4;
+}
+.wind-chill-warning {
+  background-color: $purple-7;
+}
+.heat-advisory {
+  background-color: $deep-orange-5;
+}
+.excessive-heat-warning {
+  background-color: $deep-orange-9;
+}
+.excessive-heat-watch {
+  background-color: $deep-orange-5;
+}

@@ -2,11 +2,14 @@ import type { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/onboarding',
+    component: () => import('@/pages/OnboardingPage.vue'),
+  },
+  {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('@/pages/IndexPage.vue') },
-      { path: 'second', component: () => import('@/pages/SecondPage.vue') }
+      { path: ':pageId?', name: 'dashboard-page', component: () => import('@/pages/DashboardPage.vue') },
     ],
   },
 
