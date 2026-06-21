@@ -19,6 +19,7 @@
     "@fontsource/open-sans": "^5.2.7",
     "@fontsource/source-sans-pro": "^5.2.5",
     "@quasar/extras": "^2.0.0",
+    "@sendspin/sendspin-js": "^3.2.0",
     "home-assistant-js-websocket": "^9.6.0",
     "pinia": "^3.0.1",
     "quasar": "^2.20.0",

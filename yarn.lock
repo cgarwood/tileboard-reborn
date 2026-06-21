@@ -793,6 +793,13 @@
   resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.1.tgz#e3fcee093fbb5ce765e1ad088ff4de2889f6f9be"
   integrity sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==
 
+"@sendspin/sendspin-js@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@sendspin/sendspin-js/-/sendspin-js-3.2.0.tgz#504b8cc10c61722ea02541b4dc98ce1005e82ed7"
+  integrity sha512-sxMibcr9eiue5yT0viXxCruq8LTRSEzaz9epmhSp3Qe4gHcksE+JwFOTEJfgkY5kJBmPq22CkYlyvJXcHacK2g==
+  dependencies:
+    opus-encdec "^0.1.1"
+
 "@tybys/wasm-util@^0.10.2":
   version "0.10.2"
   resolved "https://registry.yarnpkg.com/@tybys/wasm-util/-/wasm-util-0.10.2.tgz#12b3a1b33db1f9cad4ddff1f604ab7dd00bf464e"
@@ -2323,6 +2330,11 @@ optionator@^0.9.3:
     prelude-ls "^1.2.1"
     type-check "^0.4.0"
     word-wrap "^1.2.5"
+
+opus-encdec@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/opus-encdec/-/opus-encdec-0.1.1.tgz#8b6f9ccbb2e97bc0ae0dac2966111937b6aedcf9"
+  integrity sha512-TDzyGqYqrwn5UEUNaLsfLGu8Ma+HRNrgLYj7Vx5wfTnafAA21G6Bnm/qTIa3orQi/yZPZYmkdpO/gez4nfA1Rw==
 
 p-limit@^3.0.2:
   version "3.1.0"

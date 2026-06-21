@@ -1,5 +1,6 @@
 <template>
   <router-view />
+  <SendspinBar v-if="sendspinStore.connected || sendspinStore.connecting" />
   <transition name="screensaver">
     <ScreensaverOverlay v-if="screensaverStore.active" />
   </transition>
@@ -11,14 +12,17 @@ import { useConfigStore } from './stores/config';
 import { useHomeAssistantStore } from './stores/home-assistant';
 import { useScreensaverStore } from './stores/screensaver';
 import { useWeatherAlertsStore } from './stores/weather-alerts';
+import { useSendspinStore } from './stores/sendspin';
 import ScreensaverOverlay from './components/screensaver/ScreensaverOverlay.vue';
+import SendspinBar from './components/sendspin/SendspinBar.vue';
 import type { ScreensaverConfig } from './types/screensaver';
-import type { WeatherAlertConfig } from './types/config';
+import type { WeatherAlertConfig, SendSpinConfig } from './types/config';
 
 const configStore = useConfigStore();
 const haStore = useHomeAssistantStore();
 const screensaverStore = useScreensaverStore();
 const weatherAlertsStore = useWeatherAlertsStore();
+const sendspinStore = useSendspinStore();
 
 watch(
   () => configStore.config,
@@ -32,6 +36,9 @@ watch(
         weatherAlertsStore.startPolling(config.weatherAlerts as WeatherAlertConfig);
       } else {
         weatherAlertsStore.stopPolling();
+      }
+      if (config.sendspin) {
+        sendspinStore.initialize(config.sendspin as SendSpinConfig);
       }
     } else {
       haStore.disconnect();

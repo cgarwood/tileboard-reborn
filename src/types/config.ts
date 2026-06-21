@@ -6,7 +6,7 @@ export type Config = {
   id: string;
   weatherAlerts?: WeatherAlertConfig;
   screensaver?: ScreensaverConfig;
-  snapcast?: SnapcastConfig;
+  sendspin?: SendSpinConfig;
   plex?: PlexConfig;
   restrictions?: RestrictionConfig;
   pages: PagesConfig[];
@@ -17,8 +17,10 @@ export type WeatherAlertConfig = {
   interval?: number;
 };
 
-export type SnapcastConfig = {
+export type SendSpinConfig = {
   server: string;
+  id: string;
+  name: string;
 };
 
 export type PlexConfig = {
