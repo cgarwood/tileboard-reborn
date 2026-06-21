@@ -9,6 +9,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
   const slides = ref<Slide[]>([]);
   const slideSpeedMs = ref(SLIDE_SPEED_DEFAULT * 1000);
   const weatherEntity = ref<string | null>(null);
+  const calendars = ref<ScreensaverConfig['calendars']>([]);
 
   let timeoutSeconds = 0;
   let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -17,6 +18,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
     timeoutSeconds = config.timeout;
     slideSpeedMs.value = (config.speed ?? SLIDE_SPEED_DEFAULT) * 1000;
     weatherEntity.value = config.weather_entity ?? null;
+    calendars.value = config.calendars ?? [];
     await loadSlides(config);
     scheduleActivation();
   }
@@ -52,7 +54,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
     scheduleActivation();
   }
 
-  return { active, slides, slideSpeedMs, weatherEntity, initialize, onActivity, dismiss };
+  return { active, slides, slideSpeedMs, weatherEntity, calendars, initialize, onActivity, dismiss };
 });
 
 if (import.meta.hot) {

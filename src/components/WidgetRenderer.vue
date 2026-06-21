@@ -13,6 +13,7 @@ import ClimateWidget from '../widgets/ClimateWidget.vue';
 import ButtonWidget from '../widgets/ButtonWidget.vue';
 import FanWidget from '../widgets/FanWidget.vue';
 import NumberWidget from '../widgets/NumberWidget.vue';
+import CalendarWidget from '../widgets/CalendarWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
@@ -24,6 +25,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   button: ButtonWidget,
   fan: FanWidget,
   number: NumberWidget,
+  calendar: CalendarWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();

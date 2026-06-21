@@ -32,6 +32,16 @@
           :forecasts="dailyForecasts ?? []"
           :forecast-type="dailyForecastType"
         />
+        <ScreensaverCalendarSlide
+          v-else-if="slide.type === 'calendar-today'"
+          day="today"
+          :events="todayEvents"
+        />
+        <ScreensaverCalendarSlide
+          v-else-if="slide.type === 'calendar-tomorrow'"
+          day="tomorrow"
+          :events="tomorrowEvents"
+        />
       </q-carousel-slide>
     </q-carousel>
 
@@ -67,13 +77,17 @@ import { useScreensaverStore } from '../../stores/screensaver';
 import { useWeatherAlertsStore } from '../../stores/weather-alerts';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
 import { useWeatherForecast } from '../../composables/useWeatherForecast';
+import { useCalendar } from '../../composables/useCalendar';
+import { useCalendarStore } from '../../stores/calendar';
 import { WeatherEntityFeature } from '../../types/weather';
 import type { ForecastType } from '../../types/weather';
+import type { CalendarEvent } from '../../types/calendar';
 import type { Slide } from '../../types/screensaver';
 import ScreensaverImageSlide from './ScreensaverImageSlide.vue';
 import ScreensaverCurrentConditionsSlide from './ScreensaverCurrentConditionsSlide.vue';
 import ScreensaverHourlyForecastSlide from './ScreensaverHourlyForecastSlide.vue';
 import ScreensaverDailyForecastSlide from './ScreensaverDailyForecastSlide.vue';
+import ScreensaverCalendarSlide from './ScreensaverCalendarSlide.vue';
 import ScreensaverClock from './ScreensaverClock.vue';
 import ScreensaverWeather from './ScreensaverWeather.vue';
 import WeatherAlertDialog from '../dialogs/WeatherAlertDialog.vue';
@@ -136,6 +150,47 @@ const todayLow = computed<number | null>(() => {
   return dailyForecasts.value[0]?.templow ?? null;
 });
 
+// --- Calendar subscriptions and event filtering ---
+
+const DEFAULT_CAL_COLORS = ['#e53935', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa', '#00acc1'];
+
+const calendarEntries = store.calendars ?? [];
+useCalendar(calendarEntries);
+const calendarStore = useCalendarStore();
+
+interface CalendarSlideEvent {
+  event: CalendarEvent;
+  color: string;
+  calendarName: string;
+}
+
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const todayStr = localDateStr(new Date());
+const tomorrowDate = new Date();
+tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+const tomorrowStr = localDateStr(tomorrowDate);
+
+function eventsForDate(dateStr: string): CalendarSlideEvent[] {
+  const items: CalendarSlideEvent[] = [];
+  calendarEntries.forEach((entry, idx) => {
+    if (!entry.entity) return;
+    const entityColor = haStore.states[entry.entity]?.attributes.color as string | undefined;
+    const color = entry.color ?? entityColor ?? DEFAULT_CAL_COLORS[idx % DEFAULT_CAL_COLORS.length] ?? '#888';
+    const calendarName = entry.name ?? haStore.states[entry.entity]?.attributes.friendly_name ?? entry.entity;
+    for (const event of calendarStore.events[entry.entity] ?? []) {
+      if (event.start.slice(0, 10) === dateStr) items.push({ event, color, calendarName });
+    }
+  });
+  items.sort((a, b) => a.event.start.localeCompare(b.event.start));
+  return items;
+}
+
+const todayEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(todayStr));
+const tomorrowEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(tomorrowStr));
+
 // --- Slide list ---
 
 const weatherSlides = computed<Slide[]>(() => {
@@ -146,15 +201,22 @@ const weatherSlides = computed<Slide[]>(() => {
   return slides;
 });
 
+const calendarSlides = computed<Slide[]>(() => {
+  const slides: Slide[] = [];
+  if (todayEvents.value.length) slides.push({ type: 'calendar-today' });
+  if (tomorrowEvents.value.length) slides.push({ type: 'calendar-tomorrow' });
+  return slides;
+});
+
 const allSlides = computed<Slide[]>(() => {
   const photos = store.slides;
-  const weather = weatherSlides.value;
-  if (!weather.length) return photos;
-  if (!photos.length) return weather;
+  const special = [...weatherSlides.value, ...calendarSlides.value];
+  if (!special.length) return photos;
+  if (!photos.length) return special;
 
-  // Insert weather slides as a group after the first third of photos
+  // Insert special slides as a group after the first third of photos
   const insertAt = Math.ceil(photos.length / 3);
-  return [...photos.slice(0, insertAt), ...weather, ...photos.slice(insertAt)];
+  return [...photos.slice(0, insertAt), ...special, ...photos.slice(insertAt)];
 });
 
 // Keep currentSlide in bounds if the slide list changes
