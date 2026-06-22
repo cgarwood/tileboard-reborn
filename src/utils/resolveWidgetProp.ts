@@ -3,7 +3,7 @@ import type { HassEntities } from 'home-assistant-js-websocket';
 export interface PropResolveContext {
   state: string | null;
   attributes: Record<string, unknown>;
-  entity: (id: string) => { state: string; attributes: Record<string, unknown> } | null;
+  entity: (id: string) => { state: string | null; attributes: Record<string, unknown> };
   states: HassEntities;
 }
 

@@ -14,10 +14,12 @@ export function useWidget(widget: () => Widget) {
 
   const state = computed(() => entity.value?.state ?? null);
 
+  const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
+
   const resolveCtx = computed<PropResolveContext>(() => ({
     state: state.value,
     attributes: entity.value?.attributes ?? {},
-    entity: (id) => haStore.states[id] ?? null,
+    entity: (id) => haStore.states[id] ?? NULL_ENTITY,
     states: haStore.states,
   }));
 
