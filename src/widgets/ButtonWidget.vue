@@ -24,43 +24,18 @@ registerWidgetDefaults('button', { width: 2, height: 2 });
 <script setup lang="ts">
 import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
-import { useRouter } from 'vue-router';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
+import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
-import { useScreensaverStore } from '../stores/screensaver';
 import type { Widget } from '../types/widgets';
-
-interface ServiceAction {
-  action: 'service';
-  service: string;
-  data?: Record<string, unknown>;
-}
-interface JavascriptAction {
-  action: 'javascript';
-  data: string;
-}
-interface EventAction {
-  action: 'event';
-  event: string;
-  data?: Record<string, unknown>;
-}
-interface NavigateAction {
-  action: 'navigate';
-  url?: string;
-  page?: string;
-}
-interface ScreensaverAction {
-  action: 'screensaver';
-}
-type TapAction = ServiceAction | JavascriptAction | EventAction | NavigateAction | ScreensaverAction;
+import type { TapAction } from '../types/actions';
 
 const props = defineProps<{ widget: Widget }>();
 const haStore = useHomeAssistantStore();
-const screensaverStore = useScreensaverStore();
-const router = useRouter();
 const { title, subtitle, icon, backgroundStyle } = useWidget(() => props.widget);
 const { withUnlock } = useRestriction(() => props.widget);
+const { executeActions } = useActionExecutor();
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;
@@ -75,40 +50,7 @@ function execute() {
     void haStore.callService('button', 'press', { entity_id: props.widget.entity });
     return;
   }
-
-  const actions = props.widget.tap_action as TapAction[] | undefined;
-  if (!actions?.length) return;
-
-  for (const action of actions) {
-    if (action.action === 'service') {
-      const dot = action.service.indexOf('.');
-      if (dot === -1) return;
-      void haStore.callService(
-        action.service.slice(0, dot),
-        action.service.slice(dot + 1),
-        action.data,
-      );
-    } else if (action.action === 'javascript') {
-      console.log('[ButtonWidget] Executing JavaScript action:', action.data);
-      try {
-        new Function(action.data)(); //eslint-disable-line @typescript-eslint/no-implied-eval
-      } catch (e) {
-        console.error('[ButtonWidget] JavaScript action error:', e);
-      }
-    } else if (action.action === 'event') {
-      void haStore.fireEvent(action.event, action.data);
-    } else if (action.action === 'navigate') {
-      if (action.page) {
-        void router.push({ name: 'dashboard-page', params: { pageId: action.page } });
-      } else if (action.url) {
-        window.location.href = action.url;
-      }
-    } else if (action.action === 'screensaver') {
-      screensaverStore.active = true;
-    } else {
-      console.warn('[ButtonWidget] Unknown action type:', action);
-    }
-  }
+  executeActions(props.widget.tap_action as TapAction | TapAction[] | undefined);
 }
 
 function handleClick() {

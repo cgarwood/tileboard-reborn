@@ -10,6 +10,7 @@ export type Config = {
   plex?: PlexConfig;
   restrictions?: RestrictionConfig;
   pages: PagesConfig[];
+  events: EventsConfig[];
 };
 
 export type WeatherAlertConfig = {
@@ -57,3 +58,10 @@ export type RestictionsConfirmConfig = {
 import type { Page } from './page';
 
 export type PagesConfig = Page;
+
+import type { TapAction } from './actions';
+
+export type EventsConfig = {
+  command: string;
+  action: TapAction | TapAction[];
+};

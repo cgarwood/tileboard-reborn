@@ -167,6 +167,17 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     return connection.value.subscribeMessage<T>(callback, message);
   }
 
+  function subscribeHassEvents<T = unknown>(
+    callback: (event: T) => void,
+    eventType?: string,
+  ): Promise<() => Promise<void>> {
+    if (!connection.value) throw new Error('Not connected to Home Assistant');
+    return connection.value.subscribeMessage<T>(callback, {
+      type: 'subscribe_events',
+      event_type: eventType,
+    });
+  }
+
   return {
     states,
     connected,
@@ -179,6 +190,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     fireEvent,
     sendMessage,
     subscribeMessage,
+    subscribeHassEvents,
     subscribeWeatherForecast,
     unsubscribeWeatherForecast,
   };

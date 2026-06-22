@@ -13,16 +13,34 @@ import { useHomeAssistantStore } from './stores/home-assistant';
 import { useScreensaverStore } from './stores/screensaver';
 import { useWeatherAlertsStore } from './stores/weather-alerts';
 import { useSendspinStore } from './stores/sendspin';
+import { useActionExecutor } from './composables/useActionExecutor';
 import ScreensaverOverlay from './components/screensaver/ScreensaverOverlay.vue';
 import SendspinBar from './components/sendspin/SendspinBar.vue';
 import type { ScreensaverConfig } from './types/screensaver';
-import type { WeatherAlertConfig, SendSpinConfig } from './types/config';
+import type { WeatherAlertConfig, SendSpinConfig, EventsConfig } from './types/config';
 
 const configStore = useConfigStore();
 const haStore = useHomeAssistantStore();
 const screensaverStore = useScreensaverStore();
 const weatherAlertsStore = useWeatherAlertsStore();
 const sendspinStore = useSendspinStore();
+const { executeActions } = useActionExecutor();
+
+interface TileboardEvent {
+  event_type: 'tileboard';
+  data: { command: string; [key: string]: unknown };
+  time_fired: string;
+  origin: string;
+}
+
+let unsubTileboardEvents: (() => Promise<void>) | null = null;
+
+function handleTileboardEvent(event: TileboardEvent, eventsConfig: EventsConfig[]) {
+  const { command, ...rest } = event.data;
+  const match = eventsConfig.find((e) => e.command === command);
+  if (!match) return;
+  executeActions(match.action, rest);
+}
 
 watch(
   () => configStore.config,
@@ -46,6 +64,26 @@ watch(
     }
   },
   { immediate: true },
+);
+
+watch(
+  () => haStore.connected,
+  async (connected) => {
+    if (unsubTileboardEvents) {
+      await unsubTileboardEvents();
+      unsubTileboardEvents = null;
+    }
+    const eventsConfig = configStore.config?.events as EventsConfig[] | undefined;
+    if (!connected || !eventsConfig?.length) return;
+    try {
+      unsubTileboardEvents = await haStore.subscribeHassEvents<TileboardEvent>(
+        (event) => handleTileboardEvent(event, eventsConfig),
+        'tileboard',
+      );
+    } catch (e) {
+      console.error('[Events] Failed to subscribe to tileboard events', e);
+    }
+  },
 );
 
 function onActivity() {
