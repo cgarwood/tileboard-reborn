@@ -1,6 +1,6 @@
 <template>
-  <q-page padding class="page-wrapper" :style="pageBackgroundStyle">
-    <div v-if="page" style="overflow-x: auto">
+  <q-page padding class="page-wrapper" style="background: transparent">
+    <div v-if="page" style="overflow-x: auto" class="page-content">
       <div
         v-for="(row, rowIndex) in sectionRows"
         :key="rowIndex"
@@ -53,16 +53,6 @@ const page = computed(() => {
   return pages.value.find((p) => p.id === pageId.value) ?? null;
 });
 
-const pageBackgroundStyle = computed(() => {
-  const bg = page.value?.background;
-  if (!bg) return {};
-  return {
-    ...(bg.image ? { backgroundImage: `url(${bg.image})` } : {}),
-    ...(bg.color ? { backgroundColor: bg.color } : {}),
-    ...(bg.style ?? {}),
-  };
-});
-
 const sectionRows = computed(() => {
   const rows: Section[][] = [[]];
   for (const item of page.value?.sections ?? []) {
@@ -75,3 +65,11 @@ const sectionRows = computed(() => {
   return rows;
 });
 </script>
+<style lang="scss" scoped>
+.q-page {
+  padding: 0;
+}
+.page-content {
+  padding: 16px;
+}
+</style>

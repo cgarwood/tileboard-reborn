@@ -7,6 +7,7 @@ export type Page = {
   gridSize?: number;
   sections: (Section | 'break')[];
   background: BackgroundConfig;
+  toolbarBackground?: string | Record<string, string>;
 };
 
 export type BackgroundConfig = {

@@ -1,33 +1,42 @@
 <template>
-  <q-layout view="hHh Lpr lFf">
-    <q-header elevated>
+  <q-layout view="hHh Lpr lFf" :style="layoutBackgroundStyle">
+    <q-header elevated class="app-header" :style="toolbarBackgroundStyle">
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title>{{ configStore.config?.name ?? 'TileBoard' }}</q-toolbar-title>
+        <q-toolbar-title>{{ currentPageName }}</q-toolbar-title>
 
-        <div>
-          {{ haStore.connected ? 'Connected' : 'Disconnected' }}
+        <div class="header-title-block q-mr-xs">
+          <div class="header-app-name">{{ configStore.config?.name ?? 'TileBoard' }}</div>
+          <div class="header-ha-status">
+            <span class="ha-dot" :class="haStore.connected ? 'ha-dot--on' : 'ha-dot--off'" />
+            {{ haStore.connected ? 'Connected' : 'Disconnected' }}
+          </div>
         </div>
 
-        <q-btn
-          flat
-          dense
-          round
-          icon="refresh"
-          aria-label="Reload Config"
-          :loading="configStore.loading"
-          :disable="!configStore.configUrl"
-          @click="reloadConfig"
-        />
-        <q-btn
-          flat
-          dense
-          round
-          icon="slideshow"
-          aria-label="Toggle Screensaver"
-          @click="screensaverStore.active = !screensaverStore.active"
-        />
+        <q-btn flat dense round icon="mdi-dots-vertical" aria-label="Menu">
+          <q-menu anchor="bottom right" self="top right">
+            <q-list style="min-width: 190px">
+              <q-item
+                clickable
+                v-close-popup
+                :disable="!configStore.configUrl || configStore.loading"
+                @click="reloadConfig"
+              >
+                <q-item-section avatar>
+                  <q-icon name="refresh" />
+                </q-item-section>
+                <q-item-section>Reload Config</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="screensaverStore.active = true">
+                <q-item-section avatar>
+                  <q-icon name="slideshow" />
+                </q-item-section>
+                <q-item-section>Start Screensaver</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -107,9 +116,11 @@ import { useConfigStore } from '../stores/config';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useScreensaverStore } from '../stores/screensaver';
 import { useWeatherAlertsStore } from '../stores/weather-alerts';
+import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import WeatherAlertDialog from '../components/dialogs/WeatherAlertDialog.vue';
 import type { Config } from '@/types/config';
 import type { WeatherAlert } from '../types/weather-alerts';
+import type { PropResolveContext } from '../utils/resolveWidgetProp';
 
 const configStore = useConfigStore();
 const screensaverStore = useScreensaverStore();
@@ -127,9 +138,46 @@ const currentPageId = computed(() => {
   return paramId || pages.value[0]?.id;
 });
 
+const currentPageName = computed(
+  () => pages.value.find((p) => p.id === currentPageId.value)?.name ?? '',
+);
+
 function isActivePage(id: string) {
   return currentPageId.value === id;
 }
+
+const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
+
+const pageResolveCtx = computed<PropResolveContext>(() => ({
+  state: null,
+  attributes: {},
+  entity: (id) => haStore.states[id] ?? NULL_ENTITY,
+  states: haStore.states,
+}));
+
+const toolbarBackgroundStyle = computed(() => {
+  const page = pages.value.find((p) => p.id === currentPageId.value);
+  if (!page?.toolbarBackground) return undefined;
+  const resolved = resolveWidgetProp(page.toolbarBackground, pageResolveCtx.value);
+  return resolved ? { background: resolved } : undefined;
+});
+
+const layoutBackgroundStyle = computed(() => {
+  if (route.name !== 'dashboard-page') return undefined;
+  const bg = pages.value.find((p) => p.id === currentPageId.value)?.background;
+  if (!bg) return undefined;
+  return {
+    ...(bg.image
+      ? {
+          backgroundImage: `url(${bg.image})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }
+      : {}),
+    ...(bg.color ? { backgroundColor: bg.color } : {}),
+    ...(bg.style ?? {}),
+  };
+});
 
 const leftDrawerOpen = ref(false);
 const miniDrawer = ref(true);
@@ -185,6 +233,49 @@ function formatAlertExpiry(expires: string) {
   &__expires {
     font-size: 0.95rem;
     opacity: 0.85;
+  }
+}
+
+.app-header {
+  background: var(--toolbar-background);
+  transition: background-color 1s ease;
+}
+
+.header-title-block {
+  text-align: right;
+  line-height: 1.2;
+}
+
+.header-app-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+}
+
+.header-ha-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 0.7rem;
+  opacity: 0.75;
+  color: white;
+}
+
+.ha-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--on {
+    background: #4caf50;
+    box-shadow: 0 0 4px #4caf50;
+  }
+
+  &--off {
+    background: #f44336;
   }
 }
 
