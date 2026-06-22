@@ -3,6 +3,7 @@ import { ref, shallowRef } from 'vue';
 import { SendspinPlayer } from '@sendspin/sendspin-js';
 import type { ControllerCommand, ServerStateMetadata } from '@sendspin/sendspin-js';
 import type { SendSpinConfig } from '../types/config';
+import { getTileboardId } from '../utils/tileboardId';
 
 export const useSendspinStore = defineStore('sendspin', () => {
   const player = shallowRef<SendspinPlayer | null>(null);
@@ -47,7 +48,7 @@ export const useSendspinStore = defineStore('sendspin', () => {
 
     const p = new SendspinPlayer({
       baseUrl: config.server,
-      playerId: config.id,
+      playerId: getTileboardId(),
       clientName: config.name,
       onStateChange: (state) => {
         connected.value = true;
