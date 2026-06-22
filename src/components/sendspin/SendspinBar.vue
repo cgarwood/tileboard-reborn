@@ -69,7 +69,7 @@ import { useSendspinStore } from '../../stores/sendspin';
 import SendspinDialog from './SendspinDialog.vue';
 
 const store = useSendspinStore();
-const minimized = ref(false);
+const minimized = ref(!store.isPlaying);
 const dialogOpen = ref(false);
 
 const hasMedia = computed(() => store.isPlaying || store.metadata != null);
