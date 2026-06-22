@@ -33,6 +33,15 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     localStorage.removeItem(TOKENS_KEY);
   }
 
+  function stripAuthParams() {
+    const url = new URL(window.location.href);
+    const params = ['auth_callback', 'code', 'state'];
+    if (params.some((p) => url.searchParams.has(p))) {
+      params.forEach((p) => url.searchParams.delete(p));
+      history.replaceState(null, '', url.toString());
+    }
+  }
+
   async function connect(haUrl: string) {
     disconnect();
     error.value = null;
@@ -53,6 +62,10 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       connection.value = conn;
       connected.value = true;
 
+      // After a successful OAuth callback the URL still contains ?auth_callback=1&code=…
+      // Strip those params so a reload doesn't re-present the already-consumed code to HA.
+      stripAuthParams();
+
       conn.addEventListener('disconnected', (_conn, code?: number) => {
         connected.value = false;
         console.log('Home Assistant connection closed', code);
@@ -65,11 +78,14 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
         states.value = entities;
       });
     } catch (e) {
-      if (e === ERR_INVALID_AUTH) {
-        // Tokens are invalid or revoked — clear them and retry, which will
-        // trigger the OAuth redirect since no tokens are stored.
+      const is400 = e instanceof Response && e.status === 400;
+      if (e === ERR_INVALID_AUTH || is400) {
+        // Tokens are invalid/revoked, or the auth code was already consumed (400).
+        // Strip the auth callback params first so the retry doesn't hit the token
+        // endpoint again with the same dead code, causing an infinite loop.
+        stripAuthParams();
         clearTokens();
-        //void connect(haUrl);
+        void connect(haUrl);
         return;
       }
       if (e === ERR_HASS_HOST_REQUIRED) {
