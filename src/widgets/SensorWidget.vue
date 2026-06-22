@@ -34,6 +34,10 @@ const isMicro = computed(() => {
 .widget-sensor {
   background: var(--sensor-widget-background);
   color: var(--text-light);
+
+  &.state--on {
+    background: var(--sensor-widget-background-on);
+  }
 }
 </style>
 

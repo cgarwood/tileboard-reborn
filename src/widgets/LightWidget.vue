@@ -4,17 +4,13 @@
     :style="[backgroundStyle, { cursor: 'pointer' }]"
     @click="handleClick"
   >
-    <q-card-section class="widget-body q-pa-sm">
+    <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
       <div class="state-area">
         <q-icon
           :name="iconName"
           :size="isMicro ? '28px' : '40px'"
+          :style="{ opacity: isOn ? iconOpacity : 0.45 }"
           color="white"
-          :class="{
-            'fan-spin': isOn,
-            'fan-spin--fast': isOn && percentage >= 66,
-            'fan-spin--slow': isOn && percentage < 34,
-          }"
         />
       </div>
 
@@ -23,26 +19,22 @@
         <div class="title ellipsis">{{ title }}</div>
       </div>
 
-      <div v-if="!isMicro" class="speed-controls" @click.stop>
+      <div v-if="supportsDimming && !isMicro" class="dim-controls" @click.stop>
         <q-btn
-          flat
-          dense
-          round
+          flat dense round
           icon="mdi-plus"
           size="xs"
           color="white"
-          :disable="!isOn || percentage >= 100"
-          @click.stop="adjustSpeed(step)"
+          :disable="!isOn || brightnessPercent >= 100"
+          @click.stop="adjustBrightness(step)"
         />
         <q-btn
-          flat
-          dense
-          round
+          flat dense round
           icon="mdi-minus"
           size="xs"
           color="white"
-          :disable="!isOn || percentage <= 0"
-          @click.stop="adjustSpeed(-step)"
+          :disable="!isOn || brightnessPercent <= 0"
+          @click.stop="adjustBrightness(-step)"
         />
       </div>
     </q-card-section>
@@ -51,7 +43,7 @@
 
 <script lang="ts">
 import { registerWidgetDefaults } from '../utils/widgetRegistry';
-registerWidgetDefaults('fan', { width: 2, height: 2 });
+registerWidgetDefaults('light', { width: 2, height: 2 });
 </script>
 
 <script setup lang="ts">
@@ -74,26 +66,40 @@ const isMicro = computed(() => {
   return w <= 1 && h <= 1;
 });
 
-const percentage = computed(() => (entity.value?.attributes.percentage as number | undefined) ?? 0);
-
-const step = computed(() => {
-  const attr = entity.value?.attributes.percentage_step as number | undefined;
-  return attr ?? 33;
+const supportsDimming = computed(() => {
+  const modes = entity.value?.attributes.supported_color_modes as string[] | undefined;
+  if (!modes) return false;
+  return modes.some((m) => m !== 'onoff' && m !== 'unknown');
 });
 
-const iconName = computed(() => icon.value ?? (isOn.value ? 'mdi-fan' : 'mdi-fan-off'));
+// HA brightness is 0–255; convert to 0–100%
+const brightnessPercent = computed(() => {
+  const b = entity.value?.attributes.brightness as number | undefined;
+  if (b == null) return 0;
+  return Math.round((b / 255) * 100);
+});
+
+// Dim the icon when light is at lower brightness
+const iconOpacity = computed(() => {
+  if (!supportsDimming.value || !isOn.value) return 1;
+  return 0.4 + (brightnessPercent.value / 100) * 0.6;
+});
+
+const step = computed(() => (props.widget.step as number | undefined) ?? 10);
+
+const iconName = computed(() => icon.value ?? (isOn.value ? 'mdi-lightbulb' : 'mdi-lightbulb-off-outline'));
 
 function toggle() {
   if (!props.widget.entity) return;
   void haStore.callService('homeassistant', 'toggle', { entity_id: props.widget.entity });
 }
 
-function adjustSpeed(delta: number) {
+function adjustBrightness(delta: number) {
   if (!props.widget.entity) return;
-  const next = Math.max(0, Math.min(100, percentage.value + delta));
-  void haStore.callService('fan', 'set_percentage', {
+  const next = Math.max(1, Math.min(100, brightnessPercent.value + delta));
+  void haStore.callService('light', 'turn_on', {
     entity_id: props.widget.entity,
-    percentage: next,
+    brightness_pct: next,
   });
 }
 
@@ -103,12 +109,12 @@ function handleClick() {
 </script>
 
 <style lang="scss">
-.widget-fan {
-  background: var(--fan-widget-background);
+.widget-light {
+  background: var(--light-widget-background);
   color: var(--text-light);
 
   &.state--on {
-    background: var(--fan-widget-background-on);
+    background: var(--light-widget-background-on);
   }
 }
 </style>
@@ -116,7 +122,7 @@ function handleClick() {
 <style lang="scss" scoped>
 @use '../css/widget';
 
-.speed-controls {
+.dim-controls {
   position: absolute;
   bottom: 4px;
   right: 6px;
@@ -124,26 +130,5 @@ function handleClick() {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-}
-
-@keyframes fan-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.fan-spin {
-  animation: fan-rotate 2.5s linear infinite;
-
-  &--slow {
-    animation-duration: 3s;
-  }
-
-  &--fast {
-    animation-duration: 1s;
-  }
 }
 </style>

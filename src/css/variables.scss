@@ -3,15 +3,20 @@
   --page-background: #{$cyan-10};
 
   --button-widget-background: #{$indigo-9};
-  --fan-widget-background: #{$teal-9};
-  --number-widget-background: #{$deep-purple-9};
+  --fan-widget-background: rgb(122, 78, 127);
+  --fan-widget-background-on: rgb(160, 100, 165);
+  --number-widget-background: rgb(5, 164, 140);
   --error-widget-background: #{$amber-4};
-  --sensor-widget-background: #{$pink-9};
-  --switch-widget-background: #{$cyan-9};
-  --weather-widget-background: #{$blue-10};
-  --calendar-widget-background: #{$indigo-8};
+  --sensor-widget-background: rgb(53, 163, 239);
+  --sensor-widget-background-on: rgb(30, 120, 200);
+  --switch-widget-background: rgb(122, 78, 127);
+  --switch-widget-background-on: rgb(190, 68, 117);
+  --light-widget-background: rgb(145, 62, 101);
+  --light-widget-background-on: rgb(221, 76, 73);
+  --weather-widget-background: rgb(65, 84, 115);
+  --calendar-widget-background: rgb(75, 55, 125);
 
-  --climate-widget-background: #{$grey-9};
+  --climate-widget-background: rgb(39, 84, 98);
   --climate-heating-background: #{$deep-orange-9};
   --climate-cooling-background: #{$blue-9};
 

@@ -50,6 +50,10 @@ function handleClick() {
 .widget-switch {
   background: var(--switch-widget-background);
   color: var(--text-light);
+
+  &.state--on {
+    background: var(--switch-widget-background-on);
+  }
 }
 </style>
 

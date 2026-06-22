@@ -14,6 +14,7 @@ import ButtonWidget from '../widgets/ButtonWidget.vue';
 import FanWidget from '../widgets/FanWidget.vue';
 import NumberWidget from '../widgets/NumberWidget.vue';
 import CalendarWidget from '../widgets/CalendarWidget.vue';
+import LightWidget from '../widgets/LightWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
@@ -26,6 +27,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   fan: FanWidget,
   number: NumberWidget,
   calendar: CalendarWidget,
+  light: LightWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();

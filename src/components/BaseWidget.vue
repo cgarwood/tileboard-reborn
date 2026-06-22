@@ -15,10 +15,11 @@ import { computed } from 'vue';
 import type { Widget } from '../types/widgets';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
+import { slugifyState } from '../utils/slugifyState';
 
 const props = defineProps<{ widget: Widget }>();
 
-const { cardClass, cardStyle } = useWidget(() => props.widget);
+const { cardClass, cardStyle, state } = useWidget(() => props.widget);
 const { isLocked } = useRestriction(() => props.widget);
 
 const _class = computed(() => [
@@ -26,6 +27,7 @@ const _class = computed(() => [
   'widget-base',
   'widget',
   `widget-${props.widget.type}`,
+  state.value != null ? `state--${slugifyState(state.value)}` : null,
 ]);
 </script>
 
