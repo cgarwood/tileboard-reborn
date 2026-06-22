@@ -163,7 +163,7 @@ const toolbarBackgroundStyle = computed(() => {
 });
 
 const layoutBackgroundStyle = computed(() => {
-  if (route.name !== 'dashboard-page') return undefined;
+  if (route.name !== 'dashboard-page' && route.name !== 'dashboard-index') return undefined;
   const bg = pages.value.find((p) => p.id === currentPageId.value)?.background;
   if (!bg) return undefined;
   return {

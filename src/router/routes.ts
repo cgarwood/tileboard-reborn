@@ -9,7 +9,8 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     children: [
-      { path: ':pageId?', name: 'dashboard-page', component: () => import('@/pages/DashboardPage.vue') },
+      { path: '', name: 'dashboard-index', component: () => import('@/pages/DashboardPage.vue') },
+      { path: ':pageId', name: 'dashboard-page', component: () => import('@/pages/DashboardPage.vue') },
     ],
   },
 
