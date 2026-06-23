@@ -1,0 +1,173 @@
+# Home Assistant URL
+haUrl: !secret haUrl
+
+# Identifier for this device
+id: living_room
+
+# Friendly name for this device
+name: Living Room
+
+# Screensaver configuration
+screensaver:
+  # Timeout (in seconds)
+  #timeout: 300
+  timeout: 5
+  # Source to get a JSON list of pictures
+  source: !secret example_screensaver_source
+  # Source prefix if necessary. Will be prepended to the image src URL
+  sourcePrefix: !secret example_screensaver_source_prefix
+
+# Snapcast Configuration
+snapcast:
+  server: !secret snapcast_url
+
+# Plex Configuration for enhanced media controls
+plex:
+  server: 192.168.1.1
+  port: 32400
+  protocol: http
+  token: !secret plex_token
+
+restrictions:
+  # An example restriction that requires a PIN to be entered when a binary sensor is active
+  require_magic_pin:
+    # Friendly Name
+    name: Magic PIN Required
+    # List of conditions that can cause the restriction to be active
+    # "OR" based (only 1 match needed)
+    conditions:
+      - entity: binary_sensor.living_room_multisensor_motion
+        state: 'on'
+    # Require a PIN to be entered to unlock
+    pin:
+      # Code (required)
+      code: 1234
+      # Message to display when PIN is required
+      message: Please enter the super secret PIN
+    # How long should actions be allowed before being restricted again?
+    unlock_time: 10
+  # An example restriction that always requires a confirmation
+  confirm:
+    name: Simple Confirmation
+    # Require a simple yes/no confirmation
+    confirm:
+      # Message to display
+      message: Are you sure you want to perform this action?
+      # Optional custom confirm/deny buttons
+      confirm: Do It
+      deny: "Don't do it"
+
+# Sidebars
+sidebars:
+  - type: climate
+    entity: climate.main_floor
+    title: Climate
+    subtitle: Home
+  - type: weather
+    entity: weather.nws
+    title: Weather
+    subtitle: Home
+  - type: power
+    title: Power Usage
+    entities:
+      grid_status: binary_sensor.grid_status
+      power_consumption: sensor.house_consumption
+      grid_usage: sensor.grid_consumption
+      solar_production: sensor.solar_production
+      battery_usage: sensor.battery_usage
+      battery_percent: sensor.battery_percentage
+
+# Pages
+pages:
+  - name: Dashboard
+    id: dashboard
+    widgets:
+      - type: row
+        widgets:
+          - type: sensor
+            entity: sensor.living_room_multisensor_temperature
+            title: Temperature
+            subtitle: Living Room
+            iconColor: red-4
+            classes:
+              - col-3
+          - type: sensor
+            entity: sensor.living_room_multisensor_relative_humidity
+            title: Humidity
+            subtitle: Living Room
+            iconColor: blue-3
+            classes:
+              - col-3
+          - type: switch
+            entity: light.entryway_light
+            title: Entryway
+            subtitle: Living Room
+            icon: mdi-lightbulb
+            # Tell this widget to use the require_magic_pin restriction
+            restriction: require_magic_pin
+            classes:
+              - col-3
+          - type: sensor
+            entity: binary_sensor.living_room_multisensor_motion
+            title: Motion
+            subtitle: Living Room
+            iconColor: yellow
+            state:
+              off: No Motion
+            classes:
+              - col-3
+      - type: row
+        widgets:
+          - type: sensor
+            entity: sensor.living_room_multisensor_temperature
+            title: Temperature
+            subtitle: Living Room
+            classes:
+              - col-2
+          - type: sensor
+            entity: sensor.living_room_multisensor_relative_humidity
+            title: Humidity
+            subtitle: Living Room
+            classes:
+              - col-2
+          - type: entities
+            title: Lights
+            classes:
+              - col-grow
+            entities:
+              - entity: light.entryway_light
+                title: Entryway Lights
+                icon: mdi-lightbulb
+              - entity: binary_sensor.living_room_multisensor_motion
+                title: Motion
+                icon: mdi-run
+  - name: Climate
+    id: climate
+    widgets:
+      - type: row
+        widgets:
+        - type: climate
+          entity: climate.hallway
+          title: Hallway Thermostat
+          classes:
+            - col-5
+        - type: climate
+          entity: climate.garage_minisplit
+          classes:
+            - col-5
+  - name: Media
+    id: media
+    widgets:
+      - type: nowplaying_hero
+        tvEntity: media_player.living_room_tv
+        receiverEntity: media_player.living_room_appletv
+        plexEntity: media_player.plex_living_room_appletv
+        receiverSource: 'HDMI-3'
+      - type: plex-media-swiper
+        mediaType: on-deck
+      - type: plex-media-swiper
+        mediaType: recently-added
+  - name: Security
+    id: security
+  - name: Rooms
+    id: rooms

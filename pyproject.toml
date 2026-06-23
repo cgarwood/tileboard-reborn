@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools==68.0.0", "wheel~=0.40.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tileboardserver"
+version = "0.0.1"
+license = {text = "Apache-2.0"}
+description = "A server for the Tileboard project"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "aiohttp==3.14.1",
+    "PyYAML==6.0.1",
+]
+
+[project.scripts]
+tileboard-server = "tileboardserver.server:main"
+
+[tool.setuptools.packages.find]
+include = ["tileboardserver*"]
+
+[tool.setuptools.package-data]
+tileboardserver = ["frontend/**/*"]
