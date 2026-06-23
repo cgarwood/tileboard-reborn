@@ -16,6 +16,7 @@ import NumberWidget from '../widgets/NumberWidget.vue';
 import CalendarWidget from '../widgets/CalendarWidget.vue';
 import LightWidget from '../widgets/LightWidget.vue';
 import ListWidget from '../widgets/ListWidget.vue';
+import CameraWidget from '../widgets/CameraWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
@@ -30,6 +31,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   calendar: CalendarWidget,
   light: LightWidget,
   list: ListWidget,
+  camera: CameraWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();

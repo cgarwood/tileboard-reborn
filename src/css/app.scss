@@ -29,6 +29,10 @@ body {
   margin-bottom: 16px;
 }
 
+.motion-detected-border {
+  border: 3px solid var(--red-6);
+}
+
 .animation-pulsate {
   animation: pulse 2s linear infinite;
 }
