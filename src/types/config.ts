@@ -4,6 +4,7 @@ export type Config = {
   ha_url: string;
   name: string;
   id: string;
+  grid_size?: number;
   weather_alerts?: WeatherAlertConfig;
   screensaver?: ScreensaverConfig;
   sendspin?: SendSpinConfig;

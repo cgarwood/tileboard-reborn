@@ -17,7 +17,7 @@
           v-for="(section, i) in row"
           :key="i"
           :section="section"
-          :grid-size="page.grid_size"
+          :grid-size="page.grid_size ?? topLevelGridSize"
         />
       </div>
     </div>
@@ -32,18 +32,15 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useConfigStore } from '../stores/config';
 import GridSection from '../components/GridSection.vue';
-import type { Page } from '../types/page';
+import type { Config } from '../types/config';
 import type { Section } from '../types/sections';
-
-interface DashboardConfig {
-  pages: Page[];
-  [key: string]: unknown;
-}
 
 const route = useRoute();
 const configStore = useConfigStore();
 
-const pages = computed(() => (configStore.config as DashboardConfig | null)?.pages ?? []);
+const config = computed(() => configStore.config as Config | null);
+const pages = computed(() => config.value?.pages ?? []);
+const topLevelGridSize = computed(() => config.value?.grid_size);
 
 const pageId = computed(() => route.params.pageId as string | undefined);
 
