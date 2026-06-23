@@ -42,7 +42,7 @@ import { useWidget } from '../composables/useWidget';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useWeatherForecast } from '../composables/useWeatherForecast';
 import { getWidgetDefaults } from '../utils/widgetRegistry';
-import { getWeatherIcon } from '../utils/weatherIcons';
+import { getWeatherIcon, formatWeatherState } from '../utils/weatherIcons';
 import { WeatherEntityFeature } from '../types/weather';
 import type { ForecastType } from '../types/weather';
 import type { Widget } from '../types/widgets';
@@ -75,10 +75,7 @@ const tempUnit = computed(() => {
   return (entity.value?.attributes.temperature_unit as string | undefined) ?? '°F';
 });
 
-const condition = computed(() => {
-  const s = entity.value?.state ?? '';
-  return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-});
+const condition = computed(() => formatWeatherState(entity.value?.state ?? ''));
 
 const weatherIcon = computed(() => getWeatherIcon(entity.value?.state ?? ''));
 

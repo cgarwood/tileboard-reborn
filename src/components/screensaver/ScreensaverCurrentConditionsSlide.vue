@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
-import { getWeatherIcon } from '../../utils/weatherIcons';
+import { getWeatherIcon, formatWeatherState } from '../../utils/weatherIcons';
 
 const props = defineProps<{
   entityId: string;
@@ -67,10 +67,7 @@ const tempValue = computed(() => {
 
 const tempUnit = computed(() => (attrs.value.temperature_unit as string | undefined) ?? '°F');
 
-const condition = computed(() => {
-  const s = entity.value?.state ?? '';
-  return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-});
+const condition = computed(() => formatWeatherState(entity.value?.state ?? ''));
 
 const weatherIcon = computed(() => getWeatherIcon(entity.value?.state ?? ''));
 const humidity = computed(() => (attrs.value.humidity as number | null) ?? null);
