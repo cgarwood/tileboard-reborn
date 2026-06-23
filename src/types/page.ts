@@ -8,6 +8,7 @@ export type Page = {
   sections: (Section | 'break')[];
   background: BackgroundConfig;
   toolbarBackground?: string | Record<string, string>;
+  hide_from_nav?: boolean;
 };
 
 export type BackgroundConfig = {

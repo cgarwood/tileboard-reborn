@@ -41,9 +41,9 @@
     </q-header>
 
     <!-- Page navigation rail -->
-    <div v-if="pages.length" class="page-nav-rail">
+    <div v-if="navPages.length" class="page-nav-rail">
       <div
-        v-for="page in pages"
+        v-for="page in navPages"
         :key="page.id"
         class="nav-rail-btn"
         :class="{ 'nav-rail-btn--active': isActivePage(page.id) }"
@@ -119,6 +119,7 @@ const haStore = useHomeAssistantStore();
 const route = useRoute();
 
 const pages = computed(() => (configStore.config as Config | null)?.pages ?? []);
+const navPages = computed(() => pages.value.filter((p) => !p.hide_from_nav));
 
 const currentPageId = computed(() => {
   const paramId = route.params.pageId as string | undefined;
