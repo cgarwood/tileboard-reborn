@@ -46,6 +46,7 @@ export function useWidget(widget: () => Widget) {
   const cardStyle = computed(() => [widget().style ?? {}]);
 
   const icon = computed(() => resolveWidgetProp(widget().icon, resolveCtx.value));
+  const iconColor = computed(() => resolveWidgetProp(widget().icon_color, resolveCtx.value));
 
   return {
     entity,
@@ -59,5 +60,7 @@ export function useWidget(widget: () => Widget) {
     background,
     backgroundStyle,
     icon,
+    iconColor,
+    resolveCtx,
   };
 }
