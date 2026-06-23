@@ -22,3 +22,13 @@ include = ["tileboardserver*"]
 
 [tool.setuptools.package-data]
 tileboardserver = ["frontend/**/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"

@@ -1,26 +1,27 @@
 .DS_Store
 .thumbs.db
-node_modules
 
 # .env files
 .env*
 
-# Quasar core related directories
-.quasar
-/dist
-/quasar.config.*.temporary.compiled*
+# Frontend
+frontend/node_modules
+frontend/dist
+frontend/.quasar
+frontend/quasar.config.*.temporary.compiled*
 
-# Cordova related directories and files
-/src-cordova/node_modules
-/src-cordova/platforms
-/src-cordova/plugins
-/src-cordova/www
+# Server
+server/.venv
+server/venv
+server/__pycache__
+server/**/__pycache__
+server/*.egg-info
+server/build
+server/dist
 
-# Capacitor related directories and files
-/src-capacitor/www
-/src-capacitor/node_modules
+# Docs
+docs/site
 
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Editors
+.vscode/
+.idea/
