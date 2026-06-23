@@ -1,0 +1,9 @@
+server:
+  port: 9090
+
+weather_alerts:
+
+screensaver:
+  default: /var/www/html/controlly-screensavers/default
+  master_bedroom: /var/www/html/controlly-screensavers/master-bedroom
+  kids: /var/www/html/controlly-screensavers/kids-rooms
