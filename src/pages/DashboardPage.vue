@@ -70,6 +70,6 @@ const sectionRows = computed(() => {
   padding: 0;
 }
 .page-content {
-  padding: 16px;
+  padding: 16px 16px 16px 62px;
 }
 </style>

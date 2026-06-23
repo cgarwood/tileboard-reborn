@@ -1,9 +1,9 @@
 <template>
-  <q-layout view="hHh Lpr lFf" :style="layoutBackgroundStyle">
+  <q-layout view="hHh lpR lFf" :style="layoutBackgroundStyle">
     <q-header elevated class="app-header" :style="toolbarBackgroundStyle">
       <q-toolbar>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
+        <q-icon v-if="currentPageIcon" :name="currentPageIcon" size="22px" class="q-mr-sm" />
         <q-toolbar-title>{{ currentPageName }}</q-toolbar-title>
 
         <div class="header-title-block q-mr-xs">
@@ -40,33 +40,19 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      :mini="miniDrawer"
-      mini-to-overlay
-      show-if-above
-      bordered
-      @mouseenter="miniDrawer = false"
-      @mouseleave="miniDrawer = true"
-    >
-      <q-list>
-        <template v-for="page in pages" :key="page.id">
-          <q-item
-            clickable
-            :to="{ name: 'dashboard-page', params: { pageId: page.id } }"
-            :class="{ 'page-item--active': isActivePage(page.id) }"
-          >
-            <q-item-section avatar>
-              <q-icon
-                :name="page.icon ?? 'mdi-home'"
-                :color="isActivePage(page.id) ? 'primary' : 'grey-5'"
-              />
-            </q-item-section>
-            <q-item-section>{{ page.name }}</q-item-section>
-          </q-item>
-        </template>
-      </q-list>
-    </q-drawer>
+    <!-- Page navigation rail -->
+    <div v-if="pages.length" class="page-nav-rail">
+      <div
+        v-for="page in pages"
+        :key="page.id"
+        class="nav-rail-btn"
+        :class="{ 'nav-rail-btn--active': isActivePage(page.id) }"
+        @click="router.push({ name: 'dashboard-page', params: { pageId: page.id } })"
+      >
+        <q-icon :name="page.icon ?? 'mdi-home'" size="22px" />
+        <q-tooltip anchor="center right" self="center left" :delay="600">{{ page.name }}</q-tooltip>
+      </div>
+    </div>
 
     <q-page-container>
       <router-view />
@@ -111,7 +97,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { date } from 'quasar';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useConfigStore } from '../stores/config';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useScreensaverStore } from '../stores/screensaver';
@@ -122,6 +108,7 @@ import type { Config } from '@/types/config';
 import type { WeatherAlert } from '../types/weather-alerts';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
 
+const router = useRouter();
 const configStore = useConfigStore();
 const screensaverStore = useScreensaverStore();
 
@@ -138,9 +125,9 @@ const currentPageId = computed(() => {
   return paramId || pages.value[0]?.id;
 });
 
-const currentPageName = computed(
-  () => pages.value.find((p) => p.id === currentPageId.value)?.name ?? '',
-);
+const currentPage = computed(() => pages.value.find((p) => p.id === currentPageId.value));
+const currentPageName = computed(() => currentPage.value?.name ?? '');
+const currentPageIcon = computed(() => currentPage.value?.icon ?? null);
 
 function isActivePage(id: string) {
   return currentPageId.value === id;
@@ -179,12 +166,6 @@ const layoutBackgroundStyle = computed(() => {
   };
 });
 
-const leftDrawerOpen = ref(false);
-const miniDrawer = ref(true);
-
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
-}
 
 const weatherAlertsStore = useWeatherAlertsStore();
 const currentSlide = ref(0);
@@ -279,18 +260,41 @@ function formatAlertExpiry(expires: string) {
   }
 }
 
-.page-item--active {
-  background: rgba(var(--q-primary-rgb, 25, 118, 210), 0.12);
+.page-nav-rail {
+  position: fixed;
+  top: 50px;
+  bottom: 0;
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  z-index: 200;
+  pointer-events: none;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: var(--q-primary, #1976d2);
-    border-radius: 0 2px 2px 0;
+.nav-rail-btn {
+  pointer-events: all;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &--active {
+    color: white;
+    background: rgba(255, 255, 255, 0.18);
   }
 }
 </style>
