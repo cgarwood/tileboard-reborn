@@ -145,8 +145,8 @@ const pageResolveCtx = computed<PropResolveContext>(() => ({
 
 const toolbarBackgroundStyle = computed(() => {
   const page = pages.value.find((p) => p.id === currentPageId.value);
-  if (!page?.toolbarBackground) return undefined;
-  const resolved = resolveWidgetProp(page.toolbarBackground, pageResolveCtx.value);
+  if (!page?.toolbar_background) return undefined;
+  const resolved = resolveWidgetProp(page.toolbar_background, pageResolveCtx.value);
   return resolved ? { background: resolved } : undefined;
 });
 

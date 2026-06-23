@@ -46,12 +46,12 @@ watch(
   () => configStore.config,
   (config) => {
     if (config) {
-      void haStore.connect(config.haUrl as string);
+      void haStore.connect(config.ha_url as string);
       if (config.screensaver) {
         void screensaverStore.initialize(config.screensaver as ScreensaverConfig);
       }
-      if (config.weatherAlerts) {
-        weatherAlertsStore.startPolling(config.weatherAlerts as WeatherAlertConfig);
+      if (config.weather_alerts) {
+        weatherAlertsStore.startPolling(config.weather_alerts as WeatherAlertConfig);
       } else {
         weatherAlertsStore.stopPolling();
       }

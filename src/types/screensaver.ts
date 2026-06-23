@@ -2,7 +2,7 @@ export interface ScreensaverConfig {
   timeout: number;
   speed?: number;
   source: string;
-  sourcePrefix?: string;
+  source_prefix?: string;
   weather_entity?: string;
   calendars?: ScreensaverCalendarConfig[];
 }

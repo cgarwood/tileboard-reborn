@@ -17,7 +17,7 @@
           v-for="(section, i) in row"
           :key="i"
           :section="section"
-          :grid-size="page.gridSize"
+          :grid-size="page.grid_size"
         />
       </div>
     </div>

@@ -1,10 +1,10 @@
 import type { ScreensaverConfig } from './screensaver';
 
 export type Config = {
-  haUrl: string;
+  ha_url: string;
   name: string;
   id: string;
-  weatherAlerts?: WeatherAlertConfig;
+  weather_alerts?: WeatherAlertConfig;
   screensaver?: ScreensaverConfig;
   sendspin?: SendSpinConfig;
   plex?: PlexConfig;

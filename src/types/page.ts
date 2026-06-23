@@ -4,10 +4,10 @@ export type Page = {
   id: string;
   name: string;
   icon: string;
-  gridSize?: number;
+  grid_size?: number;
   sections: (Section | 'break')[];
   background: BackgroundConfig;
-  toolbarBackground?: string | Record<string, string>;
+  toolbar_background?: string | Record<string, string>;
   hide_from_nav?: boolean;
 };
 

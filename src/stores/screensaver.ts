@@ -29,7 +29,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
       const paths = (await response.json()) as string[];
       slides.value = paths.map((path) => ({
         type: 'image' as const,
-        url: config.sourcePrefix ? `${config.sourcePrefix}${path}` : path,
+        url: config.source_prefix ? `${config.source_prefix}${path}` : path,
       }));
     } catch (e) {
       console.error('Screensaver: failed to load slides', e);

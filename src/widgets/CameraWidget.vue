@@ -45,7 +45,7 @@ const { title, subtitle } = useWidget(() => props.widget);
 const { withUnlock } = useRestriction(() => props.widget);
 
 const haUrl = computed(() => {
-  const url = (configStore.config as Config | null)?.haUrl ?? '';
+  const url = (configStore.config as Config | null)?.ha_url ?? '';
   return url.replace(/\/$/, '');
 });
 
