@@ -10,13 +10,6 @@ from .yaml.loader import Secrets, load_yaml
 app = web.Application()
 
 
-async def root_handler(request):
-    return web.Response(text="Hello, world")
-
-
-app.add_routes([web.get("/", root_handler)])
-
-
 async def yaml_handler(request):
     path = f"configs/{request.match_info['name']}/config.yaml"
     secrets = Secrets(f"configs/{request.match_info['name']}")
@@ -104,6 +97,8 @@ def _setup_frontend() -> None:
     app.router.add_static("/assets", FRONTEND_DIR / "assets", name="frontend_assets")
 
     # Catch-all: return index.html for every unmatched GET so Vue Router works.
+    # The explicit "/" route is needed because "/{path_info:.*}" doesn't match an empty segment.
+    app.router.add_get("/", spa_fallback)
     app.router.add_get("/{path_info:.*}", spa_fallback)
 
 
