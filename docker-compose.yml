@@ -1,7 +1,7 @@
 services:
   tileboard:
-    build: .
+    image: ghcr.io/cgarwood/tileboard-reborn:latest
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./data:/data
