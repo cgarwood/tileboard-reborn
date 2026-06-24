@@ -1,0 +1,7 @@
+services:
+  tileboard:
+    build: .
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./data:/data
