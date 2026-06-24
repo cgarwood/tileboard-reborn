@@ -1,6 +1,7 @@
 """YAML loader ported from Home Assistant / annotatedyaml.
 https://github.com/home-assistant-libs/annotatedyaml
 """
+
 from __future__ import annotations
 
 import fnmatch
@@ -95,10 +96,7 @@ class Secrets:
                     _LOGGER.setLevel(logging.DEBUG)
                 else:
                     _LOGGER.error(
-                        (
-                            "Error in secrets.yaml: 'logger: debug' expected, but"
-                            " 'logger: %s' found"
-                        ),
+                        ("Error in secrets.yaml: 'logger: debug' expected, but 'logger: %s' found"),
                         logger,
                     )
                 del secrets["logger"]
@@ -158,9 +156,7 @@ class PythonSafeLoader(yaml.SafeLoader, _LoaderMixin):
 LoaderType = FastSafeLoader | PythonSafeLoader
 
 
-def load_yaml(
-    fname: str | os.PathLike[str], secrets: Secrets | None = None
-) -> JSON_TYPE | None:
+def load_yaml(fname: str | os.PathLike[str], secrets: Secrets | None = None) -> JSON_TYPE | None:
     """Load a YAML file.
 
     If opening the file raises an OSError it will be wrapped in a YAMLException,
@@ -178,9 +174,7 @@ def load_yaml(
         raise YAMLException(exc) from exc
 
 
-def load_yaml_dict(
-    fname: str | os.PathLike[str], secrets: Secrets | None = None
-) -> dict:
+def load_yaml_dict(fname: str | os.PathLike[str], secrets: Secrets | None = None) -> dict:
     """Load a YAML file and ensure the top level is a dict.
 
     Raise if the top level is not a dict.
@@ -194,9 +188,7 @@ def load_yaml_dict(
     return loaded_yaml
 
 
-def parse_yaml(
-    content: str | TextIO | StringIO, secrets: Secrets | None = None
-) -> JSON_TYPE:
+def parse_yaml(content: str | TextIO | StringIO, secrets: Secrets | None = None) -> JSON_TYPE:
     """Parse YAML with the fastest available loader."""
     if not HAS_C_LOADER:
         return _parse_yaml_python(content, secrets)
@@ -235,10 +227,12 @@ def _raise_if_no_value(
     func: Callable[..., Any],
 ) -> Callable[..., Any]:
     """Decorator that raises YAMLException if a node has no value."""
+
     def wrapper(loader: LoaderType, node: yaml.nodes.Node) -> Any:
         if not node.value:
             raise YAMLException(f"{node.start_mark}: {node.tag} needs an argument.")
         return func(loader, node)
+
     return wrapper
 
 
@@ -345,9 +339,7 @@ def _include_dir_named_yaml(loader: LoaderType, node: yaml.nodes.Node) -> NodeDi
 
 
 @_raise_if_no_value
-def _include_dir_merge_named_yaml(
-    loader: LoaderType, node: yaml.nodes.Node
-) -> NodeDictClass:
+def _include_dir_merge_named_yaml(loader: LoaderType, node: yaml.nodes.Node) -> NodeDictClass:
     """Load multiple files from directory as a merged dictionary."""
     mapping = NodeDictClass()
     loc = os.path.join(os.path.dirname(loader.get_name), node.value)
@@ -362,9 +354,7 @@ def _include_dir_merge_named_yaml(
 
 
 @_raise_if_no_value
-def _include_dir_list_yaml(
-    loader: LoaderType, node: yaml.nodes.Node
-) -> list[JSON_TYPE]:
+def _include_dir_list_yaml(loader: LoaderType, node: yaml.nodes.Node) -> list[JSON_TYPE]:
     """Load multiple files from directory as a list."""
     loc = os.path.join(os.path.dirname(loader.get_name), node.value)
     return [
@@ -376,9 +366,7 @@ def _include_dir_list_yaml(
 
 
 @_raise_if_no_value
-def _include_dir_merge_list_yaml(
-    loader: LoaderType, node: yaml.nodes.Node
-) -> JSON_TYPE:
+def _include_dir_merge_list_yaml(loader: LoaderType, node: yaml.nodes.Node) -> JSON_TYPE:
     """Load multiple files from directory as a merged list."""
     loc: str = os.path.join(os.path.dirname(loader.get_name), node.value)
     merged_list: list[JSON_TYPE] = []
@@ -391,9 +379,7 @@ def _include_dir_merge_list_yaml(
     return _add_reference(merged_list, loader, node)
 
 
-def _handle_mapping_tag(
-    loader: LoaderType, node: yaml.nodes.MappingNode
-) -> NodeDictClass:
+def _handle_mapping_tag(loader: LoaderType, node: yaml.nodes.MappingNode) -> NodeDictClass:
     """Load YAML mappings into an ordered dictionary to preserve key order."""
     loader.flatten_mapping(node)
     nodes = loader.construct_pairs(node)
@@ -419,7 +405,12 @@ def _handle_mapping_tag(
             raise yaml.MarkedYAMLError(
                 context=f'invalid key: "{key}"',
                 context_mark=yaml.Mark(
-                    fname, 0, line, -1, None, None  # type: ignore[arg-type]
+                    fname,
+                    0,
+                    line,
+                    -1,
+                    None,
+                    None,  # type: ignore[arg-type]
                 ),
             ) from exc
 
@@ -445,9 +436,7 @@ def _construct_seq(loader: LoaderType, node: yaml.nodes.Node) -> JSON_TYPE:
     return _add_reference(obj, loader, node)
 
 
-def _handle_scalar_tag(
-    loader: LoaderType, node: yaml.nodes.ScalarNode
-) -> str | int | float | None:
+def _handle_scalar_tag(loader: LoaderType, node: yaml.nodes.ScalarNode) -> str | int | float | None:
     """Add line number and file name to scalar values."""
     obj = node.value
     if not isinstance(obj, str):

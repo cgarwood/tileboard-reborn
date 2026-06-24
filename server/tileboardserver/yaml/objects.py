@@ -1,8 +1,8 @@
 """Custom yaml object types."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 import yaml
 
