@@ -1,11 +1,11 @@
 <template>
   <div class="screensaver-overlay" @click="store.dismiss()">
     <q-carousel
+      ref="carouselRef"
       v-model="currentSlide"
       swipeable
       animated
       infinite
-      :autoplay="store.slideSpeedMs"
       transition-prev="fade"
       transition-next="fade"
       class="screensaver-carousel"
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useScreensaverStore } from '../../stores/screensaver';
 import { useWeatherAlertsStore } from '../../stores/weather-alerts';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
@@ -97,6 +97,7 @@ const store = useScreensaverStore();
 const weatherStore = useWeatherAlertsStore();
 const haStore = useHomeAssistantStore();
 
+const carouselRef = ref();
 const currentSlide = ref(0);
 const selectedAlert = ref<WeatherAlert | null>(null);
 
@@ -178,8 +179,10 @@ function eventsForDate(dateStr: string): CalendarSlideEvent[] {
   calendarEntries.forEach((entry, idx) => {
     if (!entry.entity) return;
     const entityColor = haStore.states[entry.entity]?.attributes.color as string | undefined;
-    const color = entry.color ?? entityColor ?? DEFAULT_CAL_COLORS[idx % DEFAULT_CAL_COLORS.length] ?? '#888';
-    const calendarName = entry.name ?? haStore.states[entry.entity]?.attributes.friendly_name ?? entry.entity;
+    const color =
+      entry.color ?? entityColor ?? DEFAULT_CAL_COLORS[idx % DEFAULT_CAL_COLORS.length] ?? '#888';
+    const calendarName =
+      entry.name ?? haStore.states[entry.entity]?.attributes.friendly_name ?? entry.entity;
     for (const event of calendarStore.events[entry.entity] ?? []) {
       if (event.start.slice(0, 10) === dateStr) items.push({ event, color, calendarName });
     }
@@ -222,6 +225,27 @@ const allSlides = computed<Slide[]>(() => {
 // Keep currentSlide in bounds if the slide list changes
 watch(allSlides, (slides) => {
   if (currentSlide.value >= slides.length) currentSlide.value = 0;
+});
+
+// --- Per-slide duration ---
+// We want weather and calendar slides to stay up longer than picture slides
+const currentSlideDuration = computed(() => {
+  const slide = allSlides.value[currentSlide.value];
+  return slide?.type !== 'image' ? store.slideSpeedMs * 2 : store.slideSpeedMs;
+});
+
+let slideTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleNextSlide() {
+  if (slideTimer) clearTimeout(slideTimer);
+  if (allSlides.value.length <= 1) return;
+  slideTimer = setTimeout(() => carouselRef.value?.next(), currentSlideDuration.value);
+}
+
+watch(currentSlide, scheduleNextSlide, { immediate: true });
+watch(() => store.slideSpeedMs, scheduleNextSlide);
+onUnmounted(() => {
+  if (slideTimer) clearTimeout(slideTimer);
 });
 
 // --- Weather slide navigation ---
