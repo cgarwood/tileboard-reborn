@@ -22,6 +22,7 @@
         </div>
       </div>
 
+      <div v-if="stateBadge" class="state-badge">{{ stateBadge }}</div>
       <div class="label-group">
         <div v-if="widget.subtitle" class="subtitle">{{ widget.subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -49,7 +50,7 @@ import type { Widget } from '../types/widgets';
 
 const props = defineProps<{ widget: Widget }>();
 
-const { title, backgroundStyle } = useWidget(() => props.widget);
+const { title, backgroundStyle, stateBadge } = useWidget(() => props.widget);
 
 const haStore = useHomeAssistantStore();
 const entity = computed(() => {

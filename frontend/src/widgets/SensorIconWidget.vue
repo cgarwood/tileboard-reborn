@@ -65,20 +65,7 @@ const resolvedIconColor = computed(() => iconColor.value ?? 'white');
 <style lang="scss" scoped>
 @use '../css/widget';
 
-.state-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.35);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.4;
-  color: inherit;
-
-  &__unit {
-    opacity: 0.75;
-  }
+.state-badge__unit {
+  opacity: 0.75;
 }
 </style>

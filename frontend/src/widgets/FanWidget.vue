@@ -18,6 +18,7 @@
         />
       </div>
 
+      <div v-if="badgeText && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ badgeText }}</div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -65,8 +66,8 @@ import type { Widget } from '../types/widgets';
 const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
-const { title, subtitle, icon, isOn, entity, backgroundStyle } = useWidget(() => props.widget);
-const { withUnlock } = useRestriction(() => props.widget);
+const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = useWidget(() => props.widget);
+const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;
@@ -82,6 +83,12 @@ const step = computed(() => {
 });
 
 const iconName = computed(() => icon.value ?? (isOn.value ? 'mdi-fan' : 'mdi-fan-off'));
+
+const badgeText = computed(() => {
+  if (stateBadge.value != null) return stateBadge.value;
+  if (isOn.value && percentage.value > 0) return `${percentage.value}%`;
+  return null;
+});
 
 function toggle() {
   if (!props.widget.entity) return;

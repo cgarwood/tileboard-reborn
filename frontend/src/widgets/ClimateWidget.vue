@@ -78,6 +78,7 @@
 
       </div>
 
+      <div v-if="stateBadge && layout !== 'compact'" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge }}</div>
       <div class="label-group">
         <div v-if="subtitle && layout !== 'compact'" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -130,8 +131,8 @@ const FAN_MODE_ICONS: Record<string, string> = {
 const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
-const { title, subtitle, entity, background } = useWidget(() => props.widget);
-const { withUnlock } = useRestriction(() => props.widget);
+const { title, subtitle, entity, background, stateBadge } = useWidget(() => props.widget);
+const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
 const layout = computed(() => {
   const defaults = getWidgetDefaults('climate');

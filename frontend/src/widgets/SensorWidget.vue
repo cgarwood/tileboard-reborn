@@ -5,6 +5,7 @@
         <span class="state">{{ state ?? '—' }}</span>
         <span v-if="unitOfMeasurement" class="text-caption q-ml-xs">{{ unitOfMeasurement }}</span>
       </div>
+      <div v-if="stateBadge && !isMicro" class="state-badge">{{ stateBadge }}</div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -21,7 +22,7 @@ import type { Widget } from '../types/widgets';
 
 const props = defineProps<{ widget: Widget }>();
 
-const { title, subtitle, state, unitOfMeasurement, backgroundStyle } = useWidget(() => props.widget);
+const { title, subtitle, state, unitOfMeasurement, backgroundStyle, stateBadge } = useWidget(() => props.widget);
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;

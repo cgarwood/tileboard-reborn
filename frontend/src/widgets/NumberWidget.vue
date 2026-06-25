@@ -12,6 +12,7 @@
         </div>
       </div>
 
+      <div v-if="stateBadge && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge }}</div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -61,10 +62,10 @@ const props = defineProps<{ widget: Widget }>();
 
 const $q = useQuasar();
 const haStore = useHomeAssistantStore();
-const { title, subtitle, state, unitOfMeasurement, entity, backgroundStyle } = useWidget(
+const { title, subtitle, state, unitOfMeasurement, entity, backgroundStyle, stateBadge } = useWidget(
   () => props.widget,
 );
-const { withUnlock } = useRestriction(() => props.widget);
+const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;
