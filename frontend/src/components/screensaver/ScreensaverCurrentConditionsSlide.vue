@@ -1,45 +1,47 @@
 <template>
   <div class="weather-slide">
     <div class="slide-header">Current Conditions</div>
-    <div class="current-main">
-      <q-icon :name="weatherIcon" class="current-icon" />
-      <div class="current-info">
-        <div class="current-temp">
-          {{ tempValue }}<span class="current-unit">{{ tempUnit }}</span>
-        </div>
-        <div class="current-condition">{{ condition }}</div>
-        <div v-if="todayHigh != null || todayLow != null" class="current-hl">
-          <span v-if="todayHigh != null">H: {{ Math.round(todayHigh) }}°</span>
-          <span v-if="todayLow != null">L: {{ Math.round(todayLow) }}°</span>
+    <div class="current-body">
+      <div class="current-main">
+        <q-icon :name="weatherIcon" class="current-icon" />
+        <div class="current-info">
+          <div class="current-temp">
+            {{ tempValue }}<span class="current-unit">{{ tempUnit }}</span>
+          </div>
+          <div class="current-condition">{{ condition }}</div>
+          <div v-if="todayHigh != null || todayLow != null" class="current-hl">
+            <span v-if="todayHigh != null">H: {{ Math.round(todayHigh) }}°</span>
+            <span v-if="todayLow != null">L: {{ Math.round(todayLow) }}°</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="current-attrs">
-      <div v-if="humidity != null" class="current-attr">
-        <span class="current-attr__label">Humidity</span>
-        <q-icon name="mdi-water-percent" size="1.4rem" />
-        <span>{{ humidity }}%</span>
-      </div>
-      <div v-if="windSpeed != null" class="current-attr">
-        <span class="current-attr__label">Wind</span>
-        <q-icon name="mdi-weather-windy" size="1.4rem" />
-        <span>{{ windSpeed }} {{ windSpeedUnit }}</span>
-      </div>
-      <div v-if="dewPoint != null" class="current-attr">
-        <span class="current-attr__label">Dew Point</span>
-        <q-icon name="mdi-thermometer-water" size="1.4rem" />
-        <span>{{ Math.round(dewPoint) }}°</span>
-      </div>
-      <div v-if="visibility != null" class="current-attr">
-        <span class="current-attr__label">Visibility</span>
-        <q-icon name="mdi-eye-outline" size="1.4rem" />
-        <span>{{ visibility }} {{ visibilityUnit }}</span>
-      </div>
-      <div v-if="pressure != null" class="current-attr">
-        <span class="current-attr__label">Pressure</span>
-        <q-icon name="mdi-gauge" size="1.4rem" />
-        <span>{{ Math.round(pressure) }} {{ pressureUnit }}</span>
+      <div class="current-attrs">
+        <div v-if="humidity != null" class="current-attr">
+          <span class="current-attr__label">Humidity</span>
+          <q-icon name="mdi-water-percent" size="1.4rem" />
+          <span>{{ humidity }}%</span>
+        </div>
+        <div v-if="windSpeed != null" class="current-attr">
+          <span class="current-attr__label">Wind</span>
+          <q-icon name="mdi-weather-windy" size="1.4rem" />
+          <span>{{ windSpeed }} {{ windSpeedUnit }}</span>
+        </div>
+        <div v-if="dewPoint != null" class="current-attr">
+          <span class="current-attr__label">Dew Point</span>
+          <q-icon name="mdi-thermometer-water" size="1.4rem" />
+          <span>{{ Math.round(dewPoint) }}°</span>
+        </div>
+        <div v-if="visibility != null" class="current-attr">
+          <span class="current-attr__label">Visibility</span>
+          <q-icon name="mdi-eye-outline" size="1.4rem" />
+          <span>{{ visibility }} {{ visibilityUnit }}</span>
+        </div>
+        <div v-if="pressure != null" class="current-attr">
+          <span class="current-attr__label">Pressure</span>
+          <q-icon name="mdi-gauge" size="1.4rem" />
+          <span>{{ Math.round(pressure) }} {{ pressureUnit }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -83,10 +85,18 @@ const pressureUnit = computed(() => (attrs.value.pressure_unit as string | undef
 <style lang="scss" scoped>
 @use '../../css/weather-slide';
 
+.current-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 100px;
+}
+
 .current-main {
   display: flex;
   align-items: center;
   gap: 32px;
+  flex-shrink: 0;
 }
 
 .current-icon {
@@ -131,11 +141,24 @@ const pressureUnit = computed(() => (attrs.value.pressure_unit as string | undef
 }
 
 .current-attrs {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 40px;
   opacity: 0.7;
+}
+
+@media (orientation: portrait) {
+  .current-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .current-attrs {
+    flex-wrap: wrap;
+    justify-content: center;
+    display: flex;
+    gap: 32px;
+  }
 }
 
 .current-attr {
