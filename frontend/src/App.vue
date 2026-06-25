@@ -51,16 +51,13 @@ watch(
         void screensaverStore.initialize(config.screensaver as ScreensaverConfig);
       }
       if (config.weather_alerts) {
-        weatherAlertsStore.startPolling(config.weather_alerts as WeatherAlertConfig);
-      } else {
-        weatherAlertsStore.stopPolling();
+        weatherAlertsStore.initialize(config.weather_alerts as WeatherAlertConfig);
       }
       if (config.sendspin) {
         sendspinStore.initialize(config.sendspin as SendSpinConfig);
       }
     } else {
       haStore.disconnect();
-      weatherAlertsStore.stopPolling();
     }
   },
   { immediate: true },

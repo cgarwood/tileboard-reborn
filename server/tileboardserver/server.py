@@ -1,9 +1,6 @@
-import json
-import os
-import time
 from pathlib import Path
 
-from aiohttp import ClientSession, web
+from aiohttp import web
 
 from .yaml.loader import Secrets, load_yaml
 
@@ -40,37 +37,6 @@ async def config_handler(request: web.Request) -> web.Response:
 
 
 app.router.add_get("/config/{name}", config_handler)
-
-
-# ── Weather alerts ──────────────────────────────────────────────────────────
-
-
-async def weatheralerts_handler(request: web.Request) -> web.Response:
-    now = time.time()
-    zone = request.match_info["zone"]
-    cache_file = f"weatheralerts-{zone}.json"
-
-    if os.path.isfile(cache_file) and now - os.path.getmtime(cache_file) < 120:
-        with open(cache_file) as f:
-            return web.json_response(json.load(f), headers={"Access-Control-Allow-Origin": "*"})
-
-    async with ClientSession() as client:
-        response = await client.get(
-            f"https://api.weather.gov/alerts/active/zone/{zone}",
-            headers={
-                "Accept": "application/json",
-                "User-Agent": "tileboard-reborn (https://github.com/cgarwood/tileboard-reborn)",
-            },
-        )
-        data = await response.json()
-
-    with open(cache_file, "w") as f:
-        json.dump(data, f)
-
-    return web.json_response(data, headers={"Access-Control-Allow-Origin": "*"})
-
-
-app.router.add_get("/api/weatheralerts/{zone}", weatheralerts_handler)
 
 
 # ── Startup ─────────────────────────────────────────────────────────────────

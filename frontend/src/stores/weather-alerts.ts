@@ -1,53 +1,25 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import type { WeatherAlertConfig } from '../types/config';
 import type { WeatherAlert } from '../types/weather-alerts';
-
-const DEFAULT_INTERVAL_S = 60;
+import { useHomeAssistantStore } from './home-assistant';
 
 export const useWeatherAlertsStore = defineStore('weatherAlerts', () => {
   const alerts = ref<WeatherAlert[]>([]);
-  const lastRefresh = ref<Date | null>(null);
-  const loading = ref(false);
-  const error = ref<string | null>(null);
 
-  let pollerId: ReturnType<typeof setInterval> | null = null;
-  let activeSource = '';
-
-  async function fetchAlerts(source: string) {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await fetch(source, {
-        headers: { Accept: 'application/geo+json' },
-      });
-      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-      const data = (await response.json()) as { features: NwsFeature[] };
-      alerts.value = (data.features ?? []).map(featureToAlert);
-      lastRefresh.value = new Date();
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Unknown error';
-    } finally {
-      loading.value = false;
-    }
+  function initialize(config: WeatherAlertConfig) {
+    const haStore = useHomeAssistantStore();
+    watch(
+      () => haStore.states[config.entity],
+      (entity) => {
+        const raw = (entity?.attributes.alerts ?? []) as HaAlert[];
+        alerts.value = raw.map(haAlertToAlert);
+      },
+      { immediate: true },
+    );
   }
 
-  function startPolling(config: WeatherAlertConfig) {
-    stopPolling();
-    activeSource = config.source;
-    const intervalMs = (config.interval ?? DEFAULT_INTERVAL_S) * 1000;
-    void fetchAlerts(activeSource);
-    pollerId = setInterval(() => void fetchAlerts(activeSource), intervalMs);
-  }
-
-  function stopPolling() {
-    if (pollerId !== null) {
-      clearInterval(pollerId);
-      pollerId = null;
-    }
-  }
-
-  const weatherAlertIconMap: { [index: string]: string } = {
+  const weatherAlertIconMap: Record<string, string> = {
     'Tornado Warning': 'mdi-weather-tornado',
     'Tornado Watch': 'mdi-weather-tornado',
     'Severe Thunderstorm Warning': 'mdi-weather-lightning',
@@ -68,52 +40,50 @@ export const useWeatherAlertsStore = defineStore('weatherAlerts', () => {
     'Excessive Heat Warning': 'mdi-sun-thermometer',
     'Excessive Heat Watch': 'mdi-sun-thermometer',
   };
-  return { alerts, lastRefresh, loading, error, weatherAlertIconMap, startPolling, stopPolling };
+
+  return { alerts, weatherAlertIconMap, initialize };
 });
 
-// NWS GeoJSON feature shape (only what we use)
-interface NwsFeature {
+// HA weatheralerts sensor attribute shape
+interface HaAlert {
   id: string;
-  properties: {
-    event: string;
-    headline: string | null;
-    description: string | null;
-    instruction: string | null;
-    severity: string;
-    urgency: string;
-    certainty: string;
-    status: string;
-    messageType: string;
-    areaDesc: string;
-    sent: string;
-    effective: string;
-    onset: string | null;
-    expires: string;
-    ends: string | null;
-    senderName: string;
-  };
+  event: string;
+  NWSheadline: string | null;
+  description: string | null;
+  instruction: string | null;
+  severity: string;
+  urgency: string;
+  certainty: string;
+  status: string;
+  messageType: string;
+  area: string;
+  sent: string;
+  effective: string;
+  onset: string | null;
+  expires: string;
+  ends: string | null;
+  senderName: string;
 }
 
-function featureToAlert(f: NwsFeature): WeatherAlert {
-  const p = f.properties;
+function haAlertToAlert(a: HaAlert): WeatherAlert {
   return {
-    id: f.id,
-    event: p.event,
-    headline: p.headline,
-    description: p.description,
-    instruction: p.instruction,
-    severity: p.severity,
-    urgency: p.urgency,
-    certainty: p.certainty,
-    status: p.status,
-    messageType: p.messageType,
-    areaDesc: p.areaDesc,
-    sent: p.sent,
-    effective: p.effective,
-    onset: p.onset,
-    expires: p.expires,
-    ends: p.ends,
-    senderName: p.senderName,
+    id: a.id,
+    event: a.event,
+    headline: a.NWSheadline,
+    description: a.description,
+    instruction: a.instruction,
+    severity: a.severity,
+    urgency: a.urgency,
+    certainty: a.certainty,
+    status: a.status,
+    messageType: a.messageType,
+    areaDesc: a.area,
+    sent: a.sent,
+    effective: a.effective,
+    onset: a.onset,
+    expires: a.expires,
+    ends: a.ends,
+    senderName: a.senderName,
   };
 }
 

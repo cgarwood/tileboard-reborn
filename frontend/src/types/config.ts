@@ -15,8 +15,7 @@ export type Config = {
 };
 
 export type WeatherAlertConfig = {
-  source: string;
-  interval?: number;
+  entity: string;
 };
 
 export type SendSpinConfig = {
