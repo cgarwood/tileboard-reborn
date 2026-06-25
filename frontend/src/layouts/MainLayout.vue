@@ -6,6 +6,8 @@
         <q-icon v-if="currentPageIcon" :name="currentPageIcon" size="22px" class="q-mr-sm" />
         <q-toolbar-title>{{ currentPageName }}</q-toolbar-title>
 
+        <FullyKioskBattery />
+
         <div class="header-title-block q-mr-xs">
           <div class="header-app-name">{{ configStore.config?.name ?? 'TileBoard' }}</div>
           <div class="header-ha-status">
@@ -104,6 +106,7 @@ import { useScreensaverStore } from '../stores/screensaver';
 import { useWeatherAlertsStore } from '../stores/weather-alerts';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import WeatherAlertDialog from '../components/dialogs/WeatherAlertDialog.vue';
+import FullyKioskBattery from '../components/FullyKioskBattery.vue';
 import type { Config } from '@/types/config';
 import type { WeatherAlert } from '../types/weather-alerts';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
@@ -226,6 +229,7 @@ function formatAlertExpiry(expires: string) {
 .header-title-block {
   text-align: right;
   line-height: 1.2;
+  margin-left: 16px;
 }
 
 .header-app-name {
