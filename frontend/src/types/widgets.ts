@@ -1,3 +1,5 @@
+import type { VisibilityConfig } from './visibility';
+
 export type Widget = {
   type: string;
   entity?: string;
@@ -8,6 +10,7 @@ export type Widget = {
   background?: string;
   grid?: WidgetGrid;
   restriction?: string;
+  visibility?: VisibilityConfig;
   [key: string]: unknown;
 };
 

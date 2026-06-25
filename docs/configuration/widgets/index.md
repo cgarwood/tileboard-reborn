@@ -17,6 +17,8 @@ All widgets support these top-level config keys:
 | `icon_color` | string / map / expression | Icon color |
 | `grid` | object | `{ width, height }` override in grid units |
 | `restriction` | string | Restriction ID to require before interaction |
+| `state_badge` | string / map / expression | Override the state badge text |
+| `visibility` | object | Conditions that control whether the widget is rendered |
 | `class` | string / expression | Additional CSS class |
 | `style` | object | Inline CSS overrides |
 
@@ -44,6 +46,82 @@ subtitle: "Humidity: {{ entity('sensor.humidity').state }}%"
 ```
 
 Available expression variables: `state`, `attributes`, `entity(id)`, `states`
+
+## Visibility
+
+The `visibility` property controls whether a widget is rendered. Widgets with no `visibility` config are always visible. Hidden widgets are removed from the DOM entirely — they take no space and consume no resources.
+
+```yaml
+visibility:
+  match: all        # "all" (AND) or "any" (OR) — default: "all"
+  conditions:
+    - entity: binary_sensor.someone_home
+      state: "on"
+```
+
+### Condition types
+
+| Key | Description |
+|-----|-------------|
+| `state` | Entity state equals value |
+| `not` | Entity state does not equal value |
+| `above` | Entity state (numeric) is greater than value |
+| `below` | Entity state (numeric) is less than value |
+| `template` | JavaScript expression returning a truthy/falsy value |
+
+All condition types except `template` require an `entity` key.
+
+### `match`
+
+- `all` — all conditions must pass (AND). This is the default.
+- `any` — at least one condition must pass (OR).
+
+### Examples
+
+**Show only when someone is home:**
+```yaml
+visibility:
+  conditions:
+    - entity: binary_sensor.someone_home
+      state: "on"
+```
+
+**Show fan controls only when the fan is on:**
+```yaml
+visibility:
+  conditions:
+    - entity: fan.bedroom
+      not: "off"
+```
+
+**Show a widget within a temperature range:**
+```yaml
+visibility:
+  match: all
+  conditions:
+    - entity: sensor.outdoor_temp
+      above: 60
+    - entity: sensor.outdoor_temp
+      below: 95
+```
+
+**Show when either of two entities is active (OR):**
+```yaml
+visibility:
+  match: any
+  conditions:
+    - entity: binary_sensor.motion_living
+      state: "on"
+    - entity: binary_sensor.motion_kitchen
+      state: "on"
+```
+
+**JavaScript template — full `states` map is available:**
+```yaml
+visibility:
+  conditions:
+    - template: "{{ Number(states['sensor.occupancy_count'].state) > 0 }}"
+```
 
 ## Widget Types
 
