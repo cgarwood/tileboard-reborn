@@ -73,27 +73,6 @@ async def weatheralerts_handler(request: web.Request) -> web.Response:
 app.router.add_get("/api/weatheralerts/{zone}", weatheralerts_handler)
 
 
-# ── Screensaver ─────────────────────────────────────────────────────────────
-
-
-async def screensaver_handler(request: web.Request) -> web.Response:
-    server_config = app["server_config"]
-    screensaver = request.match_info["screensaver"]
-
-    if not server_config.get("screensaver"):
-        return web.HTTPNotFound(text="No screensavers configured.")
-
-    if not server_config["screensaver"].get(screensaver):
-        return web.HTTPNotFound(text=f"No screensaver named {screensaver} configured.")
-
-    files = os.listdir(server_config["screensaver"][screensaver]["path"])
-    files = [f for f in files if f.endswith(".jpg") or f.endswith(".png")]
-    return web.json_response(files, headers={"Access-Control-Allow-Origin": "*"})
-
-
-app.router.add_get("/api/screensaver/{screensaver}", screensaver_handler)
-
-
 # ── Startup ─────────────────────────────────────────────────────────────────
 
 

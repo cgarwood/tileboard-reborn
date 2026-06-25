@@ -1,6 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { ref } from 'vue';
-import type { ScreensaverConfig, Slide } from '../types/screensaver';
+import { ref, watch } from 'vue';
+import type { HABrowseMediaResult, ScreensaverConfig, Slide } from '../types/screensaver';
+import { useHomeAssistantStore } from './home-assistant';
 
 const SLIDE_SPEED_DEFAULT = 7;
 
@@ -16,21 +17,47 @@ export const useScreensaverStore = defineStore('screensaver', () => {
 
   async function initialize(config: ScreensaverConfig) {
     timeoutSeconds = config.timeout;
-    slideSpeedMs.value = (config.speed ?? SLIDE_SPEED_DEFAULT) * 1000;
+    slideSpeedMs.value = (config.slide_duration ?? SLIDE_SPEED_DEFAULT) * 1000;
     weatherEntity.value = config.weather_entity ?? null;
     calendars.value = config.calendars ?? [];
-    await loadSlides(config);
+
+    const haStore = useHomeAssistantStore();
+    if (haStore.connected) {
+      await loadSlides(config);
+    } else {
+      const stop = watch(
+        () => haStore.connected,
+        async (connected) => {
+          if (connected) {
+            stop();
+            await loadSlides(config);
+          }
+        },
+      );
+    }
+
     scheduleActivation();
   }
 
   async function loadSlides(config: ScreensaverConfig) {
+    const haStore = useHomeAssistantStore();
     try {
-      const response = await fetch(config.source);
-      const paths = (await response.json()) as string[];
-      slides.value = paths.map((path) => ({
-        type: 'image' as const,
-        url: config.source_prefix ? `${config.source_prefix}${path}` : path,
-      }));
+      const result = await haStore.sendMessage<HABrowseMediaResult>({
+        type: 'media_source/browse_media',
+        media_content_id: config.media_source,
+      });
+
+      const images = (result.children ?? []).filter((child) => !child.can_expand);
+
+      slides.value = await Promise.all(
+        images.map(async (child) => {
+          const { url } = await haStore.sendMessage<{ url: string }>({
+            type: 'media_source/resolve_media',
+            media_content_id: child.media_content_id,
+          });
+          return { type: 'image' as const, url: await haStore.signPath(url) };
+        }),
+      );
     } catch (e) {
       console.error('Screensaver: failed to load slides', e);
     }

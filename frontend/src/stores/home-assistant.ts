@@ -18,6 +18,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   const states = ref<HassEntities>({});
   const connection = shallowRef<Connection | null>(null);
   const connected = ref(false);
+  const hassUrl = ref<string | null>(null);
   const error = ref<string | null>(null);
   const weatherForecasts = ref<Record<string, Partial<Record<ForecastType, WeatherForecast[]>>>>({});
 
@@ -44,6 +45,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
 
   async function connect(haUrl: string) {
     disconnect();
+    hassUrl.value = haUrl;
     error.value = null;
 
     try {
@@ -183,6 +185,15 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     return connection.value.subscribeMessage<T>(callback, message);
   }
 
+  async function signPath(path: string, expires = 3600): Promise<string> {
+    const result = await sendMessage<{ path: string }>({
+      type: 'auth/sign_path',
+      path,
+      expires,
+    });
+    return `${hassUrl.value}${result.path}`;
+  }
+
   function subscribeHassEvents<T = unknown>(
     callback: (event: T) => void,
     eventType?: string,
@@ -197,6 +208,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   return {
     states,
     connected,
+    hassUrl,
     error,
     weatherForecasts,
     connect,
@@ -205,6 +217,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     callService: callHassService,
     fireEvent,
     sendMessage,
+    signPath,
     subscribeMessage,
     subscribeHassEvents,
     subscribeWeatherForecast,
