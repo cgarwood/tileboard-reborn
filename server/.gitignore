@@ -5,9 +5,7 @@ configs/*
 tileboardserver/frontend/
 media/*
 .venv/
-weatheralerts-*.json
 server.config.yaml
-nws-alert-example-json.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
