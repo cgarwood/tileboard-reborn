@@ -47,6 +47,7 @@ export function useWidget(widget: () => Widget) {
 
   const icon = computed(() => resolveWidgetProp(widget().icon, resolveCtx.value));
   const iconColor = computed(() => resolveWidgetProp(widget().icon_color, resolveCtx.value));
+  const stateBadge = computed(() => resolveWidgetProp(widget().state_badge, resolveCtx.value));
 
   return {
     entity,
@@ -61,6 +62,7 @@ export function useWidget(widget: () => Widget) {
     backgroundStyle,
     icon,
     iconColor,
+    stateBadge,
     resolveCtx,
   };
 }

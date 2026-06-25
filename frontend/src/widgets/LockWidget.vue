@@ -8,7 +8,7 @@
       <div class="state-area">
         <q-icon :name="resolvedIcon" :color="resolvedIconColor" :size="isMicro ? '28px' : '40px'" />
       </div>
-      <div v-if="state && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ state }}</div>
+      <div v-if="(stateBadge ?? state) && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge ?? state }}</div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -41,7 +41,7 @@ const STATE_ICONS: Record<string, string> = {
 const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
-const { title, subtitle, icon, iconColor, backgroundStyle, state } = useWidget(
+const { title, subtitle, icon, iconColor, backgroundStyle, state, stateBadge } = useWidget(
   () => props.widget,
 );
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
