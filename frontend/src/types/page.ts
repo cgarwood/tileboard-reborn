@@ -1,4 +1,5 @@
 import type { Section } from './sections';
+import type { VisibilityConfig } from './visibility';
 
 export type Page = {
   id: string;
@@ -8,7 +9,7 @@ export type Page = {
   sections: (Section | 'break')[];
   background: BackgroundConfig;
   toolbar_background?: string | Record<string, string>;
-  hide_from_nav?: boolean;
+  visibility?: VisibilityConfig;
 };
 
 export type BackgroundConfig = {

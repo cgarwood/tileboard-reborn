@@ -105,6 +105,7 @@ import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useScreensaverStore } from '../stores/screensaver';
 import { useWeatherAlertsStore } from '../stores/weather-alerts';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
+import { evaluateVisibility } from '../composables/useVisibility';
 import WeatherAlertDialog from '../components/dialogs/WeatherAlertDialog.vue';
 import FullyKioskBattery from '../components/FullyKioskBattery.vue';
 import type { Config } from '@/types/config';
@@ -122,7 +123,9 @@ const haStore = useHomeAssistantStore();
 const route = useRoute();
 
 const pages = computed(() => (configStore.config as Config | null)?.pages ?? []);
-const navPages = computed(() => pages.value.filter((p) => !p.hide_from_nav));
+const navPages = computed(() =>
+  pages.value.filter((p) => evaluateVisibility(p.visibility, haStore.states)),
+);
 
 const currentPageId = computed(() => {
   const paramId = route.params.pageId as string | undefined;

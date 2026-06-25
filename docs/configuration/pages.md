@@ -9,7 +9,7 @@ Pages are the top-level containers for your dashboard. Each page has a list of s
 | `id` | string | Unique identifier used in the URL |
 | `name` | string | Display name shown in the toolbar |
 | `icon` | string | MDI icon shown in the nav rail |
-| `hide_from_nav` | boolean | Exclude this page from the side navigation |
+| `visibility` | object | Conditions that control whether the page appears in the nav rail |
 | `sections` | list | Ordered list of sections (or `"break"` to start a new row) |
 | `grid_size` | number | Grid cell size in pixels for this page (overrides global) |
 | `background` | object | Page background (`color`, `image`, `style`) |
@@ -54,6 +54,37 @@ sections:
   - "break"
   - name: Security
     widgets: [...]
+```
+
+## Page visibility
+
+The `visibility` property on a page controls whether it appears in the nav rail. The page is still accessible by direct URL or programmatic navigation — only the icon is hidden.
+
+**Show a page in the nav only when a specific mode is active:**
+```yaml
+pages:
+  - id: guest
+    name: Guest
+    icon: mdi-account
+    visibility:
+      conditions:
+        - entity: input_boolean.guest_mode
+          state: "on"
+    sections:
+      - widgets: [...]
+```
+
+**Always hide a page from the nav (e.g. a detail page only reached via navigation actions):**
+```yaml
+pages:
+  - id: detail
+    name: Detail
+    icon: mdi-information
+    visibility:
+      conditions:
+        - template: "{{ false }}"
+    sections:
+      - widgets: [...]
 ```
 
 ## Section visibility
