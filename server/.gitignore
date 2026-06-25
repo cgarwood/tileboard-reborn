@@ -3,6 +3,7 @@ configs/*
 !configs/example
 !configs/example/*
 tileboardserver/frontend/
+media/*
 .venv/
 weatheralerts-*.json
 server.config.yaml

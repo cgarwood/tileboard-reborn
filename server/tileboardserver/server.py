@@ -7,49 +7,79 @@ from aiohttp import ClientSession, web
 
 from .yaml.loader import Secrets, load_yaml
 
-app = web.Application()
+FRONTEND_DIR = Path(__file__).parent / "frontend"
 
 
-async def yaml_handler(request):
-    path = f"configs/{request.match_info['name']}/config.yaml"
-    secrets = Secrets(f"configs/{request.match_info['name']}")
-    yaml = load_yaml(path, secrets)
+@web.middleware
+async def frontend_middleware(request: web.Request, handler) -> web.Response:
+    try:
+        return await handler(request)
+    except web.HTTPNotFound:
+        # Intentional 404s from API/media routes propagate as-is.
+        if request.path.startswith(("/config/", "/api/", "/media")):
+            raise
+        # Real file in the frontend bundle (favicon.ico, icons/*, etc.)
+        if FRONTEND_DIR.is_dir():
+            candidate = (FRONTEND_DIR / request.path.lstrip("/")).resolve()
+            if candidate.is_file() and candidate.is_relative_to(FRONTEND_DIR.resolve()):
+                return web.FileResponse(candidate)
+            return web.FileResponse(FRONTEND_DIR / "index.html")
+        raise
+
+
+app = web.Application(middlewares=[frontend_middleware])
+
+
+# ── Config ─────────────────────────────────────────────────────────────────
+
+
+async def config_handler(request: web.Request) -> web.Response:
+    name = request.match_info["name"]
+    yaml = load_yaml(f"configs/{name}/config.yaml", Secrets(f"configs/{name}"))
     return web.json_response(yaml, headers={"Access-Control-Allow-Origin": "*"})
 
 
-app.add_routes([web.get("/config/{name}", yaml_handler)])
+app.router.add_get("/config/{name}", config_handler)
 
 
-async def weatheralerts_handler(request):
+# ── Weather alerts ──────────────────────────────────────────────────────────
+
+
+async def weatheralerts_handler(request: web.Request) -> web.Response:
     now = time.time()
     zone = request.match_info["zone"]
     cache_file = f"weatheralerts-{zone}.json"
 
-    if os.path.isfile(cache_file):
-        if now - os.path.getmtime(cache_file) < 120:
-            with open(cache_file) as f:
-                return web.json_response(json.load(f), headers={"Access-Control-Allow-Origin": "*"})
+    if os.path.isfile(cache_file) and now - os.path.getmtime(cache_file) < 120:
+        with open(cache_file) as f:
+            return web.json_response(json.load(f), headers={"Access-Control-Allow-Origin": "*"})
+
+    async with ClientSession() as client:
+        response = await client.get(
+            f"https://api.weather.gov/alerts/active/zone/{zone}",
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "tileboard-reborn (https://github.com/cgarwood/tileboard-reborn)",
+            },
+        )
+        data = await response.json()
 
     with open(cache_file, "w") as f:
-        async with ClientSession() as client:
-            response = await client.get(
-                f"https://api.weather.gov/alerts/active/zone/{zone}",
-                headers={
-                    "Accept": "application/json",
-                    "User-Agent": "tileboard-reborn (https://github.com/cgarwood/tileboard-reborn)",
-                },
-            )
-            data = await response.json()
-            json.dump(data, f)
-            return web.json_response(data, headers={"Access-Control-Allow-Origin": "*"})
+        json.dump(data, f)
+
+    return web.json_response(data, headers={"Access-Control-Allow-Origin": "*"})
 
 
-app.add_routes([web.get("/weatheralerts/{zone}", weatheralerts_handler)])
+app.router.add_get("/api/weatheralerts/{zone}", weatheralerts_handler)
 
 
-async def screensaver_handler(request):
+# ── Screensaver ─────────────────────────────────────────────────────────────
+
+
+async def screensaver_handler(request: web.Request) -> web.Response:
     server_config = app["server_config"]
     screensaver = request.match_info["screensaver"]
+
     if not server_config.get("screensaver"):
         return web.HTTPNotFound(text="No screensavers configured.")
 
@@ -58,48 +88,13 @@ async def screensaver_handler(request):
 
     files = os.listdir(server_config["screensaver"][screensaver]["path"])
     files = [f for f in files if f.endswith(".jpg") or f.endswith(".png")]
-
     return web.json_response(files, headers={"Access-Control-Allow-Origin": "*"})
 
 
-app.add_routes([web.get("/screensaver/{screensaver}", screensaver_handler)])
+app.router.add_get("/api/screensaver/{screensaver}", screensaver_handler)
 
 
-FRONTEND_DIR = Path(__file__).parent / "frontend"
-
-
-def _setup_frontend() -> None:
-    """Mount the bundled frontend and add an SPA fallback route.
-
-    The Quasar/Vue build output is expected at tileboardserver/frontend/,
-    with the structure produced by `quasar build`:
-        frontend/
-            index.html
-            assets/      (JS, CSS, fonts, images)
-            favicon.ico
-            ...
-
-    Static files under assets/ are served directly. Any other GET request
-    that doesn't match an API route returns index.html so Vue Router can
-    handle client-side navigation.
-    """
-    index_file = FRONTEND_DIR / "index.html"
-    if not index_file.is_file():
-        raise FileNotFoundError(
-            f"Frontend bundle not found at {FRONTEND_DIR}. "
-            "The frontend must be built and bundled before running the server."
-        )
-
-    async def spa_fallback(request: web.Request) -> web.Response:
-        return web.FileResponse(index_file)
-
-    # Serve static assets. Must be registered before the catch-all.
-    app.router.add_static("/assets", FRONTEND_DIR / "assets", name="frontend_assets")
-
-    # Catch-all: return index.html for every unmatched GET so Vue Router works.
-    # The explicit "/" route is needed because "/{path_info:.*}" doesn't match an empty segment.
-    app.router.add_get("/", spa_fallback)
-    app.router.add_get("/{path_info:.*}", spa_fallback)
+# ── Startup ─────────────────────────────────────────────────────────────────
 
 
 def main() -> None:
@@ -107,8 +102,9 @@ def main() -> None:
     app["server_config"] = server_config
     port = server_config.get("port", 9090) if isinstance(server_config, dict) else 9090
 
-    if FRONTEND_DIR.is_dir():
-        _setup_frontend()
+    media_dir = Path("media")
+    media_dir.mkdir(exist_ok=True)
+    app.router.add_static("/media", media_dir, follow_symlinks=True)
 
     web.run_app(app, port=port)
 
