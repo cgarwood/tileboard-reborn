@@ -18,6 +18,7 @@ import LightWidget from '../widgets/LightWidget.vue';
 import ListWidget from '../widgets/ListWidget.vue';
 import CameraWidget from '../widgets/CameraWidget.vue';
 import SensorIconWidget from '../widgets/SensorIconWidget.vue';
+import LockWidget from '../widgets/LockWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
@@ -34,6 +35,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   list: ListWidget,
   camera: CameraWidget,
   sensor_icon: SensorIconWidget,
+  lock: LockWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();
