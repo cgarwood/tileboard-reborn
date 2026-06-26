@@ -52,6 +52,7 @@ import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
+import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
 
@@ -60,6 +61,7 @@ const props = defineProps<{ widget: Widget }>();
 const haStore = useHomeAssistantStore();
 const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = useWidget(() => props.widget);
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
+const { executeActions } = useActionExecutor();
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;
@@ -111,7 +113,13 @@ function adjustBrightness(delta: number) {
 }
 
 function handleClick() {
-  withUnlock(toggle);
+  withUnlock(() => {
+    if (props.widget.tap_action !== undefined) {
+      executeActions(props.widget.tap_action);
+    } else {
+      toggle();
+    }
+  });
 }
 </script>
 

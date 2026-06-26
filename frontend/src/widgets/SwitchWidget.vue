@@ -24,6 +24,7 @@ import { useHomeAssistantStore } from '../stores/home-assistant';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
+import { useActionExecutor } from '../composables/useActionExecutor';
 import type { Widget } from '../types/widgets';
 
 const props = defineProps<{ widget: Widget }>();
@@ -33,6 +34,7 @@ const { title, subtitle, isOn, icon, iconColor, backgroundStyle, stateBadge } = 
 
 const iconName = computed(() => icon.value ?? (isOn.value ? 'toggle_on' : 'toggle_off'));
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
+const { executeActions } = useActionExecutor();
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;
@@ -46,7 +48,13 @@ function toggle() {
 }
 
 function handleClick() {
-  withUnlock(toggle);
+  withUnlock(() => {
+    if (props.widget.tap_action !== undefined) {
+      executeActions(props.widget.tap_action);
+    } else {
+      toggle();
+    }
+  });
 }
 </script>
 

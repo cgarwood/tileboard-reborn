@@ -25,9 +25,20 @@ export interface ScreensaverAction {
   action: 'screensaver';
 }
 
+export interface MoreInfoAction {
+  action: 'more_info';
+  entity?: string;
+}
+
+export interface NoneAction {
+  action: 'none';
+}
+
 export type TapAction =
   | ServiceAction
   | JavascriptAction
   | EventAction
   | NavigateAction
-  | ScreensaverAction;
+  | ScreensaverAction
+  | MoreInfoAction
+  | NoneAction;

@@ -11,12 +11,17 @@ export function useActionExecutor() {
   function executeActions(
     actions: TapAction | TapAction[] | undefined,
     context: Record<string, unknown> = {},
+    onMoreInfo?: (entityId?: string) => void,
   ) {
     const list = Array.isArray(actions) ? actions : actions ? [actions] : [];
     if (!list.length) return;
 
     for (const action of list) {
-      if (action.action === 'service') {
+      if (action.action === 'none') {
+        return;
+      } else if (action.action === 'more_info') {
+        onMoreInfo?.(action.entity);
+      } else if (action.action === 'service') {
         const dot = action.service.indexOf('.');
         if (dot === -1) continue;
         void haStore.callService(

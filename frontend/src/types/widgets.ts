@@ -1,4 +1,6 @@
 import type { VisibilityConfig } from './visibility';
+import type { MoreInfoConfig } from './more-info';
+import type { TapAction } from './actions';
 
 export type Widget = {
   type: string;
@@ -13,6 +15,9 @@ export type Widget = {
   grid?: WidgetGrid;
   restriction?: string;
   visibility?: VisibilityConfig;
+  more_info?: MoreInfoConfig;
+  tap_action?: TapAction | TapAction[];
+  hold_action?: TapAction | TapAction[];
   [key: string]: unknown;
 };
 

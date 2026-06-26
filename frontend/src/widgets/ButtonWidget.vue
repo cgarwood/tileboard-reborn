@@ -6,7 +6,11 @@
   >
     <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
       <div class="state-area">
-        <q-icon :name="iconName" :size="isMicro ? '28px' : '40px'" :style="iconColor ? { color: iconColor } : { color: 'white' }" />
+        <q-icon
+          :name="iconName"
+          :size="isMicro ? '28px' : '40px'"
+          :style="iconColor ? { color: iconColor } : { color: 'white' }"
+        />
       </div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
@@ -29,7 +33,6 @@ import { useRestriction } from '../composables/useRestriction';
 import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
-import type { TapAction } from '../types/actions';
 
 const props = defineProps<{ widget: Widget }>();
 const haStore = useHomeAssistantStore();
@@ -50,7 +53,7 @@ function execute() {
     void haStore.callService('button', 'press', { entity_id: props.widget.entity });
     return;
   }
-  executeActions(props.widget.tap_action as TapAction | TapAction[] | undefined);
+  executeActions(props.widget.tap_action);
 }
 
 function handleClick() {
