@@ -1,6 +1,6 @@
 <template>
   <q-page padding class="page-wrapper" style="background: transparent">
-    <div v-if="page" style="overflow-x: auto" class="page-content">
+    <div v-if="page" class="page-content">
       <div
         v-for="(row, rowIndex) in sectionRows"
         :key="rowIndex"
@@ -67,6 +67,7 @@ const sectionRows = computed(() => {
   padding: 0;
 }
 .page-content {
-  padding: 16px 16px 16px 62px;
+  overflow-x: auto;
+  padding: 0px 16px 16px 62px;
 }
 </style>
