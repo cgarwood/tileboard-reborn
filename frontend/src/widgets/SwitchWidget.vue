@@ -3,8 +3,9 @@
     <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
       <div class="state-area">
         <q-icon
-          :name="isOn ? 'toggle_on' : 'toggle_off'"
-          :color="isOn ? 'white' : 'grey-5'"
+          :name="iconName"
+          :style="iconColor ? { color: iconColor } : undefined"
+          :color="iconColor ? undefined : (isOn ? 'white' : 'grey-5')"
           :size="isMicro ? '28px' : '40px'"
         />
       </div>
@@ -28,7 +29,9 @@ import type { Widget } from '../types/widgets';
 const props = defineProps<{ widget: Widget }>();
 const haStore = useHomeAssistantStore();
 
-const { title, subtitle, isOn, backgroundStyle, stateBadge } = useWidget(() => props.widget);
+const { title, subtitle, isOn, icon, iconColor, backgroundStyle, stateBadge } = useWidget(() => props.widget);
+
+const iconName = computed(() => icon.value ?? (isOn.value ? 'toggle_on' : 'toggle_off'));
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
 const isMicro = computed(() => {
