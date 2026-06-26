@@ -8,7 +8,6 @@
           </q-list>
         </q-scroll-area>
 
-        <div class="list-widget__fade" />
       </div>
 
       <div class="label-group">
@@ -64,6 +63,7 @@ const items = computed<ListItemConfig[]>(
 
   &__scroll {
     height: 100%;
+    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
 
     :deep(.q-scrollarea__bar--h) {
       display: none;
@@ -76,17 +76,6 @@ const items = computed<ListItemConfig[]>(
 
   &__list {
     padding: 4px 0 20px;
-  }
-
-  &__fade {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 40px;
-    background: linear-gradient(to bottom, transparent, var(--list-widget-background));
-    pointer-events: none;
-    z-index: 1;
   }
 
   :deep(.label-group) {
