@@ -50,17 +50,47 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
+import { useWeatherForecast } from '../../composables/useWeatherForecast';
+import { WeatherEntityFeature } from '../../types/weather';
+import type { ForecastType } from '../../types/weather';
 import { getWeatherIcon, formatWeatherState } from '../../utils/weatherIcons';
 
 const props = defineProps<{
   entityId: string;
-  todayHigh?: number | null;
-  todayLow?: number | null;
 }>();
 
 const haStore = useHomeAssistantStore();
 const entity = computed(() => haStore.states[props.entityId] ?? null);
 const attrs = computed(() => entity.value?.attributes ?? {});
+
+const supportedFeatures = computed(() => entity.value?.attributes.supported_features ?? 0);
+
+const dailyForecastType = computed<ForecastType | null>(() => {
+  if (supportedFeatures.value & WeatherEntityFeature.FORECAST_DAILY) return 'daily';
+  if (supportedFeatures.value & WeatherEntityFeature.FORECAST_TWICE_DAILY) return 'twice_daily';
+  return null;
+});
+
+const { forecasts: dailyForecasts } = useWeatherForecast(
+  () => props.entityId,
+  () => dailyForecastType.value,
+);
+
+const todayHigh = computed<number | null>(() => {
+  if (!dailyForecasts.value?.length) return null;
+  if (dailyForecastType.value === 'twice_daily') {
+    return dailyForecasts.value.find((f) => f.is_daytime !== false)?.temperature ?? null;
+  }
+  return dailyForecasts.value[0]?.temperature ?? null;
+});
+
+const todayLow = computed<number | null>(() => {
+  if (!dailyForecasts.value?.length) return null;
+  if (dailyForecastType.value === 'twice_daily') {
+    return dailyForecasts.value.find((f) => f.is_daytime === false)?.temperature ?? null;
+  }
+  return dailyForecasts.value[0]?.templow ?? null;
+});
 
 const tempValue = computed(() => {
   const t = attrs.value.temperature as number | undefined;

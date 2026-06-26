@@ -44,7 +44,7 @@ const date = computed(() =>
 <style lang="scss" scoped>
 .screensaver-clock {
   position: absolute;
-  bottom: 48px;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;

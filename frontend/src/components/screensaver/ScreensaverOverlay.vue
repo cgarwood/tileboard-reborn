@@ -1,49 +1,43 @@
 <template>
   <div class="screensaver-overlay" @click="store.dismiss()">
-    <q-carousel
-      ref="carouselRef"
-      v-model="currentSlide"
-      swipeable
-      animated
-      infinite
-      transition-prev="fade"
-      transition-next="fade"
-      class="screensaver-carousel"
+    <div
+      class="screensaver-slides"
+      @pointerdown="onPointerDown"
+      @pointerup="onPointerUp"
+      @click="onSlidesClick"
     >
-      <q-carousel-slide
+      <div
         v-for="(slide, index) in allSlides"
         :key="index"
-        :name="index"
-        class="screensaver-carousel__slide"
+        class="screensaver-slide"
+        :class="{ 'screensaver-slide--active': index === currentSlide }"
       >
-        <ScreensaverImageSlide v-if="slide.type === 'image'" :slide="slide" />
-        <ScreensaverCurrentConditionsSlide
-          v-else-if="slide.type === 'weather-current' && store.weatherEntity"
-          :entity-id="store.weatherEntity"
-          :today-high="todayHigh"
-          :today-low="todayLow"
-        />
-        <ScreensaverHourlyForecastSlide
-          v-else-if="slide.type === 'weather-hourly'"
-          :forecasts="hourlyForecasts ?? []"
-        />
-        <ScreensaverDailyForecastSlide
-          v-else-if="slide.type === 'weather-daily' && dailyForecastType"
-          :forecasts="dailyForecasts ?? []"
-          :forecast-type="dailyForecastType"
-        />
-        <ScreensaverCalendarSlide
-          v-else-if="slide.type === 'calendar-today'"
-          day="today"
-          :events="todayEvents"
-        />
-        <ScreensaverCalendarSlide
-          v-else-if="slide.type === 'calendar-tomorrow'"
-          day="tomorrow"
-          :events="tomorrowEvents"
-        />
-      </q-carousel-slide>
-    </q-carousel>
+          <ScreensaverImageSlide v-if="slide.type === 'image'" :slide="slide" />
+          <ScreensaverCurrentConditionsSlide
+            v-else-if="slide.type === 'weather-current' && store.weatherEntity"
+            :entity-id="store.weatherEntity"
+          />
+          <ScreensaverHourlyForecastSlide
+            v-else-if="slide.type === 'weather-hourly'"
+            :forecasts="hourlyForecasts ?? []"
+          />
+          <ScreensaverDailyForecastSlide
+            v-else-if="slide.type === 'weather-daily' && dailyForecastType"
+            :forecasts="dailyForecasts ?? []"
+            :forecast-type="dailyForecastType"
+          />
+          <ScreensaverCalendarSlide
+            v-else-if="slide.type === 'calendar-today'"
+            day="today"
+            :events="todayEvents"
+          />
+          <ScreensaverCalendarSlide
+            v-else-if="slide.type === 'calendar-tomorrow'"
+            day="tomorrow"
+            :events="tomorrowEvents"
+          />
+        </div>
+    </div>
 
     <div v-if="weatherStore.alerts.length" class="screensaver-alerts">
       <q-badge
@@ -72,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useScreensaverStore } from '../../stores/screensaver';
 import { useWeatherAlertsStore } from '../../stores/weather-alerts';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
@@ -97,7 +91,6 @@ const store = useScreensaverStore();
 const weatherStore = useWeatherAlertsStore();
 const haStore = useHomeAssistantStore();
 
-const carouselRef = ref();
 const currentSlide = ref(0);
 const selectedAlert = ref<WeatherAlert | null>(null);
 
@@ -130,26 +123,6 @@ const { forecasts: dailyForecasts } = useWeatherForecast(
   () => store.weatherEntity ?? undefined,
   () => dailyForecastType.value,
 );
-
-// --- Today high/low (for current conditions slide) ---
-
-const todayHigh = computed<number | null>(() => {
-  if (!dailyForecasts.value?.length) return null;
-  if (dailyForecastType.value === 'twice_daily') {
-    const daytime = dailyForecasts.value.find((f) => f.is_daytime !== false);
-    return daytime?.temperature ?? null;
-  }
-  return dailyForecasts.value[0]?.temperature ?? null;
-});
-
-const todayLow = computed<number | null>(() => {
-  if (!dailyForecasts.value?.length) return null;
-  if (dailyForecastType.value === 'twice_daily') {
-    const nighttime = dailyForecasts.value.find((f) => f.is_daytime === false);
-    return nighttime?.temperature ?? null;
-  }
-  return dailyForecasts.value[0]?.templow ?? null;
-});
 
 // --- Calendar subscriptions and event filtering ---
 
@@ -222,13 +195,14 @@ const allSlides = computed<Slide[]>(() => {
   return [...photos.slice(0, insertAt), ...special, ...photos.slice(insertAt)];
 });
 
-// Keep currentSlide in bounds if the slide list changes
 watch(allSlides, (slides) => {
   if (currentSlide.value >= slides.length) currentSlide.value = 0;
+  // Only start the timer if it isn't already running. HA state updates can
+  // trigger this watcher frequently; we don't want to keep resetting the timer.
+  if (!slideTimer && slides.length > 1) scheduleNextSlide();
 });
 
 // --- Per-slide duration ---
-// We want weather and calendar slides to stay up longer than picture slides
 const currentSlideDuration = computed(() => {
   const slide = allSlides.value[currentSlide.value];
   return slide?.type !== 'image' ? store.slideSpeedMs * 2 : store.slideSpeedMs;
@@ -236,17 +210,47 @@ const currentSlideDuration = computed(() => {
 
 let slideTimer: ReturnType<typeof setTimeout> | null = null;
 
+function goToSlide(index: number) {
+  currentSlide.value = ((index % allSlides.value.length) + allSlides.value.length) % allSlides.value.length;
+}
+
 function scheduleNextSlide() {
   if (slideTimer) clearTimeout(slideTimer);
   if (allSlides.value.length <= 1) return;
-  slideTimer = setTimeout(() => carouselRef.value?.next(), currentSlideDuration.value);
+  slideTimer = setTimeout(() => {
+    goToSlide(currentSlide.value + 1);
+    scheduleNextSlide();
+  }, currentSlideDuration.value);
 }
 
-watch(currentSlide, scheduleNextSlide, { immediate: true });
+onMounted(scheduleNextSlide);
 watch(() => store.slideSpeedMs, scheduleNextSlide);
 onUnmounted(() => {
   if (slideTimer) clearTimeout(slideTimer);
 });
+
+// --- Swipe handling ---
+
+const SWIPE_THRESHOLD = 50;
+let swipeStartX = 0;
+
+function onPointerDown(e: PointerEvent) {
+  swipeStartX = e.clientX;
+}
+
+function onPointerUp(e: PointerEvent) {
+  const dx = e.clientX - swipeStartX;
+  if (Math.abs(dx) > SWIPE_THRESHOLD) {
+    goToSlide(currentSlide.value + (dx < 0 ? 1 : -1));
+    scheduleNextSlide();
+  }
+}
+
+function onSlidesClick(e: MouseEvent) {
+  if (Math.abs(e.clientX - swipeStartX) > SWIPE_THRESHOLD) {
+    e.stopPropagation();
+  }
+}
 
 // --- Weather slide navigation ---
 
@@ -261,17 +265,16 @@ function goToNearestWeatherSlide() {
   const currentIsWeather = allSlides.value[currentSlide.value]?.type.startsWith('weather-');
 
   if (currentIsWeather) {
-    // Already on a weather slide — cycle to the next one
     const pos = weatherIndices.indexOf(currentSlide.value);
     const next = weatherIndices[(pos + 1) % weatherIndices.length];
-    if (next !== undefined) currentSlide.value = next;
+    if (next !== undefined) goToSlide(next);
   } else {
-    // Jump to nearest weather slide by index distance
     const nearest = weatherIndices.reduce((best, idx) =>
       Math.abs(idx - currentSlide.value) < Math.abs(best - currentSlide.value) ? idx : best,
     );
-    currentSlide.value = nearest;
+    goToSlide(nearest);
   }
+  scheduleNextSlide();
 }
 
 // --- Alerts ---
@@ -294,12 +297,22 @@ function openAlert(alert: WeatherAlert) {
   cursor: pointer;
 }
 
-.screensaver-carousel {
-  height: 100%;
-  background: transparent;
+.screensaver-slides {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
 
-  :deep(.q-carousel__slide) {
-    padding: 0;
+.screensaver-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+
+  &--active {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 
