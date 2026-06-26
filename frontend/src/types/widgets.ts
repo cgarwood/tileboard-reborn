@@ -8,6 +8,8 @@ export type Widget = {
   class?: string;
   style?: Record<string, string | number>;
   background?: string;
+  title_color?: string | Record<string, string>;
+  subtitle_color?: string | Record<string, string>;
   grid?: WidgetGrid;
   restriction?: string;
   visibility?: VisibilityConfig;

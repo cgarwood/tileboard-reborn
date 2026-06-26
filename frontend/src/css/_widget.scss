@@ -24,14 +24,14 @@
 }
 
 .title {
-  color: var(--text-light);
+  color: var(--widget-title-color, var(--text-light));
   font-size: 0.85rem;
   font-weight: 400;
   line-height: 1.2;
 }
 
 .subtitle {
-  color: var(--text-light);
+  color: var(--widget-subtitle-color, var(--text-light));
   font-size: 0.7rem;
   line-height: 1.2;
   text-transform: uppercase;

@@ -3,7 +3,7 @@
     flat
     bordered
     :class="_class"
-    :style="[{ height: '100%', overflow: 'hidden' }, ...cardStyle]"
+    :style="[{ height: '100%', overflow: 'hidden', '--widget-title-color': titleColor ?? undefined, '--widget-subtitle-color': subtitleColor ?? undefined }, ...cardStyle]"
   >
     <slot />
     <q-icon name="mdi-lock" size="14px" v-if="isLocked" class="widget-lock-badge" />
@@ -19,7 +19,7 @@ import { slugifyState } from '../utils/slugifyState';
 
 const props = defineProps<{ widget: Widget }>();
 
-const { cardClass, cardStyle, state } = useWidget(() => props.widget);
+const { cardClass, cardStyle, state, titleColor, subtitleColor } = useWidget(() => props.widget);
 const { isLocked } = useRestriction(() => props.widget);
 
 const _class = computed(() => [

@@ -6,7 +6,7 @@
   >
     <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
       <div class="state-area">
-        <q-icon :name="iconName" :size="isMicro ? '28px' : '40px'" color="white" />
+        <q-icon :name="iconName" :size="isMicro ? '28px' : '40px'" :style="iconColor ? { color: iconColor } : { color: 'white' }" />
       </div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
@@ -33,7 +33,7 @@ import type { TapAction } from '../types/actions';
 
 const props = defineProps<{ widget: Widget }>();
 const haStore = useHomeAssistantStore();
-const { title, subtitle, icon, backgroundStyle } = useWidget(() => props.widget);
+const { title, subtitle, icon, iconColor, backgroundStyle } = useWidget(() => props.widget);
 const { withUnlock } = useRestriction(() => props.widget);
 const { executeActions } = useActionExecutor();
 

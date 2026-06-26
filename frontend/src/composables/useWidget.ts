@@ -47,6 +47,8 @@ export function useWidget(widget: () => Widget) {
 
   const icon = computed(() => resolveWidgetProp(widget().icon, resolveCtx.value));
   const iconColor = computed(() => resolveWidgetProp(widget().icon_color, resolveCtx.value));
+  const titleColor = computed(() => resolveWidgetProp(widget().title_color, resolveCtx.value));
+  const subtitleColor = computed(() => resolveWidgetProp(widget().subtitle_color, resolveCtx.value));
   const stateBadge = computed(() => resolveWidgetProp(widget().state_badge, resolveCtx.value));
 
   return {
@@ -62,6 +64,8 @@ export function useWidget(widget: () => Widget) {
     backgroundStyle,
     icon,
     iconColor,
+    titleColor,
+    subtitleColor,
     stateBadge,
     resolveCtx,
   };
