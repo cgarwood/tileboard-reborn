@@ -18,6 +18,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   const states = ref<HassEntities>({});
   const connection = shallowRef<Connection | null>(null);
   const connected = ref(false);
+  const entitiesLoaded = ref(false);
   const hassUrl = ref<string | null>(null);
   const error = ref<string | null>(null);
   const weatherForecasts = ref<Record<string, Partial<Record<ForecastType, WeatherForecast[]>>>>({});
@@ -78,6 +79,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
 
       unsubscribeEntities = subscribeEntities(conn, (entities) => {
         states.value = entities;
+        entitiesLoaded.value = true;
       });
     } catch (e) {
       const is400 = e instanceof Response && e.status === 400;
@@ -112,6 +114,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     connection.value?.close();
     connection.value = null;
     connected.value = false;
+    entitiesLoaded.value = false;
     states.value = {};
   }
 
@@ -208,6 +211,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   return {
     states,
     connected,
+    entitiesLoaded,
     hassUrl,
     error,
     weatherForecasts,
