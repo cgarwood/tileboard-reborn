@@ -1,8 +1,13 @@
 <template>
   <div class="weather-slide">
-    <div class="slide-header">7-Day Forecast</div>
+    <div class="slide-header">Daily Forecast</div>
     <div class="daily-row">
-      <div v-for="(day, i) in days" :key="i" class="day-card" :class="{ 'day-card--today': i === 0 }">
+      <div
+        v-for="(day, i) in days"
+        :key="i"
+        class="day-card"
+        :class="{ 'day-card--today': i === 0 }"
+      >
         <div class="day-name">{{ day.name }}</div>
         <q-icon :name="day.icon" class="day-icon" />
         <div class="day-temps">
@@ -36,13 +41,25 @@ const days = computed(() => {
   if (props.forecastType === 'twice_daily') {
     const groups = new Map<
       string,
-      { datetime: string; high: number | null; low: number | null; condition: string; precipProb: number | null }
+      {
+        datetime: string;
+        high: number | null;
+        low: number | null;
+        condition: string;
+        precipProb: number | null;
+      }
     >();
 
     for (const f of props.forecasts) {
       const date = f.datetime.slice(0, 10);
       if (!groups.has(date)) {
-        groups.set(date, { datetime: f.datetime, high: null, low: null, condition: '', precipProb: null });
+        groups.set(date, {
+          datetime: f.datetime,
+          high: null,
+          low: null,
+          condition: '',
+          precipProb: null,
+        });
       }
       const g = groups.get(date)!;
       if (f.is_daytime !== false) {
@@ -77,7 +94,6 @@ const days = computed(() => {
 
 <style lang="scss" scoped>
 @use '../../css/weather-slide';
-
 
 .daily-row {
   display: flex;
