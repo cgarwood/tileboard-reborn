@@ -68,7 +68,9 @@ function formatExpiry(expires: string) {
 :where(.q-toolbar) {
   background-color: $blue-10;
 }
-
+.q-toolbar {
+  min-height: 60px;
+}
 .weather-alert-dialog {
   min-width: 50vw;
   max-width: 90vw;
@@ -85,7 +87,7 @@ function formatExpiry(expires: string) {
       color: white;
       font-size: 0.9rem;
       font-weight: 500;
-      line-height: 0.7rem;
+      line-height: 1rem;
     }
   }
 
