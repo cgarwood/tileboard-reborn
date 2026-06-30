@@ -44,40 +44,14 @@
       </div>
     </q-card-section>
 
-    <!-- Detail dialog -->
-    <q-dialog v-model="dialogOpen">
-      <q-card class="cal-detail">
-        <q-card-section class="row items-center no-wrap">
-          <div class="cal-detail__color-dot" :style="{ background: selectedItem?.color }" />
-          <div class="text-h6 ellipsis" v-html="selectedItem?.event.summary" />
-          <q-space />
-          <q-btn flat round dense icon="mdi-close" v-close-popup />
-        </q-card-section>
-
-        <q-separator />
-
-        <q-card-section class="cal-detail__body q-gutter-sm">
-          <div class="cal-detail__row">
-            <q-icon name="mdi-clock-outline" size="18px" color="grey-5" />
-            <span>{{ selectedItem ? formatDetailTime(selectedItem.event) : '' }}</span>
-          </div>
-          <div v-if="selectedItem?.calendarName" class="cal-detail__row">
-            <q-icon name="mdi-calendar" size="18px" color="grey-5" />
-            <span>{{ selectedItem.calendarName }}</span>
-          </div>
-          <div v-if="selectedItem?.event.location" class="cal-detail__row">
-            <q-icon name="mdi-map-marker-outline" size="18px" color="grey-5" />
-            <span>{{ selectedItem.event.location }}</span>
-          </div>
-          <div
-            v-if="selectedItem?.event.description"
-            class="cal-detail__description"
-            v-html="selectedItem.event.description"
-          />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </BaseWidget>
+  <MoreInfoCalendarEvent
+    v-if="selectedItem"
+    :event="selectedItem.event"
+    :color="selectedItem.color"
+    :calendar-name="selectedItem.calendarName"
+    @hide="selectedItem = null"
+  />
 </template>
 
 <script lang="ts">
@@ -88,6 +62,7 @@ registerWidgetDefaults('calendar', { width: 4, height: 4 });
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
+import MoreInfoCalendarEvent from '../components/more-info/MoreInfoCalendarEvent.vue';
 import { useWidget } from '../composables/useWidget';
 import { useCalendar } from '../composables/useCalendar';
 import { useHomeAssistantStore } from '../stores/home-assistant';
@@ -157,12 +132,10 @@ const sortedEvents = computed<EventItem[]>(() => {
   return items;
 });
 
-const dialogOpen = ref(false);
 const selectedItem = ref<EventItem | null>(null);
 
 function openDetail(item: EventItem) {
   selectedItem.value = item;
-  dialogOpen.value = true;
 }
 
 function parseEventMs(start: string): number | null {
@@ -171,63 +144,23 @@ function parseEventMs(start: string): number | null {
   return isNaN(ms) ? null : ms;
 }
 
-// All-day events use a date-only string (no 'T')
 function isAllDay(event: CalendarEvent): boolean {
   return !event.start.includes('T');
 }
 
 function formatEventTime(event: CalendarEvent): string {
   if (isAllDay(event)) {
-    return formatDate(event.start) + ' · All day';
+    const d = new Date(event.start + 'T00:00:00');
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' · All day';
   }
   const start = new Date(event.start);
   const today = new Date();
   const isToday = start.toDateString() === today.toDateString();
+  const fmtTime = (d: Date) => d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   const datePart = isToday
     ? 'Today'
     : start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   return `${datePart} · ${fmtTime(start)}–${fmtTime(new Date(event.end))}`;
-}
-
-function formatDetailTime(event: CalendarEvent): string {
-  if (isAllDay(event)) {
-    const s = formatDate(event.start);
-    // HA end date for all-day is exclusive, subtract one day for display
-    const eDate = new Date(event.end + 'T00:00:00');
-    eDate.setDate(eDate.getDate() - 1);
-    const eDateStr = eDate.toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-    return s === eDateStr ? `${s} · All day` : `${s} – ${eDateStr} · All day`;
-  }
-  const start = new Date(event.start);
-  const end = new Date(event.end);
-  const startStr = start.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-  const endStr = end.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-  if (startStr === endStr) {
-    return `${startStr} · ${fmtTime(start)} – ${fmtTime(end)}`;
-  }
-  return `${startStr} ${fmtTime(start)} – ${endStr} ${fmtTime(end)}`;
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '';
-  const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
-  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-}
-
-function fmtTime(d: Date): string {
-  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 </script>
 
@@ -318,34 +251,4 @@ function fmtTime(d: Date): string {
   }
 }
 
-.cal-detail {
-  width: min(560px, 95vw);
-
-  &__color-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-right: 10px;
-  }
-
-  &__body {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 0.9rem;
-  }
-
-  &__description {
-    font-size: 0.875rem;
-    opacity: 0.75;
-    white-space: pre-wrap;
-    padding-top: 4px;
-  }
-}
 </style>
