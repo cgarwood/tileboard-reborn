@@ -5,14 +5,33 @@
       <span v-if="unit" class="more-info-sensor__unit">{{ unit }}</span>
     </div>
     <div v-if="lastChanged" class="more-info-sensor__updated">Updated {{ lastChanged }}</div>
+
+    <template v-if="unit && props.chartEnabled !== false">
+      <q-separator dark class="more-info-sensor__sep" />
+      <SensorHistoryChart
+        :entity-id="props.entityId"
+        :unit="unit"
+        :hours="props.chartHours"
+        :min="props.chartMin"
+        :max="props.chartMax"
+        class="more-info-sensor__chart"
+      />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
+import SensorHistoryChart from './SensorHistoryChart.vue';
 
-const props = defineProps<{ entityId: string }>();
+const props = defineProps<{
+  entityId: string;
+  chartEnabled?: boolean;
+  chartHours?: number;
+  chartMin?: number;
+  chartMax?: number;
+}>();
 
 const haStore = useHomeAssistantStore();
 const entity = computed(() => (props.entityId ? (haStore.states[props.entityId] ?? null) : null));
@@ -25,7 +44,7 @@ const displayState = computed(() => {
   return s;
 });
 
-const unit = computed(() => entity.value?.attributes.unit_of_measurement ?? '');
+const unit = computed(() => (entity.value?.attributes.unit_of_measurement as string) ?? '');
 
 const lastChanged = computed(() => {
   const ts = entity.value?.last_changed;
@@ -36,7 +55,7 @@ const lastChanged = computed(() => {
 
 <style lang="scss" scoped>
 .more-info-sensor {
-  padding: 24px 20px;
+  padding: 24px 20px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,6 +83,15 @@ const lastChanged = computed(() => {
   &__updated {
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.4);
+  }
+
+  &__sep {
+    width: 100%;
+  }
+
+  &__chart {
+    width: 100%;
+    padding-bottom: 4px;
   }
 }
 </style>

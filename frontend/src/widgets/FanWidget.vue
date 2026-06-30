@@ -15,10 +15,17 @@
             'fan-spin--fast': isOn && percentage >= 66,
             'fan-spin--slow': isOn && percentage < 34,
           }"
+          :style="{ opacity: isOn ? 1 : 0.45 }"
         />
       </div>
 
-      <div v-if="badgeText && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ badgeText }}</div>
+      <div
+        v-if="badgeText && !isMicro"
+        class="state-badge"
+        :class="{ 'state-badge--restricted': isLocked }"
+      >
+        {{ badgeText }}
+      </div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -67,7 +74,9 @@ import type { Widget } from '../types/widgets';
 const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
-const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = useWidget(() => props.widget);
+const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = useWidget(
+  () => props.widget,
+);
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 const { executeActions } = useActionExecutor();
 

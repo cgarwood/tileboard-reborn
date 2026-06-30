@@ -14,7 +14,14 @@
         <MoreInfoClimate v-else-if="contentType === 'climate'" :entity-id="entityId!" />
         <MoreInfoNumber v-else-if="contentType === 'number'" :entity-id="entityId!" />
         <MoreInfoWeather v-else-if="contentType === 'weather'" :entity-id="entityId!" />
-        <MoreInfoSensor v-else :entity-id="entityId ?? ''" />
+        <MoreInfoSensor
+          v-else
+          :entity-id="entityId ?? ''"
+          :chart-enabled="moreInfoConfig.chart !== false"
+          :chart-hours="moreInfoConfig.chart_hours"
+          :chart-min="moreInfoConfig.chart_min"
+          :chart-max="moreInfoConfig.chart_max"
+        />
       </div>
     </q-card>
   </q-dialog>
