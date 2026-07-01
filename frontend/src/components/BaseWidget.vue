@@ -3,7 +3,6 @@
     v-bind="$attrs"
     v-touch-hold.mouse="onHold"
     flat
-    bordered
     :class="_class"
     :style="[
       {
