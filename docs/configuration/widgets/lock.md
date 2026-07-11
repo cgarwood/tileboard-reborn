@@ -40,7 +40,7 @@ title: Front Door
 restriction: confirm_unlock
 ```
 
-See [Restrictions](../../restrictions.md) for setup details.
+See [Restrictions](../restrictions.md) for setup details.
 
 ## Examples
 

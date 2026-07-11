@@ -4,13 +4,13 @@ The more-info dialog provides an expanded view of an entity's details and contro
 
 The dialog content is determined by the entity's domain:
 
-| Domain | Content |
-|--------|---------|
-| `light` | Toggle, brightness slider, color temperature slider |
-| `climate` | Current temp, HVAC mode buttons, setpoint controls, fan mode |
-| `number` / `input_number` | Large value display, slider, +/− buttons |
-| `weather` | Current conditions, attributes, tabbed forecast (Daily / Hourly / Twice Daily) |
-| everything else | State display and history chart (if entity has a unit of measurement) |
+| Domain                    | Content                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| `light`                   | Toggle, brightness slider, color temperature slider                            |
+| `climate`                 | Current temp, HVAC mode buttons, setpoint controls, fan mode                   |
+| `number` / `input_number` | Large value display, slider, +/− buttons                                       |
+| `weather`                 | Current conditions, attributes, tabbed forecast (Daily / Hourly / Twice Daily) |
+| everything else           | State display and history chart (if entity has a unit of measurement)          |
 
 ## Configuration
 
@@ -26,17 +26,17 @@ more_info:
 
 ### Options
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `disabled` | boolean | `false` | Set to `true` to disable the dialog entirely |
-| `entity_id` | string | widget entity | Show a different entity in the dialog |
-| `title` | string / map / expression | widget title | Override the dialog header title |
-| `subtitle` | string / map / expression | widget subtitle | Override the dialog header subtitle |
-| `header_background` | string / map / expression | — | Override the header background color |
-| `chart` | `false` | enabled | Set to `false` to hide the history chart for sensor entities |
-| `chart_hours` | number | `24` | How many hours of history to show in the chart |
-| `chart_min` | number | auto | Y-axis minimum for the chart |
-| `chart_max` | number | auto | Y-axis maximum for the chart |
+| Key                 | Type                      | Default         | Description                                                  |
+| ------------------- | ------------------------- | --------------- | ------------------------------------------------------------ |
+| `disabled`          | boolean                   | `false`         | Set to `true` to disable the dialog entirely                 |
+| `entity_id`         | string                    | widget entity   | Show a different entity in the dialog                        |
+| `title`             | string / map / expression | widget title    | Override the dialog header title                             |
+| `subtitle`          | string / map / expression | widget subtitle | Override the dialog header subtitle                          |
+| `header_background` | string / map / expression | —               | Override the header background color                         |
+| `chart`             | `false`                   | enabled         | Set to `false` to hide the history chart for sensor entities |
+| `chart_hours`       | number                    | `24`            | How many hours of history to show in the chart               |
+| `chart_min`         | number                    | auto            | Y-axis minimum for the chart                                 |
+| `chart_max`         | number                    | auto            | Y-axis maximum for the chart                                 |
 
 ## Disabling the Dialog
 
@@ -58,7 +58,7 @@ type: sensor
 entity: sensor.outdoor_temperature
 title: Outside
 more_info:
-  entity_id: weather.home     # open weather dialog instead
+  entity_id: weather.home # open weather dialog instead
 ```
 
 ## Customizing the Header
@@ -69,7 +69,7 @@ more_info:
 type: sensor
 entity: sensor.battery
 more_info:
-  title: "Battery — {{ state }}%"
+  title: 'Battery — {{ state }}%'
   header_background: "{{ Number(state) < 20 ? '#e53935' : '#1e1e2e' }}"
 ```
 
@@ -81,12 +81,13 @@ For sensor entities with a unit of measurement, the dialog shows a history chart
 type: sensor
 entity: sensor.power_usage
 more_info:
-  chart_hours: 72         # show 3 days of history
-  chart_min: 0            # pin Y-axis at 0
-  chart_max: 5000         # cap at 5000W
+  chart_hours: 72 # show 3 days of history
+  chart_min: 0 # pin Y-axis at 0
+  chart_max: 5000 # cap at 5000W
 ```
 
 Suppress the chart entirely:
+
 ```yaml
 more_info:
   chart: false
@@ -95,6 +96,7 @@ more_info:
 ## Examples
 
 **Sensor with custom chart range:**
+
 ```yaml
 type: sensor
 entity: sensor.indoor_humidity
@@ -106,11 +108,12 @@ more_info:
 ```
 
 **Widget that opens a weather dialog:**
+
 ```yaml
 type: sensor
 entity: sensor.outdoor_temperature
 title: Outside
-subtitle: "Tap for forecast"
+subtitle: 'Tap for forecast'
 tap_action:
   action: more_info
 more_info:
@@ -119,6 +122,7 @@ more_info:
 ```
 
 **Light with custom header color:**
+
 ```yaml
 type: light
 entity: light.living_room
@@ -127,6 +131,7 @@ more_info:
 ```
 
 **Disable more-info completely:**
+
 ```yaml
 type: switch
 entity: switch.christmas_lights

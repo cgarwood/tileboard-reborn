@@ -2,6 +2,8 @@
 
 TileBoard Reborn is a highly configurable, tile-based dashboard for Home Assistant, designed for wall-mounted tablets and kiosk displays.
 
+![Sample Dashboard](images/screenshot-dashboard.png)
+
 ## Features
 
 - Configurable widget grid layout with per-page customization
@@ -12,5 +14,5 @@ TileBoard Reborn is a highly configurable, tile-based dashboard for Home Assista
 
 ## Getting Started
 
-- [Installation](installation.md) — install as an HA addon or run standalone
+- [Installation](installation.md)
 - [Configuration](configuration/index.md) — set up pages, widgets, and the screensaver
