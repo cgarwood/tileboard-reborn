@@ -137,3 +137,4 @@ visibility:
 - [Fan](fan.md)
 - [Number](number.md)
 - [List](list.md)
+- [Lock](lock.md)

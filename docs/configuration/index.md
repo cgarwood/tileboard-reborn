@@ -48,5 +48,7 @@ restrictions: ...
 
 - [Pages](pages.md) — define dashboard pages and their layout
 - [Widgets](widgets/index.md) — tile types and their configuration options
+- [Actions](actions.md) — tap and hold actions (service calls, navigation, more-info, etc.)
+- [More-info Dialog](more-info.md) — customizing the long-press detail dialog
 - [Screensaver](screensaver.md) — ambient display when idle
 - [Restrictions](restrictions.md) — PIN and condition-based access control
