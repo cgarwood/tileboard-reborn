@@ -3,7 +3,7 @@ site_description: A modern, configurable dashboard for Home Assistant
 site_url: https://tileboard-reborn.readthedocs.io
 repo_url: https://github.com/cgarwood/tileboard-reborn
 repo_name: cgarwood/tileboard-reborn
-docs_dir: .
+docs_dir: docs
 
 theme:
   name: readthedocs
@@ -19,6 +19,8 @@ nav:
   - Configuration:
       - Overview: configuration/index.md
       - Pages: configuration/pages.md
+      - Actions: configuration/actions.md
+      - More-info Dialog: configuration/more-info.md
       - Widgets:
           - Overview: configuration/widgets/index.md
           - Sensor: configuration/widgets/sensor.md
@@ -32,6 +34,7 @@ nav:
           - Calendar: configuration/widgets/calendar.md
           - Fan: configuration/widgets/fan.md
           - Number: configuration/widgets/number.md
+          - Lock: configuration/widgets/lock.md
           - List: configuration/widgets/list.md
       - Screensaver: configuration/screensaver.md
       - Restrictions: configuration/restrictions.md
