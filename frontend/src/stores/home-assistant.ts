@@ -23,7 +23,11 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   const entitiesLoaded = ref(false);
   const hassUrl = ref<string | null>(null);
   const error = ref<string | null>(null);
-  const weatherForecasts = ref<Record<string, Partial<Record<ForecastType, WeatherForecast[]>>>>({});
+  // Shallow like `states`: per-entity tracking, and forecast arrays stay plain (not deep-proxied).
+  // Entries are replaced, never mutated, so consumers of one entity don't re-run for another.
+  const weatherForecasts = shallowReactive<
+    Record<string, Readonly<Partial<Record<ForecastType, WeatherForecast[]>>>>
+  >({});
 
   let unsubscribeEntities: (() => void) | null = null;
   // The first subscribe_entities message (initially and after each reconnect) is a full snapshot.
@@ -137,7 +141,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       void sub.unsubPromise.then((unsub) => void unsub()).catch(() => {});
     }
     forecastSubs.clear();
-    weatherForecasts.value = {};
+    for (const id of Object.keys(weatherForecasts)) delete weatherForecasts[id];
 
     connection.value?.close();
     connection.value = null;
@@ -158,8 +162,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
 
     const unsubPromise = connection.value.subscribeMessage<{ forecast: WeatherForecast[] }>(
       (msg) => {
-        if (!weatherForecasts.value[entityId]) weatherForecasts.value[entityId] = {};
-        weatherForecasts.value[entityId][forecastType] = msg.forecast;
+        weatherForecasts[entityId] = { ...weatherForecasts[entityId], [forecastType]: msg.forecast };
       },
       { type: 'weather/subscribe_forecast', forecast_type: forecastType, entity_id: entityId },
     );
@@ -178,10 +181,12 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     void sub.unsubPromise.then((unsub) => void unsub()).catch(() => {});
     forecastSubs.delete(key);
 
-    const entityForecasts = weatherForecasts.value[entityId];
+    const entityForecasts = weatherForecasts[entityId];
     if (entityForecasts) {
-      delete entityForecasts[forecastType];
-      if (Object.keys(entityForecasts).length === 0) delete weatherForecasts.value[entityId];
+      const rest = { ...entityForecasts };
+      delete rest[forecastType];
+      if (Object.keys(rest).length === 0) delete weatherForecasts[entityId];
+      else weatherForecasts[entityId] = rest;
     }
   }
 
