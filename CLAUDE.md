@@ -186,7 +186,9 @@ Two chart components exist:
 - Positioned `absolute; bottom: -2px; left: -2px; right: -2px; height: 55%` (negative inset to reach card edges past the 1px border)
 - `pointer-events: none`; `viewBox="0 0 100 100"` with `preserveAspectRatio="none"` and `vector-effect="non-scaling-stroke"` on the line
 - Monotone cubic interpolation (Fritsch–Carlson), which prevents overshoot; points evenly spaced by index
-- Mean-based downsampling: `target = Math.max(8, Math.round(12 / smoothing))` (default smoothing 0.3 → 40 points)
+- Data comes from `useSensorHistory` (`composables/useSensorHistory.ts`): the window is split into fixed-time buckets holding running means. Bucket count is `Math.max(8, Math.round(12 / smoothing))` (default smoothing 0.3 → 40; 0 → 240). Empty buckets repeat the previous value.
+  - `state_class: measurement` sensors load 5-minute recorder statistics plus a 20-minute raw tail. Others load raw history. Statistics are skipped if their unit differs from the entity's.
+  - Series are shared per (entity, hours, buckets) and live-update in place. They stay cached for 10 min after the last chart unmounts, so page switches don't refetch. They reload on (re)connect once `entitiesLoaded`.
 - `smoothing` capped at 1.0 via `Math.min(props.smoothing ?? 0.3, 1)`
 - `color` is used directly as SVG `stroke`/`fill` (with `stroke-opacity`/`fill-opacity`), so `var(--foo)` works without resolving
 
