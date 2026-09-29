@@ -1,7 +1,18 @@
 <template>
   <BaseWidget :widget="widget">
-    <q-card-section class="widget-body q-pa-none camera-widget-body" @click="handleClick">
-      <img v-if="feedSrc" ref="feedImgRef" :src="feedSrc" class="camera-feed" alt="" />
+    <q-card-section
+      ref="bodyRef"
+      class="widget-body q-pa-none camera-widget-body"
+      @click="handleClick"
+    >
+      <img
+        v-if="feedSrc"
+        ref="feedImgRef"
+        :src="feedSrc"
+        class="camera-feed"
+        decoding="async"
+        alt=""
+      />
       <div v-else class="camera-placeholder">
         <q-icon name="mdi-camera-off" size="36px" color="white" style="opacity: 0.4" />
       </div>
@@ -27,6 +38,7 @@ registerWidgetDefaults('camera', { width: 2, height: 2 });
 
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import CameraDialog from '../components/camera/CameraDialog.vue';
 import { useWidget } from '../composables/useWidget';
@@ -70,9 +82,23 @@ const snapshotInterval = computed(
   () => ((props.widget.snapshot_interval as number | undefined) ?? 5) * 1000,
 );
 
+// Tile size in device pixels. Null until measured, or while the tile has no size (e.g. hidden).
+// Not padded: HA scales by fixed ratios (1/2, 1/4, 1/8...) to the smallest result that still
+// covers the request, so any extra pixels can push it up a step.
+const bodyRef = ref<ComponentPublicInstance | null>(null);
+const tileSize = ref<{ width: number; height: number } | null>(null);
+let resizeObserver: ResizeObserver | null = null;
+
+function roundUp(px: number) {
+  return Math.ceil(px * window.devicePixelRatio);
+}
+
+// HA downscales snapshots to the requested size, so a small tile doesn't fetch and decode a
+// full-resolution frame every few seconds. (Not available for the MJPEG stream.)
 const snapshotUrl = computed(() => {
-  if (!entityId.value || !accessToken.value) return '';
-  return `${haUrl.value}/api/camera_proxy/${entityId.value}?token=${accessToken.value}`;
+  if (!entityId.value || !accessToken.value || !tileSize.value) return '';
+  const { width, height } = tileSize.value;
+  return `${haUrl.value}/api/camera_proxy/${entityId.value}?token=${accessToken.value}&width=${width}&height=${height}`;
 });
 
 const streamUrl = computed(() => {
@@ -89,6 +115,15 @@ let snapshotTimer: ReturnType<typeof setInterval> | null = null;
 const paused = computed(() => screensaverStore.active || !pageVisible.value);
 
 onMounted(() => {
+  resizeObserver = new ResizeObserver(([entry]) => {
+    const { width, height } = entry!.contentRect;
+    const next = width && height ? { width: roundUp(width), height: roundUp(height) } : null;
+    if (next?.width !== tileSize.value?.width || next?.height !== tileSize.value?.height) {
+      tileSize.value = next;
+    }
+  });
+  resizeObserver.observe(bodyRef.value!.$el as Element);
+
   if (streamMode.value === 'snapshot') {
     snapshotTimer = setInterval(() => {
       if (!paused.value) tick.value++;
@@ -106,6 +141,7 @@ onBeforeUnmount(() => {
 });
 
 onUnmounted(() => {
+  resizeObserver?.disconnect();
   if (snapshotTimer !== null) {
     clearInterval(snapshotTimer);
     snapshotTimer = null;
@@ -119,6 +155,7 @@ const feedSrc = computed<string | null>((previous) => {
   // While paused, keep the last URL: HA rotates access_token every ~5 min, and a new URL would
   // make even a hidden <img> fetch a fresh snapshot.
   if (paused.value && previous) return previous;
+  if (!snapshotUrl.value) return null;
   return `${snapshotUrl.value}&t=${tick.value}`;
 });
 
