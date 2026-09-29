@@ -208,15 +208,10 @@
     "@eslint/core" "^0.17.0"
     levn "^0.4.1"
 
-"@fontsource/noto-sans@^5.2.10":
-  version "5.2.10"
-  resolved "https://registry.npmjs.org/@fontsource/noto-sans/-/noto-sans-5.2.10.tgz"
-  integrity sha512-J58RVfS/C0Z2VBF+PoU260Tx8cdRGYuS+e3yQe4hYaIYDl0sEVn5CzlLo5zVRvQD0HaIUTV8AZMfqR7rtdEpqQ==
-
-"@fontsource/open-sans@^5.2.7":
-  version "5.2.7"
-  resolved "https://registry.npmjs.org/@fontsource/open-sans/-/open-sans-5.2.7.tgz"
-  integrity sha512-8yfgDYjE5O0vmTPdrcjV35y4yMnctsokmi9gN49Gcsr0sjzkMkR97AnKDe6OqZh2SFkYlR28fxOvi21bYEgMSw==
+"@fontsource-variable/noto-sans@^5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@fontsource-variable/noto-sans/-/noto-sans-5.3.0.tgz#50fa2b8bd02ef90cdd4f1a584e9509a1a1e887ba"
+  integrity sha512-e3ZuxzY9AL2psXPZlhwhnYrHUHv6PMoyK9MQ7croF0CUgURLqu9EMjW7q2FgVLwij1tjLsIHQrnwQ8aUcg4BiA==
 
 "@fontsource/source-sans-pro@^5.2.5":
   version "5.2.5"
