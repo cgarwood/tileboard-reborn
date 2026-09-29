@@ -104,12 +104,13 @@ function formatMs(ms: number): string {
   transform: translateX(-50%);
   width: min(800px, calc(100vw - 32px));
   z-index: 2000;
-  background: rgba(18, 18, 28, 0.97);
+  background: rgb(18, 18, 28);
   color: #fff;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
+  // Opaque instead of translucent + backdrop-filter: re-blurring the content behind on every
+  // repaint is very expensive on low-end tablet GPUs.
 
   &__track {
     height: 3px;
@@ -200,7 +201,7 @@ function formatMs(ms: number): string {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(18, 18, 28, 0.92);
+  background: rgb(18, 18, 28);
   color: #fff;
   border: none;
   display: flex;
@@ -208,7 +209,6 @@ function formatMs(ms: number): string {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
   transition: transform 0.15s ease;
 
   &:hover {
