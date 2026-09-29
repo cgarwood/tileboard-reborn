@@ -11,15 +11,14 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['fonts.ts'],
+    boot: [],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
-    css: ['app.scss', 'variables.scss', '_colormap.scss'],
+    css: ['fonts.scss', 'app.scss', 'variables.scss', '_colormap.scss'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       'mdi-v7',
-      'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
     ],
 
