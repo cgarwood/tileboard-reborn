@@ -1,13 +1,19 @@
 <template>
-  <router-view />
+  <!-- Hidden (still mounted) while fully covered by the screensaver, so the browser skips its
+       style/layout/paint work; shown again as soon as the screensaver starts fading out. -->
+  <router-view v-show="!dashboardHidden" />
   <SendspinBar v-if="sendspinStore.connected || sendspinStore.connecting" />
-  <transition name="screensaver">
+  <transition
+    name="screensaver"
+    @after-enter="dashboardHidden = true"
+    @before-leave="dashboardHidden = false"
+  >
     <ScreensaverOverlay v-if="screensaverStore.active" />
   </transition>
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useConfigStore } from './stores/config';
 import { useHomeAssistantStore } from './stores/home-assistant';
 import { useScreensaverStore } from './stores/screensaver';
@@ -25,6 +31,8 @@ const screensaverStore = useScreensaverStore();
 const weatherAlertsStore = useWeatherAlertsStore();
 const sendspinStore = useSendspinStore();
 const { executeActions } = useActionExecutor();
+
+const dashboardHidden = ref(false);
 
 interface TileboardEvent {
   event_type: 'tileboard';

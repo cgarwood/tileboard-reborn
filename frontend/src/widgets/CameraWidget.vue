@@ -26,7 +26,7 @@ registerWidgetDefaults('camera', { width: 2, height: 2 });
 </script>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import CameraDialog from '../components/camera/CameraDialog.vue';
 import { useWidget } from '../composables/useWidget';
@@ -34,6 +34,8 @@ import { useRestriction } from '../composables/useRestriction';
 import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useConfigStore } from '../stores/config';
+import { useScreensaverStore } from '../stores/screensaver';
+import { useDocumentVisible } from '../composables/useDocumentVisible';
 import type { Widget } from '../types/widgets';
 import type { Config } from '../types/config';
 
@@ -41,6 +43,8 @@ const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
 const configStore = useConfigStore();
+const screensaverStore = useScreensaverStore();
+const pageVisible = useDocumentVisible();
 
 const { title, subtitle } = useWidget(() => props.widget);
 const { withUnlock } = useRestriction(() => props.widget);
@@ -81,10 +85,20 @@ const feedImgRef = ref<HTMLImageElement | null>(null);
 const tick = ref(0);
 let snapshotTimer: ReturnType<typeof setInterval> | null = null;
 
+// Nobody can see the feed under the screensaver or with the screen off, so stop fetching it.
+const paused = computed(() => screensaverStore.active || !pageVisible.value);
+
 onMounted(() => {
   if (streamMode.value === 'snapshot') {
-    snapshotTimer = setInterval(() => { tick.value++; }, snapshotInterval.value);
+    snapshotTimer = setInterval(() => {
+      if (!paused.value) tick.value++;
+    }, snapshotInterval.value);
   }
+});
+
+// Grab a fresh snapshot as soon as the feed is visible again rather than waiting for the timer.
+watch(paused, (isPaused) => {
+  if (!isPaused) tick.value++;
 });
 
 onBeforeUnmount(() => {
@@ -98,9 +112,13 @@ onUnmounted(() => {
   }
 });
 
-const feedSrc = computed(() => {
+const feedSrc = computed<string | null>((previous) => {
   if (!entityId.value || !accessToken.value) return null;
-  if (streamMode.value === 'stream') return streamUrl.value;
+  // BLANK (not null) keeps the <img> so the browser actually closes the MJPEG connection.
+  if (streamMode.value === 'stream') return paused.value ? BLANK : streamUrl.value;
+  // While paused, keep the last URL: HA rotates access_token every ~5 min, and a new URL would
+  // make even a hidden <img> fetch a fresh snapshot.
+  if (paused.value && previous) return previous;
   return `${snapshotUrl.value}&t=${tick.value}`;
 });
 

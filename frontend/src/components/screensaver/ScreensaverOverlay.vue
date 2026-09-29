@@ -12,6 +12,7 @@
         class="screensaver-slide"
         :class="{ 'screensaver-slide--active': index === currentSlide }"
       >
+        <template v-if="isMounted(index)">
           <ScreensaverImageSlide v-if="slide.type === 'image'" :slide="slide" />
           <ScreensaverCurrentConditionsSlide
             v-else-if="slide.type === 'weather-current' && store.weatherEntity"
@@ -36,6 +37,7 @@
             day="tomorrow"
             :events="tomorrowEvents"
           />
+        </template>
         </div>
     </div>
 
@@ -210,7 +212,19 @@ const currentSlideDuration = computed(() => {
 
 let slideTimer: ReturnType<typeof setTimeout> | null = null;
 
+// Only slides near the current one are mounted: neighbours preload their images for auto-advance
+// and swipes, and the previous slide stays until its fade-out ends (it may not be adjacent after a
+// jump to a weather slide). Mounting every slide would fetch and decode the whole album at once.
+const previousSlide = ref<number | null>(null);
+
+function isMounted(index: number): boolean {
+  const n = allSlides.value.length;
+  const offset = (index - currentSlide.value + n) % n;
+  return offset === 0 || offset === 1 || offset === n - 1 || index === previousSlide.value;
+}
+
 function goToSlide(index: number) {
+  previousSlide.value = currentSlide.value;
   currentSlide.value = ((index % allSlides.value.length) + allSlides.value.length) % allSlides.value.length;
 }
 

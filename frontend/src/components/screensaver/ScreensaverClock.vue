@@ -14,31 +14,35 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-const now = ref(new Date());
-let intervalId: ReturnType<typeof setInterval>;
+// Built once: constructing Intl formatters is expensive on low-end devices.
+const timeFormat = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' });
+const dateFormat = new Intl.DateTimeFormat([], { weekday: 'long', month: 'long', day: 'numeric' });
 
-onMounted(() => {
-  intervalId = setInterval(() => {
-    now.value = new Date();
-  }, 1000);
-});
+const now = ref(new Date());
+let timerId: ReturnType<typeof setTimeout>;
+
+// Tick on each minute boundary (the display has no seconds). Re-aligning every tick keeps it
+// accurate even if the browser throttles or delays timers.
+function tick() {
+  const d = new Date();
+  now.value = d;
+  timerId = setTimeout(tick, 60_000 - (d.getSeconds() * 1000 + d.getMilliseconds()) + 50);
+}
+
+onMounted(tick);
 
 onUnmounted(() => {
-  clearInterval(intervalId);
+  clearTimeout(timerId);
 });
 
 const timeParts = computed(() => {
-  const parts = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).formatToParts(
-    now.value,
-  );
+  const parts = timeFormat.formatToParts(now.value);
   const period = parts.find((p) => p.type === 'dayPeriod')?.value ?? '';
   const mainParts = parts.filter((p) => p.type !== 'dayPeriod' && p.value.trim() !== '');
   return { mainParts, period };
 });
 
-const date = computed(() =>
-  now.value.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }),
-);
+const date = computed(() => dateFormat.format(now.value));
 </script>
 
 <style lang="scss" scoped>
