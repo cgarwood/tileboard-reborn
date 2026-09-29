@@ -37,14 +37,16 @@ export default { inheritAttrs: false };
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, defineAsyncComponent, ref } from 'vue';
 import type { Widget } from '../types/widgets';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
 import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { slugifyState } from '../utils/slugifyState';
-import MoreInfoDialog from './more-info/MoreInfoDialog.vue';
+
+// Only needed once a widget is held; loading it lazily keeps it (and Chart.js) out of the dashboard bundle.
+const MoreInfoDialog = defineAsyncComponent(() => import('./more-info/MoreInfoDialog.vue'));
 
 const props = defineProps<{ widget: Widget }>();
 

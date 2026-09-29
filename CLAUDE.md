@@ -177,15 +177,18 @@ Calendar event details use a separate standalone dialog `MoreInfoCalendarEvent` 
 
 Two chart components exist:
 
-**`SensorHistoryChart.vue`** (in `components/more-info/`) — full interactive history chart used inside more-info dialogs. Has axes, tooltips, legend-less but hoverable.
+**`SensorHistoryChart.vue`** (in `components/more-info/`) — full interactive Chart.js history chart used inside more-info dialogs. Has axes, tooltips, legend-less but hoverable.
+- Linear time x axis with `{ x: unixSeconds, y }` data and `parsing: false`; ticks on local whole hours via `afterBuildTicks`
+- LTTB decimation plugin keeps long histories to ~1 point per pixel
+- Only reachable through `MoreInfoDialog`, which `BaseWidget` loads with `defineAsyncComponent`, so Chart.js is never in the dashboard bundle. Keep it that way: don't import Chart.js from widgets.
 
-**`SensorWidgetChart.vue`** (in `components/widgets/`) — decorative background chart for `SensorWidget`. Key traits:
+**`SensorWidgetChart.vue`** (in `components/widgets/`) — decorative background sparkline for `SensorWidget`. Plain inline SVG, no Chart.js. Key traits:
 - Positioned `absolute; bottom: -2px; left: -2px; right: -2px; height: 55%` (negative inset to reach card edges past the 1px border)
-- `pointer-events: none`, no axes, no tooltip, no legend
-- `cubicInterpolationMode: 'monotone'` (not `tension` — monotone prevents overshoot)
+- `pointer-events: none`; `viewBox="0 0 100 100"` with `preserveAspectRatio="none"` and `vector-effect="non-scaling-stroke"` on the line
+- Monotone cubic interpolation (Fritsch–Carlson), which prevents overshoot; points evenly spaced by index
 - Mean-based downsampling: `target = Math.max(8, Math.round(12 / smoothing))` (default smoothing 0.3 → 40 points)
 - `smoothing` capped at 1.0 via `Math.min(props.smoothing ?? 0.3, 1)`
-- CSS variable colors resolved at runtime via a temp DOM element + `getComputedStyle`
+- `color` is used directly as SVG `stroke`/`fill` (with `stroke-opacity`/`fill-opacity`), so `var(--foo)` works without resolving
 
 ## Key Patterns
 
@@ -199,7 +202,7 @@ Two chart components exist:
 - `{}` / `null` / any object → show chart with all defaults
 - object with keys → `{ hours, min, max, smoothing, color }`
 
-**Color resolution for canvas** — CSS variables can't be read by canvas. Pattern: create a temp div, set `el.style.color = value`, append to body, read `getComputedStyle(el).color`, remove. Handles `var(--foo)`, `rgb()`, `rgba()`, hex.
+**Color resolution for canvas** — CSS variables can't be read by canvas. If a canvas ever needs one, create a temp div, set `el.style.color = value`, append to body, read `getComputedStyle(el).color`, and remove it. Handles `var(--foo)`, `rgb()`, `rgba()` and hex. It forces a style recalc, so resolve once per color value, never per render. Prefer SVG/CSS, which take `var()` directly.
 
 ## Stores Summary
 

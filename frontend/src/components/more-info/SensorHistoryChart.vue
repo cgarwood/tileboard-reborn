@@ -13,16 +13,16 @@ import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { Line } from 'vue-chartjs';
 import {
   Chart as ChartJS,
-  CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
   Filler,
   Tooltip,
+  Decimation,
 } from 'chart.js';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
+ChartJS.register(LinearScale, PointElement, LineElement, Filler, Tooltip, Decimation);
 
 interface HistoryPoint {
   t: number; // unix timestamp in seconds
@@ -96,16 +96,32 @@ onUnmounted(() => {
   stopLiveWatch?.();
 });
 
-// Chart rendering
+// Chart rendering. The x axis is linear time (unix seconds), so only tick and tooltip labels are
+// formatted, not every point, and Chart.js can decimate large histories to about 1 point per pixel.
+const timeFormat = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' });
+
 function formatLabel(ts: number): string {
-  return new Date(ts * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return timeFormat.format(ts * 1000);
+}
+
+/** Up to ~5 ticks on local whole hours (e.g. every 6 h at 12 AM, 6 AM, ... for a 24 h chart). */
+function hourTicks(min: number, max: number): Array<{ value: number }> {
+  const spanHours = (max - min) / 3600;
+  const step = [1, 2, 3, 4, 6, 8, 12, 24].find((h) => spanHours / h <= 5) ?? 24;
+  const d = new Date(min * 1000);
+  d.setMinutes(0, 0, 0);
+  while (d.getTime() / 1000 < min || d.getHours() % step !== 0) d.setHours(d.getHours() + 1);
+  const ticks = [];
+  for (; d.getTime() / 1000 <= max; d.setHours(d.getHours() + step)) {
+    ticks.push({ value: d.getTime() / 1000 });
+  }
+  return ticks;
 }
 
 const chartData = computed(() => ({
-  labels: points.value.map((p) => formatLabel(p.t)),
   datasets: [
     {
-      data: points.value.map((p) => p.v),
+      data: points.value.map((p) => ({ x: p.t, y: p.v })),
       borderColor: 'rgba(99, 179, 237, 0.85)',
       backgroundColor: 'rgba(99, 179, 237, 0.1)',
       borderWidth: 1.5,
@@ -118,31 +134,32 @@ const chartData = computed(() => ({
   ],
 }));
 
-const yMin = computed(() => {
-  if (props.min !== undefined) return props.min;
-  if (!points.value.length) return undefined;
-  const min = Math.min(...points.value.map((p) => p.v));
-  const max = Math.max(...points.value.map((p) => p.v));
+// One pass: Math.min(...values) is slow on long histories and throws past ~100k points.
+const yRange = computed(() => {
+  const pts = points.value;
+  if (!pts.length) return { min: props.min, max: props.max };
+  let min = Infinity;
+  let max = -Infinity;
+  for (const p of pts) {
+    if (p.v < min) min = p.v;
+    if (p.v > max) max = p.v;
+  }
   const pad = (max - min) * 0.15 || 1;
-  return Math.floor(min - pad);
-});
-
-const yMax = computed(() => {
-  if (props.max !== undefined) return props.max;
-  if (!points.value.length) return undefined;
-  const min = Math.min(...points.value.map((p) => p.v));
-  const max = Math.max(...points.value.map((p) => p.v));
-  const pad = (max - min) * 0.15 || 1;
-  return Math.ceil(max + pad);
+  return { min: props.min ?? Math.floor(min - pad), max: props.max ?? Math.ceil(max + pad) };
 });
 
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
+  // Required by the decimation plugin; data is already {x, y} numbers sorted by time.
+  parsing: false as const,
   plugins: {
     legend: { display: false },
+    decimation: { enabled: true, algorithm: 'lttb' as const },
     tooltip: {
       callbacks: {
+        title: (items: Array<{ parsed: { x: number | null } }>) =>
+          items[0]?.parsed.x != null ? formatLabel(items[0].parsed.x) : '',
         label: (ctx: { parsed: { y: number | null } }) =>
           ctx.parsed.y != null && props.unit
             ? `${ctx.parsed.y} ${props.unit}`
@@ -152,18 +169,24 @@ const chartOptions = computed(() => ({
   },
   scales: {
     x: {
+      type: 'linear' as const,
+      bounds: 'data' as const,
       ticks: {
         color: 'rgba(255,255,255,0.35)',
         maxTicksLimit: 6,
         maxRotation: 0,
         font: { size: 10 },
+        callback: (v: number | string) => formatLabel(Number(v)),
+      },
+      afterBuildTicks: (axis: { min: number; max: number; ticks: Array<{ value: number }> }) => {
+        axis.ticks = hourTicks(axis.min, axis.max);
       },
       grid: { color: 'rgba(255,255,255,0.05)' },
       border: { display: false },
     },
     y: {
-      min: yMin.value,
-      max: yMax.value,
+      min: yRange.value.min,
+      max: yRange.value.max,
       ticks: {
         color: 'rgba(255,255,255,0.35)',
         maxTicksLimit: 5,

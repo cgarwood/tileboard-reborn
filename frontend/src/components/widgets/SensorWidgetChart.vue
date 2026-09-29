@@ -3,24 +3,29 @@
     class="sensor-widget-chart"
     :class="{ 'sensor-widget-chart--visible': !loading && displayPoints.length > 1 }"
   >
-    <Line v-if="displayPoints.length > 1" :data="chartData" :options="chartOptions" />
+    <svg
+      v-if="paths"
+      class="sensor-widget-chart__svg"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path :d="paths.area" :fill="lineColor" fill-opacity="0.6" />
+      <path
+        :d="paths.line"
+        fill="none"
+        :stroke="lineColor"
+        stroke-opacity="0.9"
+        stroke-width="3.5"
+        vector-effect="non-scaling-stroke"
+      />
+    </svg>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted } from 'vue';
-import { Line } from 'vue-chartjs';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-} from 'chart.js';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler);
 
 interface HistoryPoint {
   t: number;
@@ -35,34 +40,6 @@ const props = defineProps<{
   smoothing?: number;
   color?: string;
 }>();
-
-function resolveCssColor(color: string): string {
-  if (!color.includes('var(')) return color;
-  const el = document.createElement('div');
-  el.style.color = color;
-  document.body.appendChild(el);
-  const resolved = getComputedStyle(el).color;
-  document.body.removeChild(el);
-  return resolved || color;
-}
-
-function colorWithAlpha(color: string | undefined, alpha: number): string {
-  if (!color) return `rgba(255,255,255,${alpha})`;
-  const resolved = resolveCssColor(color.trim());
-  if (/^#[0-9a-fA-F]{6}$/.test(resolved)) {
-    const r = parseInt(resolved.slice(1, 3), 16);
-    const g = parseInt(resolved.slice(3, 5), 16);
-    const b = parseInt(resolved.slice(5, 7), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-  if (/^rgb\(/.test(resolved)) {
-    return resolved.replace('rgb(', 'rgba(').replace(')', `,${alpha})`);
-  }
-  if (/^rgba\(/.test(resolved)) {
-    return resolved.replace(/,\s*[\d.]+\)$/, `,${alpha})`);
-  }
-  return resolved;
-}
 
 const haStore = useHomeAssistantStore();
 const historyHours = computed(() => props.hours ?? 24);
@@ -162,61 +139,70 @@ const displayPoints = computed(() => {
   return meanDownsample(p, target);
 });
 
-const chartData = computed(() => ({
-  labels: displayPoints.value.map(() => ''),
-  datasets: [
-    {
-      data: displayPoints.value.map((p) => p.v),
-      borderColor: colorWithAlpha(props.color, 0.9),
-      backgroundColor: colorWithAlpha(props.color, 0.6),
-      borderWidth: 3.5,
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      fill: true,
-      cubicInterpolationMode: 'monotone' as const,
-    },
-  ],
-}));
+// SVG accepts any CSS color, including var(--foo), so nothing needs resolving.
+const lineColor = computed(() => props.color?.trim() || '#fff');
 
-const yMin = computed(() => {
-  if (props.min !== undefined) return props.min;
-  if (!points.value.length) return undefined;
-  const vals = points.value.map((p) => p.v);
-  const min = Math.min(...vals);
-  const max = Math.max(...vals);
+// Auto-range to the plotted (downsampled) points, padded 15%.
+const yRange = computed(() => {
+  const pts = displayPoints.value;
+  let min = Infinity;
+  let max = -Infinity;
+  for (const p of pts) {
+    if (p.v < min) min = p.v;
+    if (p.v > max) max = p.v;
+  }
   const pad = (max - min) * 0.15 || 1;
-  return min - pad;
+  return { min: props.min ?? min - pad, max: props.max ?? max + pad };
 });
 
-const yMax = computed(() => {
-  if (props.max !== undefined) return props.max;
-  if (!points.value.length) return undefined;
-  const vals = points.value.map((p) => p.v);
-  const min = Math.min(...vals);
-  const max = Math.max(...vals);
-  const pad = (max - min) * 0.15 || 1;
-  return max + pad;
-});
+/**
+ * Line and fill paths in a 100x100 viewBox (stretched to the element). Points are evenly spaced
+ * and joined with monotone cubic curves (Fritsch-Carlson), which never overshoot the data.
+ */
+const paths = computed(() => {
+  const pts = displayPoints.value;
+  const n = pts.length;
+  if (n < 2) return null;
+  const { min, max } = yRange.value;
+  const range = max - min || 1;
+  const x = pts.map((_, i) => (i / (n - 1)) * 100);
+  const y = pts.map((p) => (1 - (p.v - min) / range) * 100);
 
-const chartOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  events: [] as never[],
-  animation: false as const,
-  layout: { padding: 0 },
-  plugins: {
-    legend: { display: false },
-    tooltip: { enabled: false },
-  },
-  scales: {
-    x: { display: false },
-    y: {
-      display: false,
-      min: yMin.value,
-      max: yMax.value,
-    },
-  },
-}));
+  // Secant slopes, then tangents limited so each segment stays monotone.
+  const d = Array.from({ length: n - 1 }, (_, i) => (y[i + 1]! - y[i]!) / (x[i + 1]! - x[i]!));
+  const m = y.map((_, i) => {
+    if (i === 0) return d[0]!;
+    if (i === n - 1) return d[n - 2]!;
+    return d[i - 1]! * d[i]! <= 0 ? 0 : (d[i - 1]! + d[i]!) / 2;
+  });
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i]! / d[i]!;
+    const b = m[i + 1]! / d[i]!;
+    const h = a * a + b * b;
+    if (h > 9) {
+      const t = 3 / Math.sqrt(h);
+      m[i] = t * a * d[i]!;
+      m[i + 1] = t * b * d[i]!;
+    }
+  }
+
+  const f = (v: number) => v.toFixed(2);
+  let line = `M${f(x[0]!)},${f(y[0]!)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const dx = (x[i + 1]! - x[i]!) / 3;
+    line +=
+      `C${f(x[i]! + dx)},${f(y[i]! + m[i]! * dx)} ` +
+      `${f(x[i + 1]! - dx)},${f(y[i + 1]! - m[i + 1]! * dx)} ${f(x[i + 1]!)},${f(y[i + 1]!)}`;
+  }
+  // Fill down to zero, or to the bottom edge when zero is below the visible range.
+  const base = f(Math.min(100, Math.max(0, (1 - (0 - min) / range) * 100)));
+  return { line, area: `${line}L100,${base}L0,${base}Z` };
+});
 </script>
 
 <style lang="scss" scoped>
@@ -234,8 +220,10 @@ const chartOptions = computed(() => ({
     opacity: 1;
   }
 
-  :deep(canvas) {
+  &__svg {
     display: block;
+    width: 100%;
+    height: 100%;
   }
 }
 </style>
