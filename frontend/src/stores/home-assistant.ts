@@ -1,9 +1,8 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { ref, shallowRef } from 'vue';
+import { ref, shallowRef, shallowReactive, toRaw } from 'vue';
 import {
   createConnection,
   getAuth,
-  subscribeEntities,
   callService,
   ERR_HASS_HOST_REQUIRED,
   ERR_INVALID_AUTH,
@@ -11,11 +10,14 @@ import {
 } from 'home-assistant-js-websocket';
 import type { HassEntities, AuthData } from 'home-assistant-js-websocket';
 import type { ForecastType, WeatherForecast } from '../types/weather';
+import { applyEntityUpdates, type EntityUpdatesMessage } from '../utils/applyEntityUpdates';
 
 const TOKENS_KEY = 'tileboard:haTokens';
 
 export const useHomeAssistantStore = defineStore('homeAssistant', () => {
-  const states = ref<HassEntities>({});
+  // Per-entity reactivity: readers of states[id] only re-run when that entity changes.
+  // Never reassign this object — it's mutated in place by applyEntityUpdates().
+  const states = shallowReactive<HassEntities>({});
   const connection = shallowRef<Connection | null>(null);
   const connected = ref(false);
   const entitiesLoaded = ref(false);
@@ -24,12 +26,31 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   const weatherForecasts = ref<Record<string, Partial<Record<ForecastType, WeatherForecast[]>>>>({});
 
   let unsubscribeEntities: (() => void) | null = null;
+  // The first subscribe_entities message (initially and after each reconnect) is a full snapshot.
+  let expectSnapshot = true;
 
   // Non-reactive: keyed by `${entityId}:${forecastType}`
   const forecastSubs = new Map<string, {
     unsubPromise: Promise<() => Promise<void>>;
     refCount: number;
   }>();
+
+  function onEntitiesMessage(msg: EntityUpdatesMessage) {
+    if (expectSnapshot) {
+      expectSnapshot = false;
+      // Drop entities that disappeared while we were disconnected.
+      const incoming = msg.a ?? {};
+      for (const id of Object.keys(toRaw(states))) {
+        if (!(id in incoming)) delete states[id];
+      }
+    }
+    applyEntityUpdates(states, msg);
+    entitiesLoaded.value = true;
+  }
+
+  function clearStates() {
+    for (const id of Object.keys(toRaw(states))) delete states[id];
+  }
 
   function clearTokens() {
     localStorage.removeItem(TOKENS_KEY);
@@ -75,12 +96,19 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       });
       conn.addEventListener('ready', () => {
         connected.value = true;
+        // HAWS re-sends subscriptions just before firing 'ready', so the next message is a snapshot.
+        expectSnapshot = true;
       });
 
-      unsubscribeEntities = subscribeEntities(conn, (entities) => {
-        states.value = entities;
-        entitiesLoaded.value = true;
+      // Subscribed directly rather than via HAWS' subscribeEntities(), whose collection copies all
+      // entities on every message; see applyEntityUpdates().
+      expectSnapshot = true;
+      const unsubPromise = conn.subscribeMessage<EntityUpdatesMessage>(onEntitiesMessage, {
+        type: 'subscribe_entities',
       });
+      unsubscribeEntities = () => {
+        void unsubPromise.then((unsub) => unsub()).catch(() => {});
+      };
     } catch (e) {
       const is400 = e instanceof Response && e.status === 400;
       if (e === ERR_INVALID_AUTH || is400) {
@@ -115,7 +143,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     connection.value = null;
     connected.value = false;
     entitiesLoaded.value = false;
-    states.value = {};
+    clearStates();
   }
 
   function subscribeWeatherForecast(entityId: string, forecastType: ForecastType): void {
