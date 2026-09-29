@@ -26,13 +26,13 @@
                 @click="reloadConfig"
               >
                 <q-item-section avatar>
-                  <q-icon name="refresh" />
+                  <q-icon name="mdi-refresh" />
                 </q-item-section>
                 <q-item-section>Reload Config</q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="screensaverStore.active = true">
                 <q-item-section avatar>
-                  <q-icon name="slideshow" />
+                  <q-icon name="mdi-play-box-outline" />
                 </q-item-section>
                 <q-item-section>Start Screensaver</q-item-section>
               </q-item>

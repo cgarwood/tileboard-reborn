@@ -6,7 +6,7 @@
           <div class="more-info-dialog__title">{{ dialogTitle }}</div>
           <div v-if="dialogSubtitle" class="more-info-dialog__subtitle">{{ dialogSubtitle }}</div>
         </div>
-        <q-btn flat round dense icon="close" color="white" @click="dialogOpen = false" />
+        <q-btn flat round dense icon="mdi-close" color="white" @click="dialogOpen = false" />
       </div>
 
       <div class="more-info-dialog__content">

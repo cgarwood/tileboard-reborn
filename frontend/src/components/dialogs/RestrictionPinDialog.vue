@@ -29,7 +29,7 @@
           />
           <div class="pin-key-empty" />
           <q-btn flat label="0" class="pin-key" @click="pressDigit('0')" />
-          <q-btn flat icon="backspace" class="pin-key" @click="pressBackspace" />
+          <q-btn flat icon="mdi-backspace-outline" class="pin-key" @click="pressBackspace" />
         </div>
       </q-card-section>
 

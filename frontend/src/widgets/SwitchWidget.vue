@@ -32,7 +32,7 @@ const haStore = useHomeAssistantStore();
 
 const { title, subtitle, isOn, icon, iconColor, backgroundStyle, stateBadge } = useWidget(() => props.widget);
 
-const iconName = computed(() => icon.value ?? (isOn.value ? 'toggle_on' : 'toggle_off'));
+const iconName = computed(() => icon.value ?? (isOn.value ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off'));
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 const { executeActions } = useActionExecutor();
 

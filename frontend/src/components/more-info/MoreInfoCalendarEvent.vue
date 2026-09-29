@@ -3,7 +3,7 @@
     <q-card class="cal-event-dialog">
       <div class="cal-event-dialog__header" :style="{ borderLeft: `4px solid ${color}` }">
         <div class="cal-event-dialog__title" v-html="event.summary" />
-        <q-btn flat round dense icon="close" color="white" @click="dialogOpen = false" />
+        <q-btn flat round dense icon="mdi-close" color="white" @click="dialogOpen = false" />
       </div>
 
       <div class="cal-event-dialog__content">

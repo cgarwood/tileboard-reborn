@@ -4,7 +4,7 @@
       <img ref="imgRef" :src="activeSrc" class="camera-dialog__img" alt="" />
       <div class="camera-dialog__bar">
         <span class="camera-dialog__title">{{ title }}</span>
-        <q-btn flat round dense icon="close" color="white" v-close-popup />
+        <q-btn flat round dense icon="mdi-close" color="white" v-close-popup />
       </div>
     </q-card>
   </q-dialog>

@@ -3,7 +3,7 @@
     <q-card-section class="widget-body q-pa-sm">
       <div class="state-area">
         <div class="column items-center q-gutter-xs">
-          <q-icon name="warning" color="yellow-9" size="42px" />
+          <q-icon name="mdi-alert" color="yellow-9" size="42px" />
           <span class="error-type">Invalid widget type<br />{{ widget.type }}</span>
         </div>
       </div>
