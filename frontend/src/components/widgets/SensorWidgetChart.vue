@@ -24,13 +24,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue';
-import { useHomeAssistantStore } from '../../stores/home-assistant';
-
-interface HistoryPoint {
-  t: number;
-  v: number;
-}
+import { computed } from 'vue';
+import { useSensorHistory } from '../../composables/useSensorHistory';
 
 const props = defineProps<{
   entityId: string;
@@ -41,103 +36,17 @@ const props = defineProps<{
   color?: string;
 }>();
 
-const haStore = useHomeAssistantStore();
-const historyHours = computed(() => props.hours ?? 24);
-const tension = computed(() => Math.min(props.smoothing ?? 0.3, 1));
-
-const points = ref<HistoryPoint[]>([]);
-const loading = ref(false);
-
-// Incremented per fetch so a slow response from before a reconnect can't overwrite a newer one.
-let fetchSeq = 0;
-let disposed = false;
-
-/** Returns false if superseded by a newer fetch or the component unmounted meanwhile. */
-async function fetchHistory(): Promise<boolean> {
-  const seq = ++fetchSeq;
-  loading.value = true;
-  try {
-    const startTime = new Date(Date.now() - historyHours.value * 3_600_000).toISOString();
-    const result = await haStore.sendMessage<Record<string, Array<{ s: string; lu: number }>>>({
-      type: 'history/history_during_period',
-      entity_ids: [props.entityId],
-      start_time: startTime,
-      significant_changes_only: false,
-      no_attributes: true,
-      minimal_response: true,
-    });
-    if (seq !== fetchSeq || disposed) return false;
-    const raw = result[props.entityId] ?? [];
-    points.value = raw
-      .filter((p) => p.s !== 'unavailable' && p.s !== 'unknown' && !isNaN(parseFloat(p.s)))
-      .map((p) => ({ t: p.lu, v: parseFloat(p.s) }));
-  } catch {
-    // silently ignore — widget chart is decorative
-  } finally {
-    if (seq === fetchSeq) loading.value = false;
-  }
-  return seq === fetchSeq && !disposed;
-}
-
-let stopLiveWatch: (() => void) | null = null;
-
-function startLiveWatch() {
-  stopLiveWatch?.();
-  stopLiveWatch = watch(
-    () => haStore.states[props.entityId]?.last_updated,
-    () => {
-      const e = haStore.states[props.entityId];
-      if (!e) return;
-      const v = parseFloat(e.state);
-      if (isNaN(v)) return;
-      const t = new Date(e.last_updated).getTime() / 1000;
-      const last = points.value[points.value.length - 1];
-      if (last && last.t >= t) return;
-      const cutoff = Date.now() / 1000 - historyHours.value * 3600;
-      points.value = [...points.value.filter((p) => p.t >= cutoff), { t, v }];
-    },
-  );
-}
-
-// Load once connected: widgets can mount before the HA connection is up. Refetching after a
-// reconnect also fills any gap in the live data; the old points stay visible until it lands.
-watch(
-  () => haStore.connected,
-  async (connected) => {
-    stopLiveWatch?.();
-    stopLiveWatch = null;
-    if (!connected) return;
-    if (await fetchHistory()) startLiveWatch();
-  },
-  { immediate: true },
+// Smoothing sets the number of time buckets (default 0.3 -> 40); 0 means as fine as a tile can use.
+const smoothing = computed(() => Math.min(props.smoothing ?? 0.3, 1));
+const buckets = computed(() =>
+  smoothing.value <= 0 ? 240 : Math.max(8, Math.round(12 / smoothing.value)),
 );
 
-onUnmounted(() => {
-  disposed = true;
-  stopLiveWatch?.();
-});
-
-function meanDownsample(data: HistoryPoint[], target: number): HistoryPoint[] {
-  if (data.length <= target) return data;
-  const bucketSize = data.length / target;
-  return Array.from({ length: target }, (_, i) => {
-    const start = Math.floor(i * bucketSize);
-    const end = Math.floor((i + 1) * bucketSize);
-    const bucket = data.slice(start, end);
-    return {
-      t: bucket.reduce((s, p) => s + p.t, 0) / bucket.length,
-      v: bucket.reduce((s, p) => s + p.v, 0) / bucket.length,
-    };
-  });
-}
-
-const displayPoints = computed(() => {
-  const p = points.value;
-  if (tension.value <= 0) return p;
-  const target = Math.max(8, Math.round(12 / tension.value));
-  if (p.length <= target) return p;
-  return meanDownsample(p, target);
-});
+const { points: displayPoints, loading } = useSensorHistory(
+  () => props.entityId,
+  () => props.hours ?? 24,
+  () => buckets.value,
+);
 
 // SVG accepts any CSS color, including var(--foo), so nothing needs resolving.
 const lineColor = computed(() => props.color?.trim() || '#fff');
