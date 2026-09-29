@@ -1,7 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, shallowRef } from 'vue';
-import { SendspinPlayer } from '@sendspin/sendspin-js';
-import type { ControllerCommand, ServerStateMetadata } from '@sendspin/sendspin-js';
+import type { SendspinPlayer, ControllerCommand, ServerStateMetadata } from '@sendspin/sendspin-js';
 import type { SendSpinConfig } from '../types/config';
 import { getTileboardId } from '../utils/tileboardId';
 
@@ -41,12 +40,27 @@ export const useSendspinStore = defineStore('sendspin', () => {
     }
   }
 
-  function initialize(config: SendSpinConfig) {
-    if (player.value) return;
+  let initializing = false;
 
+  async function initialize(config: SendSpinConfig) {
+    if (player.value || initializing) return;
+    initializing = true;
     connecting.value = true;
 
-    const p = new SendspinPlayer({
+    // Loaded on demand: most dashboards don't configure Sendspin, and the library (plus its Opus
+    // decoder) would otherwise be in the startup bundle.
+    let SendspinPlayerClass: typeof SendspinPlayer;
+    try {
+      ({ SendspinPlayer: SendspinPlayerClass } = await import('@sendspin/sendspin-js'));
+    } catch (e) {
+      connecting.value = false;
+      console.error('[Sendspin] Failed to load player', e);
+      return;
+    } finally {
+      initializing = false;
+    }
+
+    const p = new SendspinPlayerClass({
       baseUrl: config.server,
       playerId: getTileboardId(),
       clientName: config.name,

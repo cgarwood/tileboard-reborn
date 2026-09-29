@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { defineAsyncComponent, ref, watch, onMounted, onUnmounted } from 'vue';
 import { useConfigStore } from './stores/config';
 import { useHomeAssistantStore } from './stores/home-assistant';
 import { useScreensaverStore } from './stores/screensaver';
@@ -21,9 +21,11 @@ import { useWeatherAlertsStore } from './stores/weather-alerts';
 import { useSendspinStore } from './stores/sendspin';
 import { useActionExecutor } from './composables/useActionExecutor';
 import ScreensaverOverlay from './components/screensaver/ScreensaverOverlay.vue';
-import SendspinBar from './components/sendspin/SendspinBar.vue';
 import type { ScreensaverConfig } from './types/screensaver';
 import type { WeatherAlertConfig, SendSpinConfig, EventsConfig } from './types/config';
+
+// Only rendered when Sendspin is configured.
+const SendspinBar = defineAsyncComponent(() => import('./components/sendspin/SendspinBar.vue'));
 
 const configStore = useConfigStore();
 const haStore = useHomeAssistantStore();
@@ -62,7 +64,7 @@ watch(
         weatherAlertsStore.initialize(config.weather_alerts as WeatherAlertConfig);
       }
       if (config.sendspin) {
-        sendspinStore.initialize(config.sendspin as SendSpinConfig);
+        void sendspinStore.initialize(config.sendspin as SendSpinConfig);
       }
     } else {
       haStore.disconnect();
