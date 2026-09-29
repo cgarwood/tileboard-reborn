@@ -1,4 +1,5 @@
-import { computed } from 'vue';
+import { computed, inject, provide } from 'vue';
+import type { InjectionKey } from 'vue';
 import { useQuasar } from 'quasar';
 import { useConfigStore } from '../stores/config';
 import { useHomeAssistantStore } from '../stores/home-assistant';
@@ -10,7 +11,21 @@ import RestrictionPinDialog from '../components/dialogs/RestrictionPinDialog.vue
 
 type RestrictionDef = RestrictionConfig[string];
 
-export function useRestriction(widget: () => Widget) {
+type Restriction = ReturnType<typeof createRestriction>;
+
+const RESTRICTION: InjectionKey<{ widget: () => Widget; ctx: Restriction }> = Symbol('restriction');
+
+/** Shared the same way as useWidget: BaseWidget reuses the wrapping widget's instance. */
+export function useRestriction(widget: () => Widget): Restriction {
+  const shared = inject(RESTRICTION, null);
+  if (shared && shared.widget() === widget()) return shared.ctx;
+
+  const ctx = createRestriction(widget);
+  provide(RESTRICTION, { widget, ctx });
+  return ctx;
+}
+
+function createRestriction(widget: () => Widget) {
   const $q = useQuasar();
   const configStore = useConfigStore();
   const haStore = useHomeAssistantStore();
