@@ -179,8 +179,6 @@ function formatEventTime(event: CalendarEvent): string {
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .cal-widget {
   display: flex;
   flex-direction: column;

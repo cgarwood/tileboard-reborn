@@ -135,8 +135,6 @@ function handleClick() {
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .dim-controls {
   position: absolute;
   bottom: 4px;

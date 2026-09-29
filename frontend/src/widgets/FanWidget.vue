@@ -138,8 +138,6 @@ function handleClick() {
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .speed-controls {
   position: absolute;
   bottom: 4px;

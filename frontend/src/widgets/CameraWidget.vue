@@ -185,8 +185,6 @@ function handleClick() {
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .camera-widget-body {
   cursor: pointer;
 }

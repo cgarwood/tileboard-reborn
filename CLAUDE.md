@@ -167,7 +167,9 @@ Calendar event details use a separate standalone dialog `MoreInfoCalendarEvent` 
 ## Styling Conventions
 
 - Scoped SCSS in components by default.
-- Global widget layout classes live in `css/_widget.scss` (`.widget-body`, `.state-area`, `.label-group`, `.title`, `.subtitle`, `.state`, `.state-badge`).
+- Default widget layout classes live in `css/_widget.scss` (`.widget-body`, `.state-area`, `.label-group`, `.title`, `.subtitle`, `.state`, `.state-badge`, `.widget-body--micro`). It is loaded once globally via `quasar.config.ts` `css`, so widgets must **not** `@use` it.
+  - Every default selector is wrapped in `:where(.widget …)`, giving it zero specificity. Any rule in a widget's scoped `<style>` overrides it for that component only, regardless of load order. A global `.widget-{type} .title` overrides it for one widget type.
+  - `BaseWidget` renders two root nodes (card + dialog), so a widget's scoped styles don't reach the card root. Target the card with a global `.widget-{type}` rule instead.
 - CSS variables for theming: `--widget-title-color`, `--widget-subtitle-color`, `--page-background`, `--section-gap`, per-widget `--{type}-widget-background`, etc.
 - State classes applied automatically by BaseWidget: `state--on`, `state--off`, `state--{slugified-state}`.
 - BEM-like naming: `.widget-sensor__chart`, `.cal-widget__item`, etc.

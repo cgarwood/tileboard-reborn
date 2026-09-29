@@ -141,8 +141,6 @@ const attributes = computed(() => {
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .weather-widget {
   &__main {
     display: flex;

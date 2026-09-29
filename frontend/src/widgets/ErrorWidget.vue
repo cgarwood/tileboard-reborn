@@ -26,8 +26,6 @@ defineProps<{ widget: Widget }>();
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .error-type {
   font-size: 0.8rem;
   color: var(--text-dark);

@@ -67,7 +67,3 @@ function handleClick() {
   color: var(--text-light);
 }
 </style>
-
-<style lang="scss" scoped>
-@use '../css/widget';
-</style>

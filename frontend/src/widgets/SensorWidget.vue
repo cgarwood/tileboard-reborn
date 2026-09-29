@@ -97,7 +97,3 @@ const chartColor = computed(() => {
   }
 }
 </style>
-
-<style lang="scss" scoped>
-@use '../css/widget';
-</style>

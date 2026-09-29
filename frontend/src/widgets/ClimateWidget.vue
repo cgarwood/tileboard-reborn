@@ -250,8 +250,6 @@ function setFanMode(mode: string) {
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .climate-widget {
   color: var(--text-light);
 

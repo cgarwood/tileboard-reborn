@@ -48,8 +48,6 @@ const items = computed<ListItemConfig[]>(
 </style>
 
 <style lang="scss" scoped>
-@use '../css/widget';
-
 .list-widget {
   display: flex;
   flex-direction: column;
