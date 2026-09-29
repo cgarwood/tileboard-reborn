@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import type { CalendarEvent } from '../../types/calendar';
+import { shortDateFormat, timeFormat } from '../../utils/formatters';
 
 const props = defineProps<{
   event: CalendarEvent;
@@ -48,12 +49,12 @@ function isAllDay(event: CalendarEvent): boolean {
 }
 
 function fmtTime(d: Date): string {
-  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return timeFormat.format(d);
 }
 
 function fmtDate(dateStr: string): string {
   const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
-  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return shortDateFormat.format(d);
 }
 
 const detailTime = computed(() => {
@@ -62,25 +63,13 @@ const detailTime = computed(() => {
     const startStr = fmtDate(event.start);
     const eDate = new Date(event.end + 'T00:00:00');
     eDate.setDate(eDate.getDate() - 1);
-    const endStr = eDate.toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
+    const endStr = shortDateFormat.format(eDate);
     return startStr === endStr ? `${startStr} · All day` : `${startStr} – ${endStr} · All day`;
   }
   const start = new Date(event.start);
   const end = new Date(event.end);
-  const startStr = start.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-  const endStr = end.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+  const startStr = shortDateFormat.format(start);
+  const endStr = shortDateFormat.format(end);
   return startStr === endStr
     ? `${startStr} · ${fmtTime(start)} – ${fmtTime(end)}`
     : `${startStr} ${fmtTime(start)} – ${endStr} ${fmtTime(end)}`;

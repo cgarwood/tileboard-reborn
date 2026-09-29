@@ -26,6 +26,7 @@
 import { computed } from 'vue';
 import { getWeatherIcon } from '../../utils/weatherIcons';
 import type { ForecastType, WeatherForecast } from '../../types/weather';
+import { weekdayFormat } from '../../utils/formatters';
 
 const props = defineProps<{
   forecasts: WeatherForecast[];
@@ -34,7 +35,7 @@ const props = defineProps<{
 
 function formatDay(datetime: string, index: number) {
   if (index === 0) return 'Today';
-  return new Intl.DateTimeFormat([], { weekday: 'short' }).format(new Date(datetime));
+  return weekdayFormat.format(new Date(datetime));
 }
 
 const days = computed(() => {

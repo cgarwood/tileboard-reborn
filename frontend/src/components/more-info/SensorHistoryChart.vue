@@ -21,6 +21,7 @@ import {
   Decimation,
 } from 'chart.js';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
+import { timeFormat } from '../../utils/formatters';
 
 ChartJS.register(LinearScale, PointElement, LineElement, Filler, Tooltip, Decimation);
 
@@ -98,7 +99,6 @@ onUnmounted(() => {
 
 // Chart rendering. The x axis is linear time (unix seconds), so only tick and tooltip labels are
 // formatted, not every point, and Chart.js can decimate large histories to about 1 point per pixel.
-const timeFormat = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' });
 
 function formatLabel(ts: number): string {
   return timeFormat.format(ts * 1000);

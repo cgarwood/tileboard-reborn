@@ -68,6 +68,7 @@ import { useCalendar } from '../composables/useCalendar';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
 import type { CalendarEntry, CalendarEvent } from '../types/calendar';
+import { shortDateFormat, timeFormat } from '../utils/formatters';
 
 const DEFAULT_COLORS = [
   '#e53935',
@@ -158,16 +159,13 @@ function isAllDay(event: CalendarEvent): boolean {
 function formatEventTime(event: CalendarEvent): string {
   if (isAllDay(event)) {
     const d = new Date(event.start + 'T00:00:00');
-    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' · All day';
+    return shortDateFormat.format(d) + ' · All day';
   }
   const start = new Date(event.start);
   const today = new Date();
   const isToday = start.toDateString() === today.toDateString();
-  const fmtTime = (d: Date) => d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  const datePart = isToday
-    ? 'Today'
-    : start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  return `${datePart} · ${fmtTime(start)}–${fmtTime(new Date(event.end))}`;
+  const datePart = isToday ? 'Today' : shortDateFormat.format(start);
+  return `${datePart} · ${timeFormat.format(start)}–${timeFormat.format(new Date(event.end))}`;
 }
 </script>
 

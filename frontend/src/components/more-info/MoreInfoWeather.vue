@@ -105,6 +105,7 @@ import { useWeatherForecast } from '../../composables/useWeatherForecast';
 import { getWeatherIcon, formatWeatherState } from '../../utils/weatherIcons';
 import { WeatherEntityFeature } from '../../types/weather';
 import type { ForecastType } from '../../types/weather';
+import { hourFormat, weekdayFormat } from '../../utils/formatters';
 
 const props = defineProps<{ entityId: string }>();
 
@@ -170,7 +171,7 @@ const todayLow = computed<number | null>(() => {
 // Daily forecast cards
 function formatDay(datetime: string, index: number) {
   if (index === 0) return 'Today';
-  return new Intl.DateTimeFormat([], { weekday: 'short' }).format(new Date(datetime));
+  return weekdayFormat.format(new Date(datetime));
 }
 
 const dailyDays = computed(() => {
@@ -230,7 +231,7 @@ const dailyDays = computed(() => {
 // Hourly forecast cards
 const hourlySlots = computed(() =>
   (hourlyForecasts.value ?? []).slice(0, 12).map((f) => ({
-    time: new Intl.DateTimeFormat([], { hour: 'numeric' }).format(new Date(f.datetime)),
+    time: hourFormat.format(new Date(f.datetime)),
     icon: getWeatherIcon(f.condition),
     temp: f.temperature != null ? Math.round(f.temperature) : null,
     precipProb: f.precipitation_probability ?? null,

@@ -24,6 +24,7 @@
 import { computed } from 'vue';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
 import SensorHistoryChart from './SensorHistoryChart.vue';
+import { time2DigitFormat } from '../../utils/formatters';
 
 const props = defineProps<{
   entityId: string;
@@ -49,7 +50,7 @@ const unit = computed(() => (entity.value?.attributes.unit_of_measurement as str
 const lastChanged = computed(() => {
   const ts = entity.value?.last_changed;
   if (!ts) return null;
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return time2DigitFormat.format(new Date(ts));
 });
 </script>
 

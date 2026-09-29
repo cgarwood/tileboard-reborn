@@ -18,6 +18,7 @@
 import { computed } from 'vue';
 import { getWeatherIcon } from '../../utils/weatherIcons';
 import type { WeatherForecast } from '../../types/weather';
+import { hourFormat } from '../../utils/formatters';
 
 const props = defineProps<{
   forecasts: WeatherForecast[];
@@ -25,7 +26,7 @@ const props = defineProps<{
 
 const hours = computed(() =>
   props.forecasts.slice(0, 8).map((f) => ({
-    time: new Intl.DateTimeFormat([], { hour: 'numeric' }).format(new Date(f.datetime)),
+    time: hourFormat.format(new Date(f.datetime)),
     icon: getWeatherIcon(f.condition),
     temp: f.temperature != null ? Math.round(f.temperature) : null,
     precipProb: f.precipitation_probability ?? null,

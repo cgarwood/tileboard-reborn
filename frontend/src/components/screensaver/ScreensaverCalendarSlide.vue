@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { CalendarEvent } from '../../types/calendar';
+import { longDateFormat, timeFormat } from '../../utils/formatters';
 
 interface CalendarSlideEvent {
   event: CalendarEvent;
@@ -40,7 +41,7 @@ const props = defineProps<{
 const dateLabel = computed(() => {
   const d = new Date();
   if (props.day === 'tomorrow') d.setDate(d.getDate() + 1);
-  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  return longDateFormat.format(d);
 });
 
 function isAllDay(event: CalendarEvent): boolean {
@@ -55,7 +56,7 @@ function formatTime(event: CalendarEvent): string {
 }
 
 function fmtTime(d: Date): string {
-  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  return timeFormat.format(d);
 }
 </script>
 

@@ -13,10 +13,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-
-// Built once: constructing Intl formatters is expensive on low-end devices.
-const timeFormat = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' });
-const dateFormat = new Intl.DateTimeFormat([], { weekday: 'long', month: 'long', day: 'numeric' });
+import { longDateFormat, timeFormat } from '../../utils/formatters';
 
 const now = ref(new Date());
 let timerId: ReturnType<typeof setTimeout>;
@@ -42,7 +39,7 @@ const timeParts = computed(() => {
   return { mainParts, period };
 });
 
-const date = computed(() => dateFormat.format(now.value));
+const date = computed(() => longDateFormat.format(now.value));
 </script>
 
 <style lang="scss" scoped>
