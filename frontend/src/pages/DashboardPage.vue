@@ -1,6 +1,7 @@
 <template>
   <q-page padding class="page-wrapper" style="background: transparent">
-    <div v-if="page" class="page-content">
+    <!-- Remount all widgets on page change or config reload, so widgets never see their config change -->
+    <div v-if="page" :key="`${configStore.version}:${page.id}`" class="page-content">
       <div
         v-for="(row, rowIndex) in sectionRows"
         :key="rowIndex"

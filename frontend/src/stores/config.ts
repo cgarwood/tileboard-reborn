@@ -6,6 +6,9 @@ const CONFIG_URL_KEY = 'tileboard:configUrl';
 export const useConfigStore = defineStore('configStore', () => {
   const configUrl = ref<string | null>(localStorage.getItem(CONFIG_URL_KEY));
   const config = ref<Record<string, unknown> | null>(null);
+  // Incremented on every successful load; the dashboard keys on it so a reload remounts all
+  // widgets. Widgets can therefore treat their config as fixed for their lifetime.
+  const version = ref(0);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -19,6 +22,7 @@ export const useConfigStore = defineStore('configStore', () => {
       }
       const data = (await response.json()) as Record<string, unknown>;
       config.value = data;
+      version.value++;
       configUrl.value = url;
       localStorage.setItem(CONFIG_URL_KEY, url);
     } catch (e) {
@@ -29,7 +33,7 @@ export const useConfigStore = defineStore('configStore', () => {
     }
   }
 
-  return { configUrl, config, loading, error, loadConfig };
+  return { configUrl, config, version, loading, error, loadConfig };
 });
 
 if (import.meta.hot) {

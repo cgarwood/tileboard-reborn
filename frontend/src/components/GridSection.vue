@@ -5,8 +5,8 @@
     </div>
     <div :style="columnStyle">
       <div
-        v-for="(child, i) in visibleWidgets"
-        :key="i"
+        v-for="{ widget: child, index } in visibleWidgets"
+        :key="index"
         :style="itemStyle(child)"
       >
         <WidgetRenderer :widget="child" />
@@ -31,8 +31,12 @@ const props = defineProps<{ section: Section; gridSize?: number }>();
 const haStore = useHomeAssistantStore();
 const { visible } = useVisibility(() => props.section.visibility);
 
+// Keyed by position in the section config (not in the filtered list) so a widget hiding
+// doesn't shift every later widget onto a different component instance.
 const visibleWidgets = computed(() =>
-  props.section.widgets.filter((w) => evaluateVisibility(w.visibility, haStore.states)),
+  props.section.widgets
+    .map((widget, index) => ({ widget, index }))
+    .filter(({ widget }) => evaluateVisibility(widget.visibility, haStore.states)),
 );
 
 const gridSize = computed(() => props.gridSize ?? 64);

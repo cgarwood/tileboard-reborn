@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { Line } from 'vue-chartjs';
 import {
   Chart as ChartJS,
@@ -71,7 +71,13 @@ const tension = computed(() => Math.min(props.smoothing ?? 0.3, 1));
 const points = ref<HistoryPoint[]>([]);
 const loading = ref(false);
 
-async function fetchHistory() {
+// Incremented per fetch so a slow response from before a reconnect can't overwrite a newer one.
+let fetchSeq = 0;
+let disposed = false;
+
+/** Returns false if superseded by a newer fetch or the component unmounted meanwhile. */
+async function fetchHistory(): Promise<boolean> {
+  const seq = ++fetchSeq;
   loading.value = true;
   try {
     const startTime = new Date(Date.now() - historyHours.value * 3_600_000).toISOString();
@@ -83,6 +89,7 @@ async function fetchHistory() {
       no_attributes: true,
       minimal_response: true,
     });
+    if (seq !== fetchSeq || disposed) return false;
     const raw = result[props.entityId] ?? [];
     points.value = raw
       .filter((p) => p.s !== 'unavailable' && p.s !== 'unknown' && !isNaN(parseFloat(p.s)))
@@ -90,8 +97,9 @@ async function fetchHistory() {
   } catch {
     // silently ignore — widget chart is decorative
   } finally {
-    loading.value = false;
+    if (seq === fetchSeq) loading.value = false;
   }
+  return seq === fetchSeq && !disposed;
 }
 
 let stopLiveWatch: (() => void) | null = null;
@@ -114,12 +122,21 @@ function startLiveWatch() {
   );
 }
 
-onMounted(async () => {
-  await fetchHistory();
-  startLiveWatch();
-});
+// Load once connected: widgets can mount before the HA connection is up. Refetching after a
+// reconnect also fills any gap in the live data; the old points stay visible until it lands.
+watch(
+  () => haStore.connected,
+  async (connected) => {
+    stopLiveWatch?.();
+    stopLiveWatch = null;
+    if (!connected) return;
+    if (await fetchHistory()) startLiveWatch();
+  },
+  { immediate: true },
+);
 
 onUnmounted(() => {
+  disposed = true;
   stopLiveWatch?.();
 });
 
