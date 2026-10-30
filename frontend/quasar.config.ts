@@ -24,7 +24,9 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
       target: {
-        // browser: 'baseline-widely-available',
+        // Oldest supported kiosk WebView. Dependencies need 93+ at runtime
+        // (Array.prototype.at, Object.hasOwn), which the target can't lower.
+        browser: ['chrome100'],
         // node: 'node22'
       },
 
