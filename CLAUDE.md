@@ -80,7 +80,7 @@ resolveWidgetProp(value, ctx)  // → string | undefined
 }
 ```
 
-Template expressions (`{{ ... }}`) are evaluated with `new Function` with `(state, attributes, entity, states)` in scope.
+Template expressions (`{{ ... }}`) are evaluated with `new Function` with `(state, attributes, entity, states)` in scope. Each template string is parsed and compiled once, then cached by its source (same for `useVisibility` conditions), so don't call `new Function` per evaluation.
 
 `useWidget` builds `resolveCtx` automatically. When using `resolveWidgetProp` outside `useWidget` (e.g. in a widget that needs to resolve its own custom prop), build the context manually from `haStore.states`.
 

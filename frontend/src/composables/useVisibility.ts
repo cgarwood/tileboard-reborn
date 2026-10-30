@@ -3,13 +3,35 @@ import type { HassEntities } from 'home-assistant-js-websocket';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { VisibilityCondition, VisibilityConfig } from '../types/visibility';
 
+type ConditionFn = (states: HassEntities) => boolean;
+
+// Compiled conditions keyed by template source; null if it failed to compile
+const conditionCache = new Map<string, { expr: string; fn: ConditionFn | null }>();
+
+function compileCondition(template: string) {
+  let compiled = conditionCache.get(template);
+  if (compiled) return compiled;
+
+  const raw = template.trim();
+  const expr = raw.startsWith('{{') ? raw.slice(2, raw.lastIndexOf('}}')).trim() : raw;
+  let fn: ConditionFn | null = null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    fn = new Function('states', `return !!(${expr})`) as ConditionFn;
+  } catch (e) {
+    console.error('[useVisibility] Template error:', expr, e);
+  }
+  compiled = { expr, fn };
+  conditionCache.set(template, compiled);
+  return compiled;
+}
+
 function evaluateCondition(cond: VisibilityCondition, states: HassEntities): boolean {
   if (cond.template !== undefined) {
-    const raw = cond.template.trim();
-    const expr = raw.startsWith('{{') ? raw.slice(2, raw.lastIndexOf('}}')).trim() : raw;
+    const { expr, fn } = compileCondition(cond.template);
+    if (!fn) return false;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
-      return Boolean(new Function('states', `return !!(${expr})`)(states));
+      return fn(states);
     } catch (e) {
       console.error('[useVisibility] Template error:', expr, e);
       return false;
