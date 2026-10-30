@@ -80,7 +80,7 @@ resolveWidgetProp(value, ctx)  // → string | undefined
 }
 ```
 
-Template expressions (`{{ ... }}`) are evaluated with `new Function` with `(state, attributes, entity, states)` in scope. Each template string is parsed and compiled once, then cached by its source (same for `useVisibility` conditions), so don't call `new Function` per evaluation.
+Template expressions (`{{ ... }}`) are evaluated with `new Function` with `(state, attributes, entity, states)` in scope. Each template string is parsed and compiled once, then cached by its source (same for `useVisibility` conditions), so don't call `new Function` per evaluation. Expressions that mention `Date` also read the shared `useMinuteClock()` ref (`composables/useMinuteClock.ts`), so they re-evaluate every minute and not only on state changes. Use that clock for any other once-a-minute time dependency instead of adding a per-component timer.
 
 `useWidget` builds `resolveCtx` automatically. When using `resolveWidgetProp` outside `useWidget` (e.g. in a widget that needs to resolve its own custom prop), build the context manually from `haStore.states`.
 

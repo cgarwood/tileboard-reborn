@@ -12,25 +12,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
+import { useMinuteClock } from '../../composables/useMinuteClock';
 import { longDateFormat, timeFormat } from '../../utils/formatters';
 
-const now = ref(new Date());
-let timerId: ReturnType<typeof setTimeout>;
-
-// Tick on each minute boundary (the display has no seconds). Re-aligning every tick keeps it
-// accurate even if the browser throttles or delays timers.
-function tick() {
-  const d = new Date();
-  now.value = d;
-  timerId = setTimeout(tick, 60_000 - (d.getSeconds() * 1000 + d.getMilliseconds()) + 50);
-}
-
-onMounted(tick);
-
-onUnmounted(() => {
-  clearTimeout(timerId);
-});
+// The display has no seconds, so the shared minute tick is enough.
+const now = useMinuteClock();
 
 const timeParts = computed(() => {
   const parts = timeFormat.formatToParts(now.value);

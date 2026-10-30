@@ -47,6 +47,11 @@ subtitle: "Humidity: {{ entity('sensor.humidity').state }}%"
 
 Available expression variables: `state`, `attributes`, `entity(id)`, `states`
 
+Expressions re-evaluate when an entity they read changes. An expression that uses `Date` (e.g. `new Date().getHours()`, `Date.now()`, `Intl.DateTimeFormat`) also re-evaluates at the start of every minute, so time-based values stay current. This applies to visibility templates too.
+```yaml
+background: "{{ new Date().getHours() >= 20 ? '#1a237e' : '#333' }}"
+```
+
 ## Visibility
 
 The `visibility` property controls whether a widget is rendered. Widgets with no `visibility` config are always visible. Hidden widgets are removed from the DOM entirely — they take no space and consume no resources.

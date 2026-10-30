@@ -2,11 +2,16 @@ import { computed } from 'vue';
 import type { HassEntities } from 'home-assistant-js-websocket';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { VisibilityCondition, VisibilityConfig } from '../types/visibility';
+import { usesTime } from '../utils/resolveWidgetProp';
+import { useMinuteClock } from './useMinuteClock';
 
 type ConditionFn = (states: HassEntities) => boolean;
 
 // Compiled conditions keyed by template source; null if it failed to compile
-const conditionCache = new Map<string, { expr: string; fn: ConditionFn | null }>();
+const conditionCache = new Map<
+  string,
+  { expr: string; fn: ConditionFn | null; usesTime: boolean }
+>();
 
 function compileCondition(template: string) {
   let compiled = conditionCache.get(template);
@@ -21,15 +26,18 @@ function compileCondition(template: string) {
   } catch (e) {
     console.error('[useVisibility] Template error:', expr, e);
   }
-  compiled = { expr, fn };
+  compiled = { expr, fn, usesTime: usesTime(expr) };
   conditionCache.set(template, compiled);
   return compiled;
 }
 
 function evaluateCondition(cond: VisibilityCondition, states: HassEntities): boolean {
   if (cond.template !== undefined) {
-    const { expr, fn } = compileCondition(cond.template);
+    const compiled = compileCondition(cond.template);
+    const { expr, fn } = compiled;
     if (!fn) return false;
+    // Re-evaluate each minute, not just on state changes
+    if (compiled.usesTime) void useMinuteClock().value;
     try {
       return fn(states);
     } catch (e) {

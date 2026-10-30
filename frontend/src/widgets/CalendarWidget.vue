@@ -60,11 +60,12 @@ registerWidgetDefaults('calendar', { width: 4, height: 4 });
 </script>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import MoreInfoCalendarEvent from '../components/more-info/MoreInfoCalendarEvent.vue';
 import { useWidget } from '../composables/useWidget';
 import { useCalendar } from '../composables/useCalendar';
+import { useMinuteClock } from '../composables/useMinuteClock';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
 import type { CalendarEntry, CalendarEvent } from '../types/calendar';
@@ -101,15 +102,11 @@ const entries = computed<CalendarEntry[]>(
 const calendarStore = useCalendar(entries.value);
 
 // Re-evaluate once a minute so ended events drop off and "Today" labels roll over.
-const nowMs = ref(Date.now());
-const nowTimer = setInterval(() => {
-  nowMs.value = Date.now();
-}, 60_000);
-onUnmounted(() => clearInterval(nowTimer));
+const clock = useMinuteClock();
 
 const sortedEvents = computed<EventItem[]>(() => {
   const items: EventItem[] = [];
-  const now = nowMs.value;
+  const now = clock.value.getTime();
 
   entries.value.forEach((entry, idx) => {
     if (!entry?.entity) return;

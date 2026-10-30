@@ -33,7 +33,7 @@ items:
 | `state` | string / map / expression | — | Override the state text shown on the right |
 | `restriction` | string | — | Restriction ID required before interacting with this row |
 | `features` | list | — | Additional inline controls |
-| `refresh_interval` | number | — | Polling interval in milliseconds for this item |
+| `refresh_interval` | number | — | Re-evaluate this row's `state` template every N milliseconds. Templates using `Date` already refresh every minute, so this is only needed for faster updates |
 
 ### Features
 

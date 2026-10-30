@@ -1,4 +1,5 @@
 import type { HassEntities } from 'home-assistant-js-websocket';
+import { useMinuteClock } from '../composables/useMinuteClock';
 
 export interface PropResolveContext {
   state: string | null;
@@ -17,8 +18,19 @@ type TemplateFn = (
 // Literal text, a compiled {{ expr }}, or null for an expression that failed to compile
 type Segment = string | { expr: string; fn: TemplateFn | null };
 
+interface ParsedTemplate {
+  segments: Segment[];
+  // Reads the current time, so it must re-evaluate as the clock advances, not just on state changes
+  usesTime: boolean;
+}
+
 // Parsed templates keyed by source. Templates come from the dashboard config, so this stays small.
-const templateCache = new Map<string, Segment[]>();
+const templateCache = new Map<string, ParsedTemplate>();
+
+/** True if an expression likely depends on the current time (Date, Intl.DateTimeFormat, ...). */
+export function usesTime(expr: string): boolean {
+  return /\bDate/.test(expr);
+}
 
 function compile(expr: string): TemplateFn | null {
   try {
@@ -30,11 +42,11 @@ function compile(expr: string): TemplateFn | null {
   }
 }
 
-function parseTemplate(template: string): Segment[] {
-  let segments = templateCache.get(template);
-  if (segments) return segments;
+function parseTemplate(template: string): ParsedTemplate {
+  let parsed = templateCache.get(template);
+  if (parsed) return parsed;
 
-  segments = [];
+  const segments: Segment[] = [];
   const re = /\{\{([\s\S]*?)\}\}/g;
   let last = 0;
   for (let m = re.exec(template); m; m = re.exec(template)) {
@@ -45,8 +57,12 @@ function parseTemplate(template: string): Segment[] {
   }
   if (last < template.length) segments.push(template.slice(last));
 
-  templateCache.set(template, segments);
-  return segments;
+  parsed = {
+    segments,
+    usesTime: segments.some((s) => typeof s !== 'string' && usesTime(s.expr)),
+  };
+  templateCache.set(template, parsed);
+  return parsed;
 }
 
 export function resolveWidgetProp(value: unknown, ctx: PropResolveContext): string | undefined {
@@ -64,8 +80,12 @@ export function resolveWidgetProp(value: unknown, ctx: PropResolveContext): stri
   if (!value.includes('{{')) return value;
 
   // Interpolation: replace each {{ expr }} block with its evaluated result
+  const parsed = parseTemplate(value);
+  // Reading the clock makes the calling computed depend on it, so it refreshes each minute
+  if (parsed.usesTime) void useMinuteClock().value;
+
   let out = '';
-  for (const seg of parseTemplate(value)) {
+  for (const seg of parsed.segments) {
     if (typeof seg === 'string') {
       out += seg;
       continue;
