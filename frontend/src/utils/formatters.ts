@@ -24,6 +24,11 @@ export const shortDateFormat = new Intl.DateTimeFormat(undefined, {
   day: 'numeric',
 });
 
+/** Local calendar date as "2026-09-29" (comparable as a string). */
+export function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 /** "Tuesday, September 29" */
 export const longDateFormat = new Intl.DateTimeFormat(undefined, {
   weekday: 'long',

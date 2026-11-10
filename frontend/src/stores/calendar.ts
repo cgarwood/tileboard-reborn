@@ -1,6 +1,8 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useHomeAssistantStore } from './home-assistant';
+import { useMinuteClock } from '../composables/useMinuteClock';
+import { localDateStr } from '../utils/formatters';
 import type { CalendarEvent } from '../types/calendar';
 
 const DAYS_AHEAD = 30;
@@ -16,18 +18,33 @@ export const useCalendarStore = defineStore('calendar', () => {
   }>();
 
   function doSubscribe(entityId: string): Promise<() => Promise<void>> {
-    const now = new Date();
-    const end = new Date(now.getTime() + DAYS_AHEAD * 86_400_000);
+    // Window starts at local midnight so today's earlier events are included.
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + DAYS_AHEAD);
     return haStore.subscribeMessage<{ events: CalendarEvent[] }>(
       (msg) => { events.value[entityId] = msg.events ?? []; },
       {
         type: 'calendar/event/subscribe',
         entity_id: entityId,
-        start: now.toISOString(),
+        start: start.toISOString(),
         end: end.toISOString(),
       },
     );
   }
+
+  // The subscription window is fixed when it's created, so move it forward when the local date
+  // changes. Otherwise past days' events linger until the page reloads.
+  const clock = useMinuteClock();
+  const today = computed(() => localDateStr(clock.value));
+  watch(today, () => {
+    if (!haStore.connected) return;
+    for (const [entityId, sub] of subs.entries()) {
+      if (sub.unsubPromise) void sub.unsubPromise.then((unsub) => void unsub()).catch(() => {});
+      sub.unsubPromise = doSubscribe(entityId);
+    }
+  });
 
   watch(
     () => haStore.connected,

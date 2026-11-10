@@ -19,19 +19,27 @@ import { computed } from 'vue';
 import { getWeatherIcon } from '../../utils/weatherIcons';
 import type { WeatherForecast } from '../../types/weather';
 import { hourFormat } from '../../utils/formatters';
+import { useMinuteClock } from '../../composables/useMinuteClock';
 
 const props = defineProps<{
   forecasts: WeatherForecast[];
 }>();
 
-const hours = computed(() =>
-  props.forecasts.slice(0, 8).map((f) => ({
-    time: hourFormat.format(new Date(f.datetime)),
-    icon: getWeatherIcon(f.condition),
-    temp: f.temperature != null ? Math.round(f.temperature) : null,
-    precipProb: f.precipitation_probability ?? null,
-  })),
-);
+const clock = useMinuteClock();
+
+// Skip hours that have fully passed since the last forecast push.
+const hours = computed(() => {
+  const cutoff = clock.value.getTime() - 3_600_000;
+  return props.forecasts
+    .filter((f) => Date.parse(f.datetime) > cutoff)
+    .slice(0, 8)
+    .map((f) => ({
+      time: hourFormat.format(new Date(f.datetime)),
+      icon: getWeatherIcon(f.condition),
+      temp: f.temperature != null ? Math.round(f.temperature) : null,
+      precipProb: f.precipitation_probability ?? null,
+    }));
+});
 </script>
 
 <style lang="scss" scoped>

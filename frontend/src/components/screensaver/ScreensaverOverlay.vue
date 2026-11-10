@@ -75,6 +75,8 @@ import { useHomeAssistantStore } from '../../stores/home-assistant';
 import { useWeatherForecast } from '../../composables/useWeatherForecast';
 import { useCalendar } from '../../composables/useCalendar';
 import { useCalendarStore } from '../../stores/calendar';
+import { useMinuteClock } from '../../composables/useMinuteClock';
+import { localDateStr } from '../../utils/formatters';
 import { WeatherEntityFeature } from '../../types/weather';
 import type { ForecastType } from '../../types/weather';
 import type { CalendarEvent } from '../../types/calendar';
@@ -140,14 +142,14 @@ interface CalendarSlideEvent {
   calendarName: string;
 }
 
-function localDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-const todayStr = localDateStr(new Date());
-const tomorrowDate = new Date();
-tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-const tomorrowStr = localDateStr(tomorrowDate);
+// Driven by the minute clock so "today"/"tomorrow" roll over at midnight while the overlay stays up.
+const clock = useMinuteClock();
+const todayStr = computed(() => localDateStr(clock.value));
+const tomorrowStr = computed(() => {
+  const d = new Date(clock.value);
+  d.setDate(d.getDate() + 1);
+  return localDateStr(d);
+});
 
 function eventsForDate(dateStr: string): CalendarSlideEvent[] {
   const items: CalendarSlideEvent[] = [];
@@ -166,8 +168,8 @@ function eventsForDate(dateStr: string): CalendarSlideEvent[] {
   return items;
 }
 
-const todayEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(todayStr));
-const tomorrowEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(tomorrowStr));
+const todayEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(todayStr.value));
+const tomorrowEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(tomorrowStr.value));
 
 // --- Slide list ---
 
