@@ -19,6 +19,7 @@ import ListWidget from '../widgets/ListWidget.vue';
 import CameraWidget from '../widgets/CameraWidget.vue';
 import SensorIconWidget from '../widgets/SensorIconWidget.vue';
 import LockWidget from '../widgets/LockWidget.vue';
+import MenuWidget from '../widgets/MenuWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
@@ -36,6 +37,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   camera: CameraWidget,
   sensor_icon: SensorIconWidget,
   lock: LockWidget,
+  menu: MenuWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();

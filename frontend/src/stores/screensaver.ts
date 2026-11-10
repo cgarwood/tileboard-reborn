@@ -11,6 +11,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
   const slideSpeedMs = ref(SLIDE_SPEED_DEFAULT * 1000);
   const weatherEntity = ref<string | null>(null);
   const calendars = ref<ScreensaverConfig['calendars']>([]);
+  const menus = ref<ScreensaverConfig['menus']>([]);
 
   let timeoutSeconds = 0;
   let timerId: ReturnType<typeof setTimeout> | null = null;
@@ -20,6 +21,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
     slideSpeedMs.value = (config.slide_duration ?? SLIDE_SPEED_DEFAULT) * 1000;
     weatherEntity.value = config.weather_entity ?? null;
     calendars.value = config.calendars ?? [];
+    menus.value = config.menus ?? [];
 
     const haStore = useHomeAssistantStore();
     if (haStore.connected) {
@@ -81,7 +83,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
     scheduleActivation();
   }
 
-  return { active, slides, slideSpeedMs, weatherEntity, calendars, initialize, onActivity, dismiss };
+  return { active, slides, slideSpeedMs, weatherEntity, calendars, menus, initialize, onActivity, dismiss };
 });
 
 if (import.meta.hot) {

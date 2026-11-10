@@ -36,6 +36,7 @@ nav:
           - Number: configuration/widgets/number.md
           - Lock: configuration/widgets/lock.md
           - List: configuration/widgets/list.md
+          - Menu: configuration/widgets/menu.md
       - Screensaver: configuration/screensaver.md
       - Restrictions: configuration/restrictions.md
   - Development: development.md

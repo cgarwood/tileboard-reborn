@@ -37,6 +37,13 @@
             day="tomorrow"
             :events="tomorrowEvents"
           />
+          <ScreensaverMenuSlide
+            v-else-if="slide.type === 'menu' && menuStates[slide.index]?.menu"
+            :title="menuStates[slide.index]!.title"
+            :day="menuStates[slide.index]!.day"
+            :date="menuStates[slide.index]!.date"
+            :menu="menuStates[slide.index]!.menu!"
+          />
         </template>
         </div>
     </div>
@@ -86,6 +93,8 @@ import ScreensaverCurrentConditionsSlide from './ScreensaverCurrentConditionsSli
 import ScreensaverHourlyForecastSlide from './ScreensaverHourlyForecastSlide.vue';
 import ScreensaverDailyForecastSlide from './ScreensaverDailyForecastSlide.vue';
 import ScreensaverCalendarSlide from './ScreensaverCalendarSlide.vue';
+import ScreensaverMenuSlide from './ScreensaverMenuSlide.vue';
+import { useMenu } from '../../composables/useMenu';
 import ScreensaverClock from './ScreensaverClock.vue';
 import ScreensaverWeather from './ScreensaverWeather.vue';
 import WeatherAlertDialog from '../dialogs/WeatherAlertDialog.vue';
@@ -171,6 +180,24 @@ function eventsForDate(dateStr: string): CalendarSlideEvent[] {
 const todayEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(todayStr.value));
 const tomorrowEvents = computed<CalendarSlideEvent[]>(() => eventsForDate(tomorrowStr.value));
 
+// --- Menus ---
+
+const menuConfigs = store.menus ?? [];
+const menuSources = menuConfigs.map((config) => ({ config, ...useMenu(() => config) }));
+
+const menuStates = computed(() =>
+  menuSources.map(({ config, day, date, menu }) => ({
+    title: config.title ?? haStore.states[config.entity]?.attributes.friendly_name ?? config.entity,
+    day: day.value,
+    date: date.value,
+    menu: menu.value,
+  })),
+);
+
+const menuSlides = computed<Slide[]>(() =>
+  menuStates.value.flatMap((state, index) => (state.menu ? [{ type: 'menu' as const, index }] : [])),
+);
+
 // --- Slide list ---
 
 const weatherSlides = computed<Slide[]>(() => {
@@ -190,7 +217,7 @@ const calendarSlides = computed<Slide[]>(() => {
 
 const allSlides = computed<Slide[]>(() => {
   const photos = store.slides;
-  const special = [...weatherSlides.value, ...calendarSlides.value];
+  const special = [...weatherSlides.value, ...calendarSlides.value, ...menuSlides.value];
   if (!special.length) return photos;
   if (!photos.length) return special;
 

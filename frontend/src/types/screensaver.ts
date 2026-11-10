@@ -1,9 +1,12 @@
+import type { MenuConfig } from './menu';
+
 export interface ScreensaverConfig {
   timeout: number;
   slide_duration?: number;
   media_source: string;
   weather_entity?: string;
   calendars?: ScreensaverCalendarConfig[];
+  menus?: MenuConfig[];
 }
 
 export interface HABrowseMediaChild {
@@ -47,4 +50,10 @@ export interface CalendarTomorrowSlide {
   type: 'calendar-tomorrow';
 }
 
-export type Slide = ImageSlide | WeatherCurrentSlide | WeatherHourlySlide | WeatherDailySlide | CalendarTodaySlide | CalendarTomorrowSlide;
+export interface MenuSlide {
+  type: 'menu';
+  /** Index into the screensaver `menus` config. */
+  index: number;
+}
+
+export type Slide = ImageSlide | WeatherCurrentSlide | WeatherHourlySlide | WeatherDailySlide | CalendarTodaySlide | CalendarTomorrowSlide | MenuSlide;
