@@ -1,37 +1,25 @@
 # TileBoard Reborn — Claude Context
 
-Home Assistant dashboard UI. Quasar/Vue 3 frontend + Python/aiohttp server (HA add-on).
+Home Assistant dashboard UI. Quasar 2 + Vue 3 + TypeScript (strict) frontend with Pinia (composition API style), hash-mode Vue Router, SCSS and MDI icons (`mdi-*`). Python/aiohttp server (HA add-on). See `frontend/package.json` for versions.
 
-## Stack
+## Commands
 
-| Layer | Tech |
-|---|---|
-| Frontend framework | Quasar 2 + Vue 3 + TypeScript (strict) |
-| Build | Vite via Quasar CLI |
-| State | Pinia (composition API style) |
-| Routing | Vue Router (hash mode) |
-| HA connection | home-assistant-js-websocket 9.6.0 |
-| Charts | Chart.js 4 + vue-chartjs 5 |
-| Icons | MDI v7 (`mdi-*`) |
-| Styles | SCSS, scoped by default |
+Run from `frontend/`:
 
-## Project Layout
+- `yarn typecheck`: run before finishing any frontend change.
+- `yarn lint:check`: lint without changing files.
+- Don't run `yarn lint` unless asked. It runs prettier `--write` across the whole repo.
 
-```
-frontend/src/
-  components/       # Shared components (BaseWidget, dialogs, more-info/*)
-  composables/      # Vue composables (useWidget, useActionExecutor, ...)
-  css/              # Global SCSS (_widget.scss, variables.scss, app.scss)
-  stores/           # Pinia stores
-  types/            # TypeScript types
-  utils/            # Pure utilities (resolveWidgetProp, widgetRegistry, ...)
-  widgets/          # One file per widget type (SensorWidget.vue, etc.)
-server/             # Python aiohttp HA add-on
-```
+## Layout
+
+- `frontend/src/widgets/`: one `.vue` file per widget type. Shared building blocks are in `components/`, `composables/`, `stores/`, `types/` and `utils/`.
+- `server/tileboardserver/server.py`: aiohttp app. It serves the built frontend, `/config/{name}` (from `server/configs/{name}/config.yaml` plus secrets), and media. Server settings are in `server/server.config.yaml`. `server/venv` is a local virtualenv, so leave it alone.
+- `docs/`: the user-facing mkdocs site. `docs/configuration/` is the config reference (widgets, actions, more-info, screensaver, restrictions, pages). **When you add or change a config option, update the matching page.**
+- `plans/`: gitignored local planning docs. Read them for context, but never commit them.
 
 ## Widget System
 
-Every widget is a `.vue` file in `frontend/src/widgets/`. They all share the same shape:
+Widget shape:
 
 ```vue
 <script lang="ts">
@@ -45,175 +33,90 @@ const { title, subtitle, state, backgroundStyle, ... } = useWidget(() => props.w
 </script>
 ```
 
-- Wrap content in `<BaseWidget :widget="widget">` — handles click/hold actions, more-info dialog, missing-entity guard, lock badge.
-- `Widget` type uses `[key: string]: unknown` so widget-specific config is accessed via type assertions.
-- Register new types in `WidgetRenderer.vue`.
+- Wrap content in `<BaseWidget :widget="widget">`. It handles tap/hold actions, the more-info dialog, the missing-entity placeholder and the lock badge.
+- `useWidget` returns `entity`, `title`, `subtitle`, `state`, `unitOfMeasurement`, `isOn`, `cardClass`, `cardStyle`, `background`, `backgroundStyle`, `icon`, `iconColor`, `titleColor`, `subtitleColor`, `stateBadge`, `resolveCtx`.
+- `Widget` has `[key: string]: unknown`, so read widget-specific config with type assertions.
+
+**Adding a widget type:**
+1. Create `frontend/src/widgets/XxxWidget.vue` with `registerWidgetDefaults`.
+2. Add it to `WIDGET_MAP` in `components/WidgetRenderer.vue`.
+3. Create `docs/configuration/widgets/<type>.md`.
+4. Add it to `docs/configuration/widgets/index.md`.
+5. Add it to the `mkdocs.yml` nav.
 
 ### BaseWidget
 
-- Renders as `q-card flat bordered` with `overflow: hidden` and `position: relative`.
-- The `q-card` with `bordered` has a real 1px border; absolutely-positioned children are constrained to the padding edge.
-- Shows a placeholder when `entitiesLoaded && entity not in states` (don't show before first HA callback).
-- Opens `MoreInfoDialog` on hold (default) or tap (if `tap_action: more_info`).
+- Renders as a `q-card flat bordered` with `overflow: hidden` and `position: relative`. The border is a real 1px border, so absolutely-positioned children stop at the padding edge.
+- **entitiesLoaded guard:** it shows the missing-entity placeholder only when `haStore.entitiesLoaded && !(entity in states)`. Entities arrive asynchronously after connection, so anything else that reports a missing entity must check `entitiesLoaded` the same way.
+- Opens `MoreInfoDialog` on hold by default, or on tap when `tap_action: more_info`.
 
 ## resolveWidgetProp
 
-```typescript
-import { resolveWidgetProp } from '../utils/resolveWidgetProp';
-import type { PropResolveContext } from '../utils/resolveWidgetProp';
+`resolveWidgetProp(value, ctx) → string | undefined` (`utils/resolveWidgetProp.ts`, which also defines `PropResolveContext`).
 
-resolveWidgetProp(value, ctx)  // → string | undefined
-```
+- `string`: returned as-is, with any `{{ expr }}` templates evaluated.
+- `Record<string, string>`: state map, `map[state] ?? map.default`.
+- Anything else returns `undefined`.
 
-**`value` can be:**
-- `string` — returned as-is (or with `{{ expr }}` template evaluated)
-- `Record<string, string>` — state map: `{ on: 'green', off: 'red', default: 'grey' }` → `map[state] ?? map.default`
-- anything else → `undefined`
+Templates run through `new Function` with `(state, attributes, entity, states)` in scope. Each template is compiled once and cached by its source (`useVisibility` conditions work the same way), so never call `new Function` per evaluation. Expressions that mention `Date` also read the shared `useMinuteClock()` ref, so they re-evaluate every minute. Use that clock for any other once-a-minute time dependency instead of adding a per-component timer.
 
-**`PropResolveContext`:**
-```typescript
-{
-  state: string | null;
-  attributes: Record<string, unknown>;
-  entity: (id: string) => { state: string | null; attributes: Record<string, unknown> };
-  states: HassEntities;
-}
-```
-
-Template expressions (`{{ ... }}`) are evaluated with `new Function` with `(state, attributes, entity, states)` in scope. Each template string is parsed and compiled once, then cached by its source (same for `useVisibility` conditions), so don't call `new Function` per evaluation. Expressions that mention `Date` also read the shared `useMinuteClock()` ref (`composables/useMinuteClock.ts`), so they re-evaluate every minute and not only on state changes. Use that clock for any other once-a-minute time dependency instead of adding a per-component timer.
-
-`useWidget` builds `resolveCtx` automatically. When using `resolveWidgetProp` outside `useWidget` (e.g. in a widget that needs to resolve its own custom prop), build the context manually from `haStore.states`.
+`useWidget` provides `resolveCtx`. Outside `useWidget`, build the context from `haStore.states`.
 
 ## Home Assistant Store
 
 ```typescript
 const haStore = useHomeAssistantStore();
-
-haStore.states           // HassEntities — keyed by entity_id
-haStore.connected        // boolean
+haStore.states           // HassEntities keyed by entity_id
+haStore.connected
 haStore.entitiesLoaded   // true after first subscribeEntities callback; reset on disconnect
 haStore.callService(domain, service, data)
-haStore.sendMessage<T>(msg)          // Promise<T> — one-shot WS command
+haStore.sendMessage<T>(msg)          // one-shot WS command
 haStore.subscribeMessage<T>(cb, msg) // returns unsubscribe fn
 haStore.signPath(path)               // sign a media URL
 ```
 
-Entity state shape: `{ state: string, attributes: Record<string, unknown>, last_changed: string, last_updated: string }`.
+To fetch history, see `useSensorHistory` or `SensorHistoryChart`. With `minimal_response`, `history/history_during_period` returns `{ s, lu }` per entity, where `lu` is in **seconds** (a float), not milliseconds.
 
-History fetching pattern (used in chart components):
-```typescript
-const result = await haStore.sendMessage<Record<string, Array<{ s: string; lu: number }>>>({
-  type: 'history/history_during_period',
-  entity_ids: [entityId],
-  start_time: new Date(Date.now() - hours * 3_600_000).toISOString(),
-  significant_changes_only: false,
-  no_attributes: true,
-  minimal_response: true,
-});
-// result[entityId] = [{ s: '21.5', lu: 1234567890.123 }, ...]
-// lu = unix timestamp in seconds (float), s = state string
-```
+## Actions
 
-## Action System
-
-**`TapAction` union** (`types/actions.ts`):
-```typescript
-{ action: 'service';    service: 'domain.service'; data?: Record<string, unknown> }
-{ action: 'javascript'; data: string }   // executed via new Function
-{ action: 'event';      event: string; data?: Record<string, unknown> }
-{ action: 'navigate';   page?: string; url?: string }
-{ action: 'screensaver' }
-{ action: 'more_info';  entity?: string }
-{ action: 'none' }      // stops execution, disables default widget behavior
-```
-
-Widget config: `tap_action` and `hold_action` accept a single action or an array. Default widget behavior runs only when `tap_action` is not set.
-
-**`useActionExecutor`:**
-```typescript
-const { executeActions } = useActionExecutor();
-executeActions(widget.tap_action, {}, openMoreInfo);
-```
+Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action or an array. `action: 'none'` stops execution. The widget's default tap behavior runs only when `tap_action` is unset. Run actions with `useActionExecutor().executeActions(actions, {}, openMoreInfo)`.
 
 ## More-Info Dialog
 
-Opened automatically by `BaseWidget` on hold. Routes on entity domain:
-
-| Domain | Component |
-|---|---|
-| `light` | `MoreInfoLight` |
-| `climate` | `MoreInfoClimate` |
-| `number` | `MoreInfoNumber` |
-| `weather` | `MoreInfoWeather` |
-| everything else | `MoreInfoSensor` (with optional history chart) |
-
-Calendar event details use a separate standalone dialog `MoreInfoCalendarEvent` (not routed through `MoreInfoDialog` — it takes event-specific props directly).
-
-**`MoreInfoConfig`** (on `widget.more_info`):
-```typescript
-{
-  disabled?: boolean;
-  entity_id?: string;       // override which entity to show
-  title?: string | Record<string, string>;
-  subtitle?: string | Record<string, string>;
-  header_background?: string | Record<string, string>;
-  chart?: false;            // suppress the history chart
-  chart_hours?: number;
-  chart_min?: number;
-  chart_max?: number;
-}
-```
+`MoreInfoDialog` picks a view by entity domain: `light`, `climate`, `number` and `weather` each have their own `MoreInfo*` component, and everything else uses `MoreInfoSensor` (with an optional history chart). Per-widget config is `widget.more_info` (`types/more-info.ts`). `MoreInfoCalendarEvent` is a standalone dialog that takes event props directly and doesn't go through `MoreInfoDialog`.
 
 ## Styling Conventions
 
-- Scoped SCSS in components by default.
-- Default widget layout classes live in `css/_widget.scss` (`.widget-body`, `.state-area`, `.label-group`, `.title`, `.subtitle`, `.state`, `.state-badge`, `.widget-body--micro`). It is loaded once globally via `quasar.config.ts` `css`, so widgets must **not** `@use` it.
-  - Every default selector is wrapped in `:where(.widget …)`, giving it zero specificity. Any rule in a widget's scoped `<style>` overrides it for that component only, regardless of load order. A global `.widget-{type} .title` overrides it for one widget type.
-  - `BaseWidget` renders two root nodes (card + dialog), so a widget's scoped styles don't reach the card root. Target the card with a global `.widget-{type}` rule instead.
-- CSS variables for theming: `--widget-title-color`, `--widget-subtitle-color`, `--page-background`, `--section-gap`, per-widget `--{type}-widget-background`, etc.
-- State classes applied automatically by BaseWidget: `state--on`, `state--off`, `state--{slugified-state}`.
-- BEM-like naming: `.widget-sensor__chart`, `.cal-widget__item`, etc.
-- Widget-type global class: `.widget-sensor`, `.widget-light`, etc. (for background color variables).
+- Scoped SCSS in components by default. BEM-like names (`.widget-sensor__chart`).
+- Default widget layout classes (`.widget-body`, `.state-area`, `.label-group`, `.title`, `.subtitle`, `.state`, `.state-badge`, `.widget-body--micro`) are in `css/_widget.scss`, which `quasar.config.ts` `css` loads globally. Widgets must **not** `@use` it.
+  - Every default selector is wrapped in `:where(.widget …)` (zero specificity), so any scoped rule in a widget overrides it. A global `.widget-{type} .title` overrides it for one widget type.
+  - `BaseWidget` renders two root nodes (card + dialog), so a widget's scoped styles don't reach the card root. Target the card with a global `.widget-{type}` rule.
+- Theme variables: `--widget-title-color`, `--widget-subtitle-color`, `--page-background`, `--section-gap`, per-widget `--{type}-widget-background`, etc.
+- BaseWidget adds state classes automatically: `state--on`, `state--off`, `state--{slugified-state}`.
+- Prefer SVG/CSS to canvas, so colors can be `var(--foo)` without resolving them first.
 
-## Chart Components
+## Charts
 
-Two chart components exist:
+- **`components/more-info/SensorHistoryChart.vue`**: the interactive Chart.js chart. It is only reachable through `MoreInfoDialog`, which `BaseWidget` loads with `defineAsyncComponent`, so Chart.js stays out of the dashboard bundle. **Never import Chart.js from widgets.**
+- **`components/widgets/SensorWidgetChart.vue`**: the decorative background sparkline for `SensorWidget`. Plain inline SVG with `pointer-events: none`. `color` goes straight into the SVG `stroke`/`fill`, so `var()` works.
+  - Data comes from `composables/useSensorHistory.ts`. Series are shared per (entity, hours, buckets) and update live in place. They stay cached for 10 minutes after the last chart unmounts, and reload on (re)connect once `entitiesLoaded`.
+- `widget.chart` can be absent (no chart), `false` (disabled), `{}` or `null` (all defaults), or `{ hours, min, max, smoothing, color }`.
 
-**`SensorHistoryChart.vue`** (in `components/more-info/`) — full interactive Chart.js history chart used inside more-info dialogs. Has axes, tooltips, legend-less but hoverable.
-- Linear time x axis with `{ x: unixSeconds, y }` data and `parsing: false`; ticks on local whole hours via `afterBuildTicks`
-- LTTB decimation plugin keeps long histories to ~1 point per pixel
-- Only reachable through `MoreInfoDialog`, which `BaseWidget` loads with `defineAsyncComponent`, so Chart.js is never in the dashboard bundle. Keep it that way: don't import Chart.js from widgets.
+## Menu Widget and Slide
 
-**`SensorWidgetChart.vue`** (in `components/widgets/`) — decorative background sparkline for `SensorWidget`. Plain inline SVG, no Chart.js. Key traits:
-- Positioned `absolute; bottom: -2px; left: -2px; right: -2px; height: 55%` (negative inset to reach card edges past the 1px border)
-- `pointer-events: none`; `viewBox="0 0 100 100"` with `preserveAspectRatio="none"` and `vector-effect="non-scaling-stroke"` on the line
-- Monotone cubic interpolation (Fritsch–Carlson), which prevents overshoot; points evenly spaced by index
-- Data comes from `useSensorHistory` (`composables/useSensorHistory.ts`): the window is split into fixed-time buckets holding running means. Bucket count is `Math.max(8, Math.round(12 / smoothing))` (default smoothing 0.3 → 40; 0 → 240). Empty buckets repeat the previous value.
-  - `state_class: measurement` sensors load 5-minute recorder statistics plus a 20-minute raw tail. Others load raw history. Statistics are skipped if their unit differs from the entity's.
-  - Series are shared per (entity, hours, buckets) and live-update in place. They stay cached for 10 min after the last chart unmounts, so page switches don't refetch. They reload on (re)connect once `entitiesLoaded`.
-- `smoothing` capped at 1.0 via `Math.min(props.smoothing ?? 0.3, 1)`
-- `color` is used directly as SVG `stroke`/`fill` (with `stroke-opacity`/`fill-opacity`), so `var(--foo)` works without resolving
+`utils/menuSources.ts` is the only place that knows a menu provider's attribute shape. Its adapters turn entity attributes into a `MenuDay`. **Add new providers there, not in `MenuWidget` or `ScreensaverMenuSlide`.** `components/menu/MenuDayView.vue` is shared by the widget, the dialog and the slide. Its sizes are in `em`, so parents scale it with `font-size`.
 
 ## Key Patterns
 
-**Fragment root nodes** — Some widgets render as two sibling elements (widget + standalone dialog). Use `inheritAttrs: false` on the script block + `v-bind="$attrs"` on the intended root. Example: `CalendarWidget` renders `<BaseWidget>` then `<MoreInfoCalendarEvent>`.
+**Fragment root nodes:** widgets that render two sibling elements (widget + standalone dialog) use `inheritAttrs: false` and `v-bind="$attrs"` on the intended root. Example: `CalendarWidget` renders `<BaseWidget>` then `<MoreInfoCalendarEvent>`.
 
-**entitiesLoaded guard** — Never show "entity doesn't exist" until `haStore.entitiesLoaded` is true, since entities arrive asynchronously after connection.
-
-**Widget chart config** — `widget.chart` can be:
-- `undefined` / absent → no chart
-- `false` → explicitly disabled
-- `{}` / `null` / any object → show chart with all defaults
-- object with keys → `{ hours, min, max, smoothing, color }`
-
-**Color resolution for canvas** — CSS variables can't be read by canvas. If a canvas ever needs one, create a temp div, set `el.style.color = value`, append to body, read `getComputedStyle(el).color`, and remove it. Handles `var(--foo)`, `rgb()`, `rgba()` and hex. It forces a style recalc, so resolve once per color value, never per render. Prefer SVG/CSS, which take `var()` directly.
-
-## Stores Summary
+## Stores
 
 | Store | Purpose |
 |---|---|
 | `useHomeAssistantStore` | WS connection, entity states, service calls |
 | `useConfigStore` | Dashboard JSON config, page/section/widget tree |
+| `useCalendarStore` | Ref-counted calendar event subscriptions; window moves forward at local midnight |
 | `useRestrictionsStore` | PIN/confirmation locks, unlock timers |
 | `useScreensaverStore` | Screensaver activation, slides |
 | `useWeatherAlertsStore` | HA weatheralerts sensor, footer carousel |
