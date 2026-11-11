@@ -4,6 +4,9 @@
 # .env files
 .env*
 
+# Local planning docs
+plans/
+
 # Frontend
 frontend/node_modules
 frontend/dist
