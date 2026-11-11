@@ -38,7 +38,7 @@ defineProps<{
   inset: 0;
   background:
     linear-gradient(160deg, rgba(10, 22, 40, 0.72) 0%, rgba(22, 32, 50, 0.72) 100%),
-    url('/menu_background.jpg') center / cover no-repeat;
+    var(--slide-bg, none) center / cover no-repeat;
   color: #fff;
   display: flex;
   flex-direction: column;

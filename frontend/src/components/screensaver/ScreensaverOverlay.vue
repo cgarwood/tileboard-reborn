@@ -11,6 +11,7 @@
         :key="index"
         class="screensaver-slide"
         :class="{ 'screensaver-slide--active': index === currentSlide }"
+        :style="slideBackgroundStyle(backgroundFor(slide))"
       >
         <template v-if="isMounted(index)">
           <ScreensaverImageSlide v-if="slide.type === 'image'" :slide="slide" />
@@ -95,6 +96,11 @@ import ScreensaverDailyForecastSlide from './ScreensaverDailyForecastSlide.vue';
 import ScreensaverCalendarSlide from './ScreensaverCalendarSlide.vue';
 import ScreensaverMenuSlide from './ScreensaverMenuSlide.vue';
 import { useMenu } from '../../composables/useMenu';
+import {
+  BUILT_IN_BACKGROUNDS,
+  slideBackgroundStyle,
+  useSlideBackground,
+} from '../../composables/useSlideBackground';
 import ScreensaverClock from './ScreensaverClock.vue';
 import ScreensaverWeather from './ScreensaverWeather.vue';
 import WeatherAlertDialog from '../dialogs/WeatherAlertDialog.vue';
@@ -197,6 +203,44 @@ const menuStates = computed(() =>
 const menuSlides = computed<Slide[]>(() =>
   menuStates.value.flatMap((state, index) => (state.menu ? [{ type: 'menu' as const, index }] : [])),
 );
+
+// --- Backgrounds ---
+
+const weatherBackground = useSlideBackground(
+  () => store.backgrounds.weather,
+  () => store.weatherEntity,
+  BUILT_IN_BACKGROUNDS.weather,
+);
+
+const calendarBackground = useSlideBackground(
+  () => store.backgrounds.calendar,
+  () => null,
+  () => BUILT_IN_BACKGROUNDS.calendar,
+);
+
+const menuBackgrounds = menuConfigs.map((config) =>
+  useSlideBackground(
+    () => config.background ?? store.backgrounds.menu,
+    () => config.entity,
+    () => BUILT_IN_BACKGROUNDS.menu,
+  ),
+);
+
+function backgroundFor(slide: Slide): string | null {
+  switch (slide.type) {
+    case 'weather-current':
+    case 'weather-hourly':
+    case 'weather-daily':
+      return weatherBackground.value;
+    case 'calendar-today':
+    case 'calendar-tomorrow':
+      return calendarBackground.value;
+    case 'menu':
+      return menuBackgrounds[slide.index]?.value ?? null;
+    default:
+      return null;
+  }
+}
 
 // --- Slide list ---
 

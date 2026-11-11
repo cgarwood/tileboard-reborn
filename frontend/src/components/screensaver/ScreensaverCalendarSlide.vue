@@ -66,7 +66,7 @@ function fmtTime(d: Date): string {
   inset: 0;
   background:
     linear-gradient(160deg, rgba(10, 22, 40, 0.8) 0%, rgba(22, 32, 50, 0.8) 100%),
-    url('/calendar_background.jpg') center / cover no-repeat;
+    var(--slide-bg, none) center / cover no-repeat;
   color: #fff;
   display: flex;
   flex-direction: column;

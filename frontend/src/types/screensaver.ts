@@ -6,7 +6,24 @@ export interface ScreensaverConfig {
   media_source: string;
   weather_entity?: string;
   calendars?: ScreensaverCalendarConfig[];
-  menus?: MenuConfig[];
+  menus?: ScreensaverMenuConfig[];
+  backgrounds?: ScreensaverBackgrounds;
+}
+
+/** Image URL, state map or `{{ template }}`, resolved like a widget prop. `false` shows the gradient only. */
+export type SlideBackground = string | Record<string, string> | false;
+
+export interface ScreensaverBackgrounds {
+  /** Resolved against `weather_entity`, so a state map can pick an image per condition. */
+  weather?: SlideBackground;
+  calendar?: SlideBackground;
+  /** Resolved against each menu's entity. */
+  menu?: SlideBackground;
+}
+
+export interface ScreensaverMenuConfig extends MenuConfig {
+  /** Overrides `backgrounds.menu` for this menu's slide. */
+  background?: SlideBackground;
 }
 
 export interface HABrowseMediaChild {
