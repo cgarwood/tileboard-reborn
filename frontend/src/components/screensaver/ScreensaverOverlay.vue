@@ -45,8 +45,14 @@
             :date="menuStates[slide.index]!.date"
             :menu="menuStates[slide.index]!.menu!"
           />
+          <ScreensaverCustomSlide
+            v-else-if="slide.type === 'custom' && customContents[slide.index]?.value"
+            :content="customContents[slide.index]!.value!"
+            :css="customConfigs[slide.index]?.css"
+            :slide-class="customConfigs[slide.index]?.class"
+          />
         </template>
-        </div>
+      </div>
     </div>
 
     <div v-if="weatherStore.alerts.length" class="screensaver-alerts">
@@ -95,7 +101,9 @@ import ScreensaverHourlyForecastSlide from './ScreensaverHourlyForecastSlide.vue
 import ScreensaverDailyForecastSlide from './ScreensaverDailyForecastSlide.vue';
 import ScreensaverCalendarSlide from './ScreensaverCalendarSlide.vue';
 import ScreensaverMenuSlide from './ScreensaverMenuSlide.vue';
+import ScreensaverCustomSlide from './ScreensaverCustomSlide.vue';
 import { useMenu } from '../../composables/useMenu';
+import { useCustomSlide } from '../../composables/useCustomSlide';
 import {
   BUILT_IN_BACKGROUNDS,
   slideBackgroundStyle,
@@ -201,7 +209,20 @@ const menuStates = computed(() =>
 );
 
 const menuSlides = computed<Slide[]>(() =>
-  menuStates.value.flatMap((state, index) => (state.menu ? [{ type: 'menu' as const, index }] : [])),
+  menuStates.value.flatMap((state, index) =>
+    state.menu ? [{ type: 'menu' as const, index }] : [],
+  ),
+);
+
+// --- Custom slides ---
+
+const customConfigs = store.customSlides;
+const customContents = customConfigs.map((config) => useCustomSlide(() => config));
+
+const customSlides = computed<Slide[]>(() =>
+  customContents.flatMap((content, index) =>
+    content.value ? [{ type: 'custom' as const, index }] : [],
+  ),
 );
 
 // --- Backgrounds ---
@@ -226,6 +247,14 @@ const menuBackgrounds = menuConfigs.map((config) =>
   ),
 );
 
+const customBackgrounds = customConfigs.map((config) =>
+  useSlideBackground(
+    () => config.background ?? store.backgrounds.custom,
+    () => config.entity,
+    () => [],
+  ),
+);
+
 function backgroundFor(slide: Slide): string | null {
   switch (slide.type) {
     case 'weather-current':
@@ -237,6 +266,8 @@ function backgroundFor(slide: Slide): string | null {
       return calendarBackground.value;
     case 'menu':
       return menuBackgrounds[slide.index]?.value ?? null;
+    case 'custom':
+      return customBackgrounds[slide.index]?.value ?? null;
     default:
       return null;
   }
@@ -261,7 +292,12 @@ const calendarSlides = computed<Slide[]>(() => {
 
 const allSlides = computed<Slide[]>(() => {
   const photos = store.slides;
-  const special = [...weatherSlides.value, ...calendarSlides.value, ...menuSlides.value];
+  const special = [
+    ...weatherSlides.value,
+    ...calendarSlides.value,
+    ...menuSlides.value,
+    ...customSlides.value,
+  ];
   if (!special.length) return photos;
   if (!photos.length) return special;
 
@@ -280,6 +316,10 @@ watch(allSlides, (slides) => {
 // --- Per-slide duration ---
 const currentSlideDuration = computed(() => {
   const slide = allSlides.value[currentSlide.value];
+  if (slide?.type === 'custom') {
+    const seconds = customConfigs[slide.index]?.duration;
+    if (seconds && seconds > 0) return seconds * 1000;
+  }
   return slide?.type !== 'image' ? store.slideSpeedMs * 2 : store.slideSpeedMs;
 });
 
@@ -298,7 +338,8 @@ function isMounted(index: number): boolean {
 
 function goToSlide(index: number) {
   previousSlide.value = currentSlide.value;
-  currentSlide.value = ((index % allSlides.value.length) + allSlides.value.length) % allSlides.value.length;
+  currentSlide.value =
+    ((index % allSlides.value.length) + allSlides.value.length) % allSlides.value.length;
 }
 
 function scheduleNextSlide() {

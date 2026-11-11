@@ -65,7 +65,15 @@ function parseTemplate(template: string): ParsedTemplate {
   return parsed;
 }
 
-export function resolveWidgetProp(value: unknown, ctx: PropResolveContext): string | undefined {
+/**
+ * Resolve a config value against an entity. `formatValue` is applied to each `{{ expr }}` result
+ * (not to literal text), e.g. to HTML-escape entity data interpolated into config-authored markup.
+ */
+export function resolveWidgetProp(
+  value: unknown,
+  ctx: PropResolveContext,
+  formatValue?: (value: string) => string,
+): string | undefined {
   if (value == null) return undefined;
 
   // State map: { on: 'green', off: 'red', default: 'grey' }
@@ -94,7 +102,8 @@ export function resolveWidgetProp(value: unknown, ctx: PropResolveContext): stri
     try {
       const result = seg.fn(ctx.state, ctx.attributes, ctx.entity, ctx.states);
       if (result == null || typeof result === 'object' || typeof result === 'function') continue;
-      out += String(result); //eslint-disable-line @typescript-eslint/no-base-to-string
+      const str = String(result); //eslint-disable-line @typescript-eslint/no-base-to-string
+      out += formatValue ? formatValue(str) : str;
     } catch (e) {
       console.error('[resolveWidgetProp] Template error in expression:', seg.expr, e);
     }

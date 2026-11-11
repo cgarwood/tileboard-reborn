@@ -12,6 +12,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
   const weatherEntity = ref<string | null>(null);
   const calendars = ref<ScreensaverConfig['calendars']>([]);
   const menus = ref<ScreensaverConfig['menus']>([]);
+  const customSlides = ref<NonNullable<ScreensaverConfig['custom_slides']>>([]);
   const backgrounds = ref<NonNullable<ScreensaverConfig['backgrounds']>>({});
 
   let timeoutSeconds = 0;
@@ -23,6 +24,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
     weatherEntity.value = config.weather_entity ?? null;
     calendars.value = config.calendars ?? [];
     menus.value = config.menus ?? [];
+    customSlides.value = config.custom_slides ?? [];
     backgrounds.value = config.backgrounds ?? {};
 
     const haStore = useHomeAssistantStore();
@@ -92,6 +94,7 @@ export const useScreensaverStore = defineStore('screensaver', () => {
     weatherEntity,
     calendars,
     menus,
+    customSlides,
     backgrounds,
     initialize,
     onActivity,
