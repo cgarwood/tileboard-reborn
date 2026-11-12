@@ -15,13 +15,25 @@ async def frontend_middleware(request: web.Request, handler) -> web.Response:
         # Intentional 404s from API/media routes propagate as-is.
         if request.path.startswith(("/config/", "/api/", "/media", "/local")):
             raise
-        # Real file in the frontend bundle (favicon.ico, icons/*, etc.)
-        if FRONTEND_DIR.is_dir():
-            candidate = (FRONTEND_DIR / request.path.lstrip("/")).resolve()
-            if candidate.is_file() and candidate.is_relative_to(FRONTEND_DIR.resolve()):
-                return web.FileResponse(candidate)
-            return web.FileResponse(FRONTEND_DIR / "index.html")
-        raise
+        if not FRONTEND_DIR.is_dir():
+            raise
+        # Real file in the frontend bundle (assets/*, favicon.ico, icons/*, etc.)
+        candidate = (FRONTEND_DIR / request.path.lstrip("/")).resolve()
+        if candidate.is_file() and candidate.is_relative_to(FRONTEND_DIR.resolve()):
+            response = web.FileResponse(candidate)
+            if request.path.startswith("/assets/"):
+                # Filenames are content-hashed, so a given URL never changes
+                response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+            elif candidate.name == "index.html":
+                response.headers["Cache-Control"] = "no-cache"
+            return response
+        # A page from an older build asking for an asset that's gone must get a 404, not
+        # index.html (the browser would reject it with a MIME type error).
+        if request.path.startswith("/assets/"):
+            raise
+        # SPA fallback. Always revalidated, so tablets pick up a new build on their next load
+        # instead of holding on to an index.html that references assets that no longer exist.
+        return web.FileResponse(FRONTEND_DIR / "index.html", headers={"Cache-Control": "no-cache"})
 
 
 app = web.Application(middlewares=[frontend_middleware])
