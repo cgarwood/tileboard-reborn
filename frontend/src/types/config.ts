@@ -12,6 +12,15 @@ export type Config = {
   restrictions?: RestrictionConfig;
   pages: PagesConfig[];
   events: EventsConfig[];
+  resources?: ResourceConfig[];
+};
+
+/** `module` is reserved for custom widgets and not loaded yet */
+export type ResourceType = 'css' | 'module';
+
+export type ResourceConfig = {
+  url: string;
+  type?: ResourceType;
 };
 
 export type WeatherAlertConfig = {

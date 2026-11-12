@@ -42,6 +42,8 @@ pages:
 screensaver: ...
 
 restrictions: ...
+
+resources: ...
 ```
 
 ## Key Sections
@@ -52,3 +54,4 @@ restrictions: ...
 - [More-info Dialog](more-info.md) — customizing the long-press detail dialog
 - [Screensaver](screensaver.md) — ambient display when idle
 - [Restrictions](restrictions.md) — PIN and condition-based access control
+- [Resources](resources.md) — custom fonts and stylesheets

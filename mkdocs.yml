@@ -39,6 +39,7 @@ nav:
           - Menu: configuration/widgets/menu.md
       - Screensaver: configuration/screensaver.md
       - Restrictions: configuration/restrictions.md
+      - Resources: configuration/resources.md
   - Development: development.md
 
 extra:

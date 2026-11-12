@@ -121,6 +121,8 @@ screensaver:
         }
 ```
 
+To use a custom font in a slide, load it with [`resources`](resources.md#custom-fonts).
+
 The slide centres its content, leaving room at the bottom for the clock. It draws the same dark gradient and background image as the other slides. To replace those, set `background` on `.your-class.custom-slide`.
 
 ## Backgrounds

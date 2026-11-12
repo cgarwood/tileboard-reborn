@@ -13,7 +13,7 @@ async def frontend_middleware(request: web.Request, handler) -> web.Response:
         return await handler(request)
     except web.HTTPNotFound:
         # Intentional 404s from API/media routes propagate as-is.
-        if request.path.startswith(("/config/", "/api/", "/media")):
+        if request.path.startswith(("/config/", "/api/", "/media", "/local")):
             raise
         # Real file in the frontend bundle (favicon.ico, icons/*, etc.)
         if FRONTEND_DIR.is_dir():
@@ -39,6 +39,22 @@ async def config_handler(request: web.Request) -> web.Response:
 app.router.add_get("/config/{name}", config_handler)
 
 
+# ── Static resources (/local) ───────────────────────────────────────────────
+
+
+async def local_headers(request: web.Request, response: web.StreamResponse) -> None:
+    if not request.path.startswith("/local/"):
+        return
+    # The dashboard may be served from another origin, and browsers refuse
+    # cross-origin @font-face loads without CORS headers.
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    # Cached, but revalidated (ETag/Last-Modified) so edited files show up on reload
+    response.headers["Cache-Control"] = "no-cache"
+
+
+app.on_response_prepare.append(local_headers)
+
+
 # ── Startup ─────────────────────────────────────────────────────────────────
 
 
@@ -50,6 +66,10 @@ def main() -> None:
     media_dir = Path("media")
     media_dir.mkdir(exist_ok=True)
     app.router.add_static("/media", media_dir, follow_symlinks=True)
+
+    www_dir = Path("www")
+    www_dir.mkdir(exist_ok=True)
+    app.router.add_static("/local", www_dir, follow_symlinks=True)
 
     web.run_app(app, port=port)
 

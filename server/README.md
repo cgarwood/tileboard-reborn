@@ -15,6 +15,9 @@ Multiple unique configurations are supported. Each configuration should be place
 
 An example configuration is located in `configs/example`.
 
+### Static Files
+Files in the `www` folder are served at `/local/`, with CORS headers so dashboards on another origin can load fonts from it. Load stylesheets from there with the `resources` config option.
+
 ## Running the server
 Install the package first (use `-e` for an editable/development install):
 ```

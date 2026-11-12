@@ -20,6 +20,7 @@ import { useScreensaverStore } from './stores/screensaver';
 import { useWeatherAlertsStore } from './stores/weather-alerts';
 import { useSendspinStore } from './stores/sendspin';
 import { useActionExecutor } from './composables/useActionExecutor';
+import { applyResources } from './utils/resources';
 import ScreensaverOverlay from './components/screensaver/ScreensaverOverlay.vue';
 import type { ScreensaverConfig } from './types/screensaver';
 import type { WeatherAlertConfig, SendSpinConfig, EventsConfig } from './types/config';
@@ -55,6 +56,7 @@ function handleTileboardEvent(event: TileboardEvent, eventsConfig: EventsConfig[
 watch(
   () => configStore.config,
   (config) => {
+    applyResources(config?.resources, configStore.configUrl);
     if (config) {
       void haStore.connect(config.ha_url as string);
       if (config.screensaver) {

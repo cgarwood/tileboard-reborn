@@ -4,6 +4,7 @@ configs/*
 !configs/example/*
 tileboardserver/frontend/
 media/*
+www/*
 .venv/
 server.config.yaml
 
