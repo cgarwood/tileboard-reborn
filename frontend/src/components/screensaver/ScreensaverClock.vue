@@ -43,6 +43,7 @@ const date = computed(() => longDateFormat.format(now.value));
   pointer-events: none;
   user-select: none;
   font-family: 'Source Sans Pro';
+  width: 90%;
 }
 
 .clock-time {
