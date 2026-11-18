@@ -38,6 +38,7 @@ Hidden widgets and sections are removed from the DOM. A hidden page is only remo
 name: My Dashboard            # *required*
 ha_url: http://ha.local:8123  # *required*
 grid_size: 64                 # px per grid cell (optional)
+layout: {...}                 # orientation / nav position (optional)
 pages: [...]                  # *required*
 screensaver: {...}
 restrictions: {...}
@@ -49,7 +50,11 @@ events: [{command, action}]
 
 ## Pages
 
-Page keys: `id` (used in URL), `name` (toolbar), `icon` (nav rail), `visibility`, `sections` (list; the string `"break"` starts a new row), `grid_size` (overrides global), `background` (`{color, image, style}`), `toolbar_background` (string/expr).
+Page keys: `id` (used in URL), `name` (toolbar), `icon` (nav rail), `visibility`, `sections` (list; the string `"break"` starts a new row), `grid_size` (overrides global), `background` (`{color, image, style}`), `toolbar_background` (string/expr), `nav_background` (string/expr; nav rail or bottom bar; the bottom bar falls back to `toolbar_background`).
+
+Layout (top-level `layout`):
+- `orientation: auto|landscape|portrait = auto`. `auto` follows the device and updates on rotation. Portrait: sections in a row wrap and the page scrolls vertically; screensaver slides use portrait layouts. A forced value also applies to the screensaver.
+- `nav_position: auto|left|bottom = auto`. `auto` = `left` rail in landscape, `bottom` bar in portrait. Bottom bar background: page `nav_background` → `toolbar_background` → `--nav-bar-background` CSS var (default `var(--toolbar-background)`).
 
 Section keys: `name` (header label), `width` (grid columns, default 4), `widgets` (list), `visibility`, `style` (inline CSS object), `name_style` (inline CSS object for the header).
 
@@ -169,7 +174,7 @@ resources:
 ```
 Stylesheets load in order after the app styles, so they override them. A reload applies changes to the list. Failed loads only log a warning. `type: module` is reserved for future custom widgets and is skipped.
 
-**Theming CSS variables**: `--page-background`, `--toolbar-background`, `--text-light`/`-dark`/`-lighter`, `--widget-title-color`, `--widget-subtitle-color`, `--widget-border-radius`, `--section-padding`, `--section-gap`, `--{type}-widget-background`, `--{type}-widget-background-on` (sensor, switch, light, fan), `--climate-heating-background`, `--climate-cooling-background`, `--lock-widget-background-locked`, `--lock-widget-background-jammed`.
+**Theming CSS variables**: `--page-background`, `--toolbar-background`, `--nav-bar-background`, `--text-light`/`-dark`/`-lighter`, `--widget-title-color`, `--widget-subtitle-color`, `--widget-border-radius`, `--section-padding`, `--section-gap`, `--{type}-widget-background`, `--{type}-widget-background-on` (sensor, switch, light, fan), `--climate-heating-background`, `--climate-cooling-background`, `--lock-widget-background-locked`, `--lock-widget-background-jammed`.
 
 **Selectors**: `.widget-{type}` and the state classes `state--on`, `state--off` and `state--{slugified-state}`.
 

@@ -119,6 +119,7 @@ body {
 |---|---|
 | `--page-background` | Page background |
 | `--toolbar-background` | Top toolbar background |
+| `--nav-bar-background` | Bottom page nav bar background (default: `var(--toolbar-background)`) |
 | `--text-light`, `--text-dark`, `--text-lighter` | Text colors |
 | `--widget-title-color`, `--widget-subtitle-color` | Widget title and subtitle text |
 | `--widget-border-radius` | Widget corner rounding |

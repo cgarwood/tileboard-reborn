@@ -173,4 +173,17 @@ onUnmounted(() => observer?.disconnect());
     padding: 0.6em 1.1em;
   }
 }
+
+// Portrait: two columns are too narrow, so stack every section; the fit steps handle height.
+:root.layout--portrait {
+  .menu-slide {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .menu-slide__sections--grid {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(700px, 100%);
+  }
+}
 </style>

@@ -94,6 +94,7 @@ Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action or a
   - Every default selector is wrapped in `:where(.widget …)` (zero specificity), so any scoped rule in a widget overrides it. A global `.widget-{type} .title` overrides it for one widget type.
   - `BaseWidget` renders two root nodes (card + dialog), so a widget's scoped styles don't reach the card root. Target the card with a global `.widget-{type}` rule.
 - Theme variables: `--widget-title-color`, `--widget-subtitle-color`, `--page-background`, `--section-gap`, per-widget `--{type}-widget-background`, etc.
+- Orientation: `useLayout()` resolves the top-level `layout` config (`orientation`, `nav_position`, both default `auto`). `App.vue` mirrors it as `layout--portrait`/`layout--landscape`/`layout--nav-bottom` classes on `<html>`. Style for it with `:root.layout--portrait .foo` in scoped SCSS, not `@media (orientation)`, so a forced orientation applies too. Don't use `:global(.layout--portrait) .foo` or a nested `:global(...) { }` block: Vue's compiler drops everything after `:global()`, so the rules land on `<html>` itself.
 - BaseWidget adds state classes automatically: `state--on`, `state--off`, `state--{slugified-state}`.
 - Prefer SVG/CSS to canvas, so colors can be `var(--foo)` without resolving them first.
 

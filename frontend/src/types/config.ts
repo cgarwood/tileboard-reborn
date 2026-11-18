@@ -5,6 +5,7 @@ export type Config = {
   name: string;
   id: string;
   grid_size?: number;
+  layout?: LayoutConfig;
   weather_alerts?: WeatherAlertConfig;
   screensaver?: ScreensaverConfig;
   sendspin?: SendSpinConfig;
@@ -13,6 +14,13 @@ export type Config = {
   pages: PagesConfig[];
   events: EventsConfig[];
   resources?: ResourceConfig[];
+};
+
+export type LayoutConfig = {
+  /** `auto` follows the device's orientation */
+  orientation?: 'auto' | 'landscape' | 'portrait';
+  /** `auto` puts the nav rail on the left in landscape and at the bottom in portrait */
+  nav_position?: 'auto' | 'left' | 'bottom';
 };
 
 /** `module` is reserved for custom widgets and not loaded yet */

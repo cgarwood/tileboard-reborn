@@ -177,17 +177,19 @@ const pressureUnit = computed(() => (attrs.value.pressure_unit as string | undef
   opacity: 0.7;
 }
 
-@media (orientation: portrait) {
+:root.layout--portrait {
   .current-body {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    gap: 40px;
+    max-width: calc(100% - 32px);
   }
 
   .current-attrs {
     flex-wrap: wrap;
     justify-content: center;
     display: flex;
-    gap: 32px;
+    gap: 24px 32px;
   }
 }
 

@@ -163,4 +163,49 @@ const days = computed(() => {
   align-items: center;
   gap: 2px;
 }
+
+// Portrait: one row per day, stacked vertically, so the week fits the narrow screen.
+:root.layout--portrait {
+  .daily-row {
+    flex-direction: column;
+    gap: 8px;
+    width: min(480px, calc(100% - 32px));
+  }
+
+  .day-card {
+    flex-direction: row;
+    gap: 18px;
+    padding: 8px 24px;
+    min-width: 0;
+  }
+
+  .day-name {
+    width: 4.5em;
+    font-size: 0.95rem;
+  }
+
+  .day-icon {
+    font-size: 2.4rem;
+  }
+
+  .day-precip {
+    font-size: 0.9rem;
+  }
+
+  .day-temps {
+    order: 1;
+    margin-left: auto;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .day-high {
+    font-size: 1.45rem;
+  }
+
+  .day-low {
+    font-size: 1.15rem;
+  }
+}
 </style>

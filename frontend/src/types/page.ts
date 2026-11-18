@@ -9,6 +9,8 @@ export type Page = {
   sections: (Section | 'break')[];
   background: BackgroundConfig;
   toolbar_background?: string | Record<string, string>;
+  /** Page nav background (left rail or bottom bar). Bottom bar falls back to toolbar_background. */
+  nav_background?: string | Record<string, string>;
   visibility?: VisibilityConfig;
 };
 

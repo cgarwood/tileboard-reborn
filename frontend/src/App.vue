@@ -13,7 +13,8 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, ref, watch, onMounted, onUnmounted } from 'vue';
+import { defineAsyncComponent, ref, watch, watchEffect, onMounted, onUnmounted } from 'vue';
+import { useLayout } from './composables/useLayout';
 import { useConfigStore } from './stores/config';
 import { useHomeAssistantStore } from './stores/home-assistant';
 import { useScreensaverStore } from './stores/screensaver';
@@ -36,6 +37,17 @@ const sendspinStore = useSendspinStore();
 const { executeActions } = useActionExecutor();
 
 const dashboardHidden = ref(false);
+
+// Global orientation classes on <html>, so any component (screensaver slides included) can
+// style for the configured orientation rather than only the device's.
+// Scoped styles target them as `:root.layout--portrait .foo`.
+const { orientation, navPosition } = useLayout();
+watchEffect(() => {
+  const cl = document.documentElement.classList;
+  cl.toggle('layout--portrait', orientation.value === 'portrait');
+  cl.toggle('layout--landscape', orientation.value === 'landscape');
+  cl.toggle('layout--nav-bottom', navPosition.value === 'bottom');
+});
 
 interface TileboardEvent {
   event_type: 'tileboard';

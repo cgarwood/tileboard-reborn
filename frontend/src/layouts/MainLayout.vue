@@ -42,14 +42,18 @@
       </q-toolbar>
     </q-header>
 
-    <!-- Page navigation rail -->
-    <div v-if="navPages.length" class="page-nav-rail">
+    <!-- Page navigation rail (left). The bottom variant lives in the footer below. -->
+    <div
+      v-if="navPages.length && navPosition === 'left'"
+      class="page-nav-rail"
+      :style="navBackground ? { background: navBackground } : undefined"
+    >
       <div
         v-for="page in navPages"
         :key="page.id"
         class="nav-rail-btn"
         :class="{ 'nav-rail-btn--active': isActivePage(page.id) }"
-        @click="router.push({ name: 'dashboard-page', params: { pageId: page.id } })"
+        @click="goToPage(page.id)"
       >
         <q-icon :name="page.icon ?? 'mdi-home'" size="22px" />
         <q-tooltip anchor="center right" self="center left" :delay="600">{{ page.name }}</q-tooltip>
@@ -60,8 +64,30 @@
       <router-view />
     </q-page-container>
 
-    <q-footer v-if="weatherAlertsStore.alerts.length">
-      <q-toolbar class="weather-alert-footer-toolbar" :class="activeAlertClass">
+    <q-footer v-if="showBottomNav || weatherAlertsStore.alerts.length" class="app-footer">
+      <div
+        v-if="showBottomNav"
+        class="page-nav-bar"
+        :style="bottomNavBackground ? { background: bottomNavBackground } : undefined"
+      >
+        <div
+          v-for="page in navPages"
+          :key="page.id"
+          class="nav-rail-btn"
+          :class="{ 'nav-rail-btn--active': isActivePage(page.id) }"
+          @click="goToPage(page.id)"
+        >
+          <q-icon :name="page.icon ?? 'mdi-home'" size="22px" />
+          <q-tooltip anchor="top middle" self="bottom middle" :delay="600">{{
+            page.name
+          }}</q-tooltip>
+        </div>
+      </div>
+      <q-toolbar
+        v-if="weatherAlertsStore.alerts.length"
+        class="weather-alert-footer-toolbar"
+        :class="activeAlertClass"
+      >
         <q-carousel
           v-model="currentSlide"
           animated
@@ -106,6 +132,7 @@ import { useScreensaverStore } from '../stores/screensaver';
 import { useWeatherAlertsStore } from '../stores/weather-alerts';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import { evaluateVisibility } from '../composables/useVisibility';
+import { useLayout } from '../composables/useLayout';
 import WeatherAlertDialog from '../components/dialogs/WeatherAlertDialog.vue';
 import FullyKioskBattery from '../components/FullyKioskBattery.vue';
 import type { Config } from '@/types/config';
@@ -140,6 +167,13 @@ function isActivePage(id: string) {
   return currentPageId.value === id;
 }
 
+function goToPage(pageId: string) {
+  void router.push({ name: 'dashboard-page', params: { pageId } });
+}
+
+const { navPosition } = useLayout();
+const showBottomNav = computed(() => navPages.value.length > 0 && navPosition.value === 'bottom');
+
 const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
 
 const pageResolveCtx = computed<PropResolveContext>(() => ({
@@ -149,12 +183,20 @@ const pageResolveCtx = computed<PropResolveContext>(() => ({
   states: haStore.states,
 }));
 
-const toolbarBackgroundStyle = computed(() => {
-  const page = pages.value.find((p) => p.id === currentPageId.value);
-  if (!page?.toolbar_background) return undefined;
-  const resolved = resolveWidgetProp(page.toolbar_background, pageResolveCtx.value);
-  return resolved ? { background: resolved } : undefined;
-});
+function resolvePageProp(value: string | Record<string, string> | undefined) {
+  return value ? resolveWidgetProp(value, pageResolveCtx.value) || undefined : undefined;
+}
+
+const toolbarBackground = computed(() => resolvePageProp(currentPage.value?.toolbar_background));
+
+const toolbarBackgroundStyle = computed(() =>
+  toolbarBackground.value ? { background: toolbarBackground.value } : undefined,
+);
+
+// The left rail has no background unless `nav_background` is set. The bottom bar matches the
+// header: nav_background, then the page's toolbar_background, then --nav-bar-background.
+const navBackground = computed(() => resolvePageProp(currentPage.value?.nav_background));
+const bottomNavBackground = computed(() => navBackground.value ?? toolbarBackground.value);
 
 const layoutBackgroundStyle = computed(() => {
   if (route.name !== 'dashboard-page' && route.name !== 'dashboard-index') return undefined;
@@ -281,6 +323,36 @@ function formatAlertExpiry(expires: string) {
   z-index: 200;
   pointer-events: none;
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-footer {
+  background: transparent;
+}
+
+.page-nav-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  background: var(--nav-bar-background);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 1s ease;
+
+  // Centered via auto margins rather than justify-content, so a row too wide for the screen
+  // still scrolls from its first button instead of clipping on the left.
+  .nav-rail-btn {
+    flex-shrink: 0;
+
+    &:first-child {
+      margin-left: auto;
+    }
+
+    &:last-child {
+      margin-right: auto;
+    }
+  }
 }
 
 .nav-rail-btn {

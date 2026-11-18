@@ -86,4 +86,18 @@ const hours = computed(() => {
   align-items: center;
   gap: 2px;
 }
+
+// Portrait: two rows of four, so the hours still read left to right.
+:root.layout--portrait {
+  .hourly-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: min(480px, calc(100% - 32px));
+  }
+
+  .hour-card {
+    min-width: 0;
+    padding: 16px 8px;
+  }
+}
 </style>

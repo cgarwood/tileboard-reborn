@@ -216,6 +216,14 @@ function formatMs(ms: number): string {
   }
 }
 
+// Clear the bottom page nav bar (44px buttons + 12px padding).
+:root.layout--nav-bottom {
+  .ss-bar,
+  .ss-pill {
+    bottom: 72px;
+  }
+}
+
 // Transitions
 .ss-slide-enter-active,
 .ss-slide-leave-active {

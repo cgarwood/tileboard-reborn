@@ -14,6 +14,7 @@ Pages are the top-level containers for your dashboard. Each page has a list of s
 | `grid_size` | number | Grid cell size in pixels for this page (overrides global) |
 | `background` | object | Page background (`color`, `image`, `style`) |
 | `toolbar_background` | string / expression | Toolbar background color for this page |
+| `nav_background` | string / expression | Page navigation background for this page (left rail or bottom bar). The bottom bar falls back to `toolbar_background`, then the `--nav-bar-background` CSS variable; the left rail has no background unless this is set. |
 
 ## Sections
 
@@ -55,6 +56,31 @@ sections:
   - name: Security
     widgets: [...]
 ```
+
+In portrait orientation (see below), sections in a row also wrap onto a new line when they don't fit the screen width, and the page scrolls vertically. `"break"` still forces a new row.
+
+## Layout and orientation
+
+The top-level `layout` block controls how pages are arranged for landscape or portrait displays. Both options default to `auto`, so a config with no `layout` block adapts to the device and follows it when it rotates.
+
+```yaml
+layout:
+  orientation: auto     # auto | landscape | portrait
+  nav_position: auto    # auto | left | bottom
+```
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `orientation` | `auto` | `auto` follows the device's orientation. Set `landscape` or `portrait` to force one. |
+| `nav_position` | `auto` | Where the page navigation goes. `auto` uses a rail on the `left` in landscape and a bar at the `bottom` in portrait. |
+
+In portrait:
+
+- Sections wrap onto new lines instead of scrolling sideways.
+- The page navigation is a bar along the bottom of the screen, above any weather alert footer. Its background matches the header: the page's `nav_background`, then its `toolbar_background`, then the `--nav-bar-background` CSS variable (default: `var(--toolbar-background)`).
+- Screensaver slides switch to portrait layouts: the daily forecast becomes a vertical list, the hourly forecast becomes a 4×2 grid, and the menu slide uses a single column.
+
+The forced `orientation` also applies to the screensaver, so `orientation: portrait` gives portrait slides even when the device reports landscape.
 
 ## Page visibility
 

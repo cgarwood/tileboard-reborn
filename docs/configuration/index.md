@@ -32,6 +32,10 @@ name: My Dashboard
 ha_url: http://homeassistant.local:8123
 grid_size: 64 # default tile size in pixels (optional)
 
+layout: # optional; see Pages > Layout and orientation
+  orientation: auto # auto | landscape | portrait
+  nav_position: auto # auto | left | bottom
+
 pages:
   - id: main
     name: Main
@@ -54,7 +58,7 @@ events: ...
 
 ## Key Sections
 
-- [Pages](pages.md) — define dashboard pages and their layout
+- [Pages](pages.md) — define dashboard pages, their layout, and portrait/landscape orientation
 - [Widgets](widgets/index.md) — tile types and their configuration options
 - [Actions](actions.md) — tap and hold actions (service calls, navigation, more-info, etc.)
 - [More-info Dialog](more-info.md) — customizing the long-press detail dialog

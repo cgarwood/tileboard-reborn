@@ -158,4 +158,10 @@ function fmtTime(d: Date): string {
     margin-top: 1px;
   }
 }
+
+// Portrait: the 480px minimum is wider than most portrait tablets.
+:root.layout--portrait .cal-slide__list {
+  min-width: 0;
+  width: min(700px, calc(100% - 64px));
+}
 </style>

@@ -1,6 +1,7 @@
 :root {
   /* Default colors */
   --toolbar-background: rgba(0, 0, 0, 0.35);
+  --nav-bar-background: var(--toolbar-background);
 
   --page-background: #{$cyan-10};
 
