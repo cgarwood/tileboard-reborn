@@ -14,7 +14,8 @@ Run from `frontend/`:
 
 - `frontend/src/widgets/`: one `.vue` file per widget type. Shared building blocks are in `components/`, `composables/`, `stores/`, `types/` and `utils/`.
 - `server/tileboardserver/server.py`: aiohttp app. It serves the built frontend, `/config/{name}` (from `server/configs/{name}/config.yaml` plus secrets), and media. Server settings are in `server/server.config.yaml`. `server/venv` is a local virtualenv, so leave it alone.
-- `docs/`: the user-facing mkdocs site. `docs/configuration/` is the config reference (widgets, actions, more-info, screensaver, restrictions, pages). **When you add or change a config option, update the matching page.**
+- `docs/`: the user-facing mkdocs site. `docs/configuration/` is the config reference (widgets, actions, more-info, screensaver, restrictions, pages, resources, weather alerts, sendspin, events). **When you add or change a config option, update the matching page.**
+- `docs/ai-reference.md`: a condensed copy of `docs/configuration/` for agents. **Read it instead of the full docs when you need config syntax. Whenever you change a page in `docs/configuration/`, update the matching section here in the same change.**
 - `plans/`: gitignored local planning docs. Read them for context, but never commit them.
 
 ## Widget System
@@ -43,6 +44,7 @@ const { title, subtitle, state, backgroundStyle, ... } = useWidget(() => props.w
 3. Create `docs/configuration/widgets/<type>.md`.
 4. Add it to `docs/configuration/widgets/index.md`.
 5. Add it to the `mkdocs.yml` nav.
+6. Add it to the widget types list in `docs/ai-reference.md`.
 
 ### BaseWidget
 

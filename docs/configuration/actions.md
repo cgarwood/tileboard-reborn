@@ -160,7 +160,7 @@ tap_action:
 | ------ | ------ | -------------------------- |
 | `data` | string | JavaScript code to execute |
 
-The code runs with access to `state`, `attributes`, `entity(id)`, and `states` — the same variables available in `{{ }}` expressions.
+The code is not a `{{ }}` template, so `state`, `attributes`, `entity()` and `states` aren't available. One variable, `data`, is in scope. When the action runs from an [event](events.md), `data` holds the event's data. Otherwise it is an empty object.
 
 ---
 

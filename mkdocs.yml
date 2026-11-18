@@ -5,6 +5,10 @@ repo_url: https://github.com/cgarwood/tileboard-reborn
 repo_name: cgarwood/tileboard-reborn
 docs_dir: docs
 
+# Built and reachable by URL, but kept out of the nav
+not_in_nav: |
+  /ai-reference.md
+
 theme:
   name: readthedocs
   highlightjs: true
@@ -40,6 +44,9 @@ nav:
       - Screensaver: configuration/screensaver.md
       - Restrictions: configuration/restrictions.md
       - Resources: configuration/resources.md
+      - Weather Alerts: configuration/weather-alerts.md
+      - Sendspin: configuration/sendspin.md
+      - Events: configuration/events.md
   - Development: development.md
 
 extra:
