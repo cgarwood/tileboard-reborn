@@ -21,6 +21,13 @@ export type LayoutConfig = {
   orientation?: 'auto' | 'landscape' | 'portrait';
   /** `auto` puts the nav rail on the left in landscape and at the bottom in portrait */
   nav_position?: 'auto' | 'left' | 'bottom';
+  header?: HeaderConfig;
+};
+
+/** Items in the top bar. The device status items only appear inside Fully Kiosk Browser. */
+export type HeaderConfig = {
+  /** Battery level and charging status. Default true */
+  battery?: boolean;
 };
 
 /** `module` is reserved for custom widgets and not loaded yet */

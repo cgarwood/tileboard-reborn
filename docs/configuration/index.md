@@ -49,6 +49,8 @@ grid_size: 64 # default tile size in pixels (optional)
 layout: # optional; see Pages > Layout and orientation
   orientation: auto # auto | landscape | portrait
   nav_position: auto # auto | left | bottom
+  header:
+    battery: true # Fully Kiosk battery/charging status in the top bar
 
 pages:
   - id: main

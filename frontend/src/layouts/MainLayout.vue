@@ -6,7 +6,7 @@
         <q-icon v-if="currentPageIcon" :name="currentPageIcon" size="22px" class="q-mr-sm" />
         <q-toolbar-title>{{ currentPageName }}</q-toolbar-title>
 
-        <FullyKioskBattery />
+        <FullyKioskBattery v-if="headerConfig.battery !== false" />
 
         <div class="header-title-block q-mr-xs">
           <div class="header-app-name">{{ configStore.config?.name ?? 'TileBoard' }}</div>
@@ -172,6 +172,7 @@ function goToPage(pageId: string) {
 }
 
 const { navPosition } = useLayout();
+const headerConfig = computed(() => (configStore.config as Config | null)?.layout?.header ?? {});
 const showBottomNav = computed(() => navPages.value.length > 0 && navPosition.value === 'bottom');
 
 const NULL_ENTITY = { state: null as unknown as string, attributes: {} };

@@ -67,12 +67,15 @@ The top-level `layout` block controls how pages are arranged for landscape or po
 layout:
   orientation: auto     # auto | landscape | portrait
   nav_position: auto    # auto | left | bottom
+  header:
+    battery: true
 ```
 
 | Key | Default | Description |
 |-----|---------|-------------|
 | `orientation` | `auto` | `auto` follows the device's orientation. Set `landscape` or `portrait` to force one. |
 | `nav_position` | `auto` | Where the page navigation goes. `auto` uses a rail on the `left` in landscape and a bar at the `bottom` in portrait. |
+| `header.battery` | `true` | Show the device's battery level and charging status in the top bar. It only appears when the dashboard runs in Fully Kiosk Browser. Set `false` for devices without a battery that still report a fixed level, such as the Lenovo ThinkSmart View. |
 
 In portrait:
 

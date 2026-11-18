@@ -55,6 +55,7 @@ Page keys: `id` (used in URL), `name` (toolbar), `icon` (nav rail), `visibility`
 Layout (top-level `layout`):
 - `orientation: auto|landscape|portrait = auto`. `auto` follows the device and updates on rotation. Portrait: sections in a row wrap and the page scrolls vertically; screensaver slides use portrait layouts. A forced value also applies to the screensaver.
 - `nav_position: auto|left|bottom = auto`. `auto` = `left` rail in landscape, `bottom` bar in portrait. Bottom bar background: page `nav_background` → `toolbar_background` → `--nav-bar-background` CSS var (default `var(--toolbar-background)`).
+- `header.battery: bool = true`. Fully Kiosk battery level and charging status in the top bar. Set false on battery-less devices that report a fake level.
 
 Section keys: `name` (header label), `width` (grid columns, default 4), `widgets` (list), `visibility`, `style` (inline CSS object), `name_style` (inline CSS object for the header).
 
