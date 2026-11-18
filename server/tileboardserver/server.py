@@ -63,7 +63,8 @@ def load_config(name: str):
 
 async def config_handler(request: web.Request) -> web.Response:
     name = request.match_info["name"]
-    # Only serve names that exist as config folders. This also keeps names like ".." out of the path.
+    # Only serve names that exist as config folders.
+    # This also keeps names like ".." out of the path.
     if name not in config_names():
         raise web.HTTPNotFound()
     return web.json_response(load_config(name), headers={"Access-Control-Allow-Origin": "*"})
