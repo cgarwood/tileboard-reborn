@@ -9,7 +9,7 @@ No prose, no screenshots. One line per option. Notation:
   *required*
 -->
 
-Home Assistant dashboard for wall tablets. Config is YAML, parsed by HA's loader (`!include`, `!include_dir_merge_list`, `!secret`, etc. work). One folder per display: `configs/<name>/config.yaml`, served at `/config/<name>`. Full user docs: `docs/configuration/`.
+Home Assistant dashboard for wall tablets. Config is YAML, parsed by HA's loader (`!include`, `!include_dir_merge_list`, `!secret`, etc. work). One folder per display: `configs/<name>/config.yaml`, served at `/config/<name>`. `GET /api/configs` lists them as `[{name, title}]` (title = the config's `name`) for the onboarding dropdown. `?config=<name>` in the page URL (before or after the `#`) loads that config and remembers it. Full user docs: `docs/configuration/`.
 
 ## Shared concepts
 

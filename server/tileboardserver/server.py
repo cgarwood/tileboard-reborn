@@ -42,13 +42,51 @@ app = web.Application(middlewares=[frontend_middleware])
 # ── Config ─────────────────────────────────────────────────────────────────
 
 
+CONFIGS_DIR = Path("configs")
+
+
+def config_names() -> list[str]:
+    """Names of the config folders, i.e. subfolders of configs/ that contain a config.yaml."""
+    if not CONFIGS_DIR.is_dir():
+        return []
+    return sorted(
+        entry.name
+        for entry in CONFIGS_DIR.iterdir()
+        if entry.is_dir() and not entry.name.startswith(".") and (entry / "config.yaml").is_file()
+    )
+
+
+def load_config(name: str):
+    config_dir = CONFIGS_DIR / name
+    return load_yaml(config_dir / "config.yaml", Secrets(config_dir))
+
+
 async def config_handler(request: web.Request) -> web.Response:
     name = request.match_info["name"]
-    yaml = load_yaml(f"configs/{name}/config.yaml", Secrets(f"configs/{name}"))
-    return web.json_response(yaml, headers={"Access-Control-Allow-Origin": "*"})
+    # Only serve names that exist as config folders. This also keeps names like ".." out of the path.
+    if name not in config_names():
+        raise web.HTTPNotFound()
+    return web.json_response(load_config(name), headers={"Access-Control-Allow-Origin": "*"})
+
+
+async def config_list_handler(request: web.Request) -> web.Response:
+    """List the available configs for the onboarding picker: [{name, title}]."""
+    configs = []
+    for name in config_names():
+        title = name
+        try:
+            config = load_config(name)
+            if isinstance(config, dict) and isinstance(config.get("name"), str) and config["name"]:
+                title = str(config["name"])
+        except Exception:  # noqa: BLE001 - a broken config still gets listed, by folder name
+            pass
+        configs.append({"name": name, "title": title})
+    configs.sort(key=lambda c: c["title"].lower())
+    return web.json_response(configs)
 
 
 app.router.add_get("/config/{name}", config_handler)
+app.router.add_get("/api/configs", config_list_handler)
 
 
 # ── Static resources (/local) ───────────────────────────────────────────────

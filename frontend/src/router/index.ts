@@ -6,6 +6,7 @@ import {
   createWebHistory,
 } from 'vue-router';
 import { useConfigStore } from '../stores/config';
+import { serverConfigUrl, takeConfigSearchParam } from '../utils/serverConfigs';
 
 import routes from './routes';
 
@@ -36,8 +37,34 @@ export default defineRouter((/* { store, ssrContext } */) => {
   });
 
   Router.beforeEach(async (to) => {
-    if (to.path === '/onboarding') return;
     const configStore = useConfigStore();
+    // `?config=<name>` selects a server config by name. It's accepted before the hash
+    // (`/?config=kids_room`, the form for a kiosk start URL) or inside it (`#/?config=kids_room`).
+    const searchName = takeConfigSearchParam();
+
+    if (to.path === '/onboarding') {
+      // Onboarding preselects the requested config instead of loading it.
+      if (searchName && !to.query.config) {
+        return { path: to.path, query: { ...to.query, config: searchName } };
+      }
+      return;
+    }
+
+    const hashName = typeof to.query.config === 'string' ? to.query.config.trim() : '';
+    const requested = searchName || hashName;
+    if (requested) {
+      try {
+        await configStore.loadConfig(serverConfigUrl(requested));
+      } catch {
+        // Show the error on onboarding, with the requested config preselected
+        return { path: '/onboarding', query: { config: requested } };
+      }
+      if (!hashName) return;
+      const query = { ...to.query };
+      delete query.config;
+      return { path: to.path, query, hash: to.hash, replace: true };
+    }
+
     if (configStore.config) return;
     // If a URL was persisted, try to auto-load before redirecting
     if (configStore.configUrl) {

@@ -25,6 +25,20 @@ configs/
 
 ```
 
+Each folder that contains a `config.yaml` is a config, served at `/config/<folder name>`. Folders without one, like `_common` above, are only used for includes.
+
+## Choosing a Config on a Device
+
+The first time a device opens TileBoard, it asks which config to use. When TileBoard is served by the TileBoard server, it shows a dropdown of the configs on the server, listed by their `name`. You can still enter the URL of a config hosted elsewhere with **Use a custom URL instead**.
+
+To set a device up without using the dropdown, add `?config=<folder name>` to the URL it opens. This works well as a Fully Kiosk Browser start URL:
+
+```
+http://<server>:9090/?config=living_room
+```
+
+The device loads that config and remembers it. If the config doesn't exist or fails to load, onboarding opens with it preselected and shows the error. The parameter also works after the `#` (`http://<server>:9090/#/?config=living_room`).
+
 ## Top-Level `config.yaml` Structure
 
 ```yaml

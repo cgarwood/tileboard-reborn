@@ -72,6 +72,12 @@ export default defineConfig((/* ctx */) => {
     devServer: {
       // https: true,
       open: true, // opens browser window automatically
+      // Forward server routes to a locally running tileboard-server, so onboarding can list its
+      // configs and load them by name.
+      proxy: {
+        '/api/': 'http://localhost:9090',
+        '/config/': 'http://localhost:9090',
+      },
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
