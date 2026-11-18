@@ -77,7 +77,7 @@ onUnmounted(() => styleEl?.remove());
     align-items: center;
     justify-content: center;
     gap: 16px;
-    padding: 40px 10vw 30vh;
+    padding: 40px 10vw var(--screensaver-clock-space, 30vh);
     text-align: center;
   }
 
@@ -86,7 +86,7 @@ onUnmounted(() => styleEl?.remove());
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 40px 30vh;
+    padding: 40px 40px var(--screensaver-clock-space, 30vh);
   }
 
   &__watermark {

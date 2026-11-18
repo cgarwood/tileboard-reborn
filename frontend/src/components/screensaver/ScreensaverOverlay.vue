@@ -1,5 +1,10 @@
 <template>
-  <div class="screensaver-overlay" @click="store.dismiss()">
+  <div
+    ref="overlayEl"
+    class="screensaver-overlay"
+    :style="clockSpace ? { '--screensaver-clock-space': `${clockSpace}px` } : undefined"
+    @click="store.dismiss()"
+  >
     <div
       class="screensaver-slides"
       @pointerdown="onPointerDown"
@@ -75,7 +80,7 @@
     >
       <ScreensaverWeather :entity-id="store.weatherEntity" />
     </div>
-    <ScreensaverClock />
+    <ScreensaverClock ref="clockCmp" />
 
     <WeatherAlertDialog v-if="selectedAlert" :alert="selectedAlert" @hide="selectedAlert = null" />
   </div>
@@ -120,6 +125,34 @@ const haStore = useHomeAssistantStore();
 
 const currentSlide = ref(0);
 const selectedAlert = ref<WeatherAlert | null>(null);
+
+// --- Clock space ---
+// Slides keep their content above the clock by padding their bottom with
+// --screensaver-clock-space. The clock is sized in px, so measure the strip it
+// covers (from its top edge to the bottom of the screen) rather than guessing in vh.
+
+const CLOCK_GAP = 16;
+const overlayEl = ref<HTMLElement | null>(null);
+const clockCmp = ref<InstanceType<typeof ScreensaverClock> | null>(null);
+const clockSpace = ref(0);
+let clockObserver: ResizeObserver | null = null;
+
+function measureClockSpace() {
+  const overlay = overlayEl.value;
+  const clock = clockCmp.value?.$el as HTMLElement | undefined;
+  if (!overlay || !clock) return;
+  const space = overlay.getBoundingClientRect().bottom - clock.getBoundingClientRect().top;
+  clockSpace.value = Math.ceil(space) + CLOCK_GAP;
+}
+
+onMounted(() => {
+  clockObserver = new ResizeObserver(measureClockSpace);
+  if (overlayEl.value) clockObserver.observe(overlayEl.value);
+  const clock = clockCmp.value?.$el as HTMLElement | undefined;
+  if (clock) clockObserver.observe(clock);
+});
+
+onUnmounted(() => clockObserver?.disconnect());
 
 // --- Weather entity capability detection ---
 

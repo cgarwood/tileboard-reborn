@@ -73,7 +73,7 @@ function fmtTime(d: Date): string {
   align-items: center;
   justify-content: center;
   gap: 40px;
-  padding-bottom: 30vh;
+  padding-bottom: var(--screensaver-clock-space, 30vh);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   pointer-events: none;
   user-select: none;
