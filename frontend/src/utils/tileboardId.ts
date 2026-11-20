@@ -1,5 +1,3 @@
-declare const fully: { getDeviceId(): string } | undefined;
-
 const STORAGE_KEY = 'tileboard:id';
 
 let cached: string | null = null;
@@ -7,8 +5,8 @@ let cached: string | null = null;
 export function getTileboardId(): string {
   if (cached) return cached;
 
-  if (typeof fully !== 'undefined') {
-    cached = 'fk-' + fully.getDeviceId();
+  if (window.fully) {
+    cached = 'fk-' + window.fully.getDeviceId();
     return cached;
   }
 

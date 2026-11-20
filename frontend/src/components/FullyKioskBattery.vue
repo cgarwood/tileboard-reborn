@@ -67,11 +67,6 @@ onUnmounted(() => {
 <script lang="ts">
 declare global {
   interface Window {
-    fully?: {
-      getBatteryLevel(): number;
-      isPlugged(): boolean;
-      bind(event: string, jsCode: string): void;
-    };
     _fkbBatteryLevelChanged?: () => void;
     _fkbPlugged?: () => void;
     _fkbUnplugged?: () => void;

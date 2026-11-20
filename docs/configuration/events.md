@@ -28,6 +28,8 @@ events:
 
 Events with a `command` that isn't in the list are ignored.
 
+`sendspin_announcement` is a built-in command used by [Sendspin](sendspin.md#announcements) to show announcement text. It works without an entry in this list.
+
 ## Sending an Event from Home Assistant
 
 Fire an event of type `tileboard` with `command` in its data, for example from an automation or script:

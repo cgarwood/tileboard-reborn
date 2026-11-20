@@ -51,6 +51,7 @@ layout: # optional; see Pages > Layout and orientation
   nav_position: auto # auto | left | bottom
   header:
     battery: true # Fully Kiosk battery/charging status in the top bar
+    volume: true # Fully Kiosk volume sliders in the top bar menu; or a list, e.g. [media, alarm]
 
 pages:
   - id: main

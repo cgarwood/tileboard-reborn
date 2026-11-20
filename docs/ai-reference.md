@@ -56,6 +56,7 @@ Layout (top-level `layout`):
 - `orientation: auto|landscape|portrait = auto`. `auto` follows the device and updates on rotation. Portrait: sections in a row wrap and the page scrolls vertically; screensaver slides use portrait layouts. A forced value also applies to the screensaver.
 - `nav_position: auto|left|bottom = auto`. `auto` = `left` rail in landscape, `bottom` bar in portrait. Bottom bar background: page `nav_background` → `toolbar_background` → `--nav-bar-background` CSS var (default `var(--toolbar-background)`).
 - `header.battery: bool = true`. Fully Kiosk battery level and charging status in the top bar. Set false on battery-less devices that report a fake level.
+- `header.volume: bool | list = true`. Fully Kiosk device volume sliders (with mute toggle) in the header ⋮ menu. `true` = `[media]`; a list picks streams/order from `media|notification|alarm|system|ring`; `false` hides. Sendspin/web audio use `media`.
 
 Section keys: `name` (header label), `width` (grid columns, default 4), `widgets` (list), `visibility`, `style` (inline CSS object), `name_style` (inline CSS object for the header).
 
@@ -196,6 +197,8 @@ sendspin:
 ```
 The tablet registers as a Sendspin speaker. Its player ID is generated, not configured: `fk-<Fully Kiosk device id>` in Fully Kiosk, otherwise a random UUID kept in `localStorage`. A now-playing bar (prev/play-pause/next, can be minimized) appears while media is present. Tapping the title opens a player with shuffle, repeat and volume. The player reconnects automatically.
 
+Announcements: playback with no track title (e.g. `music_assistant.play_announcement`) shows a bullhorn and "Announcement", hides prev/next/time, and restores the bar's earlier minimized state when it ends. To show the TTS text, fire `event: tileboard` with `event_data: {command: sendspin_announcement, message: "..."}` just before the announcement. This is a built-in command, so no `events` entry is needed. A tablet shows the message only if an announcement starts on it within 60s; queued messages show in order, one per announcement.
+
 ## Events
 
 ```yaml
@@ -205,4 +208,4 @@ events:
       action: navigate
       page: cameras
 ```
-Listens for HA events of type `tileboard`. Fire one with `event: tileboard`, `event_data: {command: show_cameras, ...}`. Unmatched commands are ignored. Every open dashboard with a matching `command` reacts; there is no per-device targeting, so use a command name unique to one display's config. Extra event-data fields reach `javascript` actions as `data` (`data.brightness`). Other action types use their config as written. `more_info` does nothing here. Events fired while disconnected are missed. HA only sends custom events to admin users.
+Listens for HA events of type `tileboard`. Fire one with `event: tileboard`, `event_data: {command: show_cameras, ...}`. Unmatched commands are ignored (`sendspin_announcement` is built in, see Sendspin). Every open dashboard with a matching `command` reacts; there is no per-device targeting, so use a command name unique to one display's config. Extra event-data fields reach `javascript` actions as `data` (`data.brightness`). Other action types use their config as written. `more_info` does nothing here. Events fired while disconnected are missed. HA only sends custom events to admin users.

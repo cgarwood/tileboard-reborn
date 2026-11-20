@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import type { SendspinPlayer, ControllerCommand, ServerStateMetadata } from '@sendspin/sendspin-js';
 import type { SendSpinConfig } from '../types/config';
 import { getTileboardId } from '../utils/tileboardId';
@@ -17,6 +17,35 @@ export const useSendspinStore = defineStore('sendspin', () => {
   const supportedCommands = ref<string[]>([]);
   const trackPositionMs = ref(0);
   const trackDurationMs = ref(0);
+
+  // Music Assistant streams announcements (TTS, chimes) without track metadata, so playback with
+  // no title is treated as an announcement.
+  const isAnnouncement = computed(() => isPlaying.value && !metadata.value?.title);
+
+  // Text of the announcement playing now, if Home Assistant sent it beforehand with a
+  // `sendspin_announcement` tileboard event. Messages are queued in arrival order and dropped if
+  // no announcement starts in time (i.e. this tablet wasn't one of the targets).
+  const announcementText = ref<string | null>(null);
+  const ANNOUNCEMENT_MAX_WAIT_MS = 60_000;
+  let pendingAnnouncements: { message: string; at: number }[] = [];
+
+  function nextPendingAnnouncement(): string | null {
+    const cutoff = Date.now() - ANNOUNCEMENT_MAX_WAIT_MS;
+    pendingAnnouncements = pendingAnnouncements.filter((a) => a.at >= cutoff);
+    return pendingAnnouncements.shift()?.message ?? null;
+  }
+
+  function queueAnnouncement(message: string) {
+    pendingAnnouncements.push({ message, at: Date.now() });
+    // The event normally arrives before playback starts, but handle it arriving just after too.
+    if (isAnnouncement.value && announcementText.value == null) {
+      announcementText.value = nextPendingAnnouncement();
+    }
+  }
+
+  watch(isAnnouncement, (active) => {
+    announcementText.value = active ? nextPendingAnnouncement() : null;
+  });
 
   let progressTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -163,6 +192,9 @@ export const useSendspinStore = defineStore('sendspin', () => {
     supportedCommands,
     trackPositionMs,
     trackDurationMs,
+    isAnnouncement,
+    announcementText,
+    queueAnnouncement,
     initialize,
     play,
     pause,

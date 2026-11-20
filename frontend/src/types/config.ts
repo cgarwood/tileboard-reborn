@@ -28,7 +28,14 @@ export type LayoutConfig = {
 export type HeaderConfig = {
   /** Battery level and charging status. Default true */
   battery?: boolean;
+  /**
+   * Device volume sliders in the header menu. `true` (default) shows media only; a list picks which streams to show, in order; `false` hides them.
+   */
+  volume?: boolean | VolumeStream[];
 };
+
+/** Android audio streams Fully Kiosk can set the volume of. Sendspin and other web audio play on `media`. */
+export type VolumeStream = 'media' | 'notification' | 'alarm' | 'system' | 'ring';
 
 /** `module` is reserved for custom widgets and not loaded yet */
 export type ResourceType = 'css' | 'module';

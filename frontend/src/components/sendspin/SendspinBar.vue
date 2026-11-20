@@ -22,11 +22,23 @@
           class="ss-bar__art"
         />
         <div v-else class="ss-bar__art-placeholder">
-          <q-icon name="mdi-music" size="20px" color="grey-5" />
+          <q-icon
+            :name="store.isAnnouncement ? 'mdi-bullhorn' : 'mdi-music'"
+            size="20px"
+            color="grey-5"
+          />
+        </div>
+
+        <!-- Announcement text (TTS message sent from Home Assistant, if any) -->
+        <div v-if="store.isAnnouncement" class="ss-bar__info ss-bar__info--announcement">
+          <div v-if="store.announcementText" class="ss-bar__announcement">
+            {{ store.announcementText }}
+          </div>
+          <div v-else class="ss-bar__title">Announcement</div>
         </div>
 
         <!-- Track info (click to open dialog) -->
-        <div class="ss-bar__info" @click="dialogOpen = true">
+        <div v-else class="ss-bar__info" @click="dialogOpen = true">
           <div class="ss-bar__title ellipsis">
             {{ store.metadata?.title ?? 'No media playing' }}
           </div>
@@ -34,7 +46,7 @@
         </div>
 
         <!-- Time -->
-        <div class="ss-bar__time">
+        <div v-if="!store.isAnnouncement" class="ss-bar__time">
           {{ formatMs(store.trackPositionMs) }}
           <span class="ss-bar__time-sep">/</span>
           {{ formatMs(store.trackDurationMs) }}
@@ -42,7 +54,15 @@
 
         <!-- Controls -->
         <div class="ss-bar__controls">
-          <q-btn flat round dense icon="mdi-skip-previous" size="sm" @click="store.previous()" />
+          <q-btn
+            v-if="!store.isAnnouncement"
+            flat
+            round
+            dense
+            icon="mdi-skip-previous"
+            size="sm"
+            @click="store.previous()"
+          />
           <q-btn
             flat
             round
@@ -51,7 +71,15 @@
             size="md"
             @click="store.togglePlayPause()"
           />
-          <q-btn flat round dense icon="mdi-skip-next" size="sm" @click="store.next()" />
+          <q-btn
+            v-if="!store.isAnnouncement"
+            flat
+            round
+            dense
+            icon="mdi-skip-next"
+            size="sm"
+            @click="store.next()"
+          />
         </div>
 
         <!-- Minimize -->
@@ -74,11 +102,28 @@ const dialogOpen = ref(false);
 
 const hasMedia = computed(() => store.isPlaying || store.metadata != null);
 
-// Auto-show bar when playback starts
+// Auto-show bar when playback starts. If that playback turns out to be only an announcement (no
+// track title ever arrives), put the bar back the way it was once it ends.
+let minimizedBeforePlayback = false;
+let playedTrack = false;
+
 watch(
   () => store.isPlaying,
   (playing) => {
-    if (playing) minimized.value = false;
+    if (playing) {
+      minimizedBeforePlayback = minimized.value;
+      playedTrack = !!store.metadata?.title;
+      minimized.value = false;
+    } else if (!playedTrack) {
+      minimized.value = minimizedBeforePlayback;
+    }
+  },
+);
+
+watch(
+  () => store.metadata?.title,
+  (title) => {
+    if (title && store.isPlaying) playedTrack = true;
   },
 );
 
@@ -158,6 +203,26 @@ function formatMs(ms: number): string {
     &:hover {
       opacity: 0.8;
     }
+  }
+
+  &__info--announcement {
+    cursor: default;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  // Long TTS messages wrap to two lines rather than being cut to one.
+  &__announcement {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
   }
 
   &__title {

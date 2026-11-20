@@ -60,6 +60,13 @@ let unsubTileboardEvents: (() => Promise<void>) | null = null;
 
 function handleTileboardEvent(event: TileboardEvent, eventsConfig: EventsConfig[]) {
   const { command, ...rest } = event.data;
+  // Built-in: text for the next Sendspin announcement, shown in the now-playing bar.
+  if (command === 'sendspin_announcement') {
+    if (configStore.config?.sendspin && typeof rest.message === 'string') {
+      sendspinStore.queueAnnouncement(rest.message);
+    }
+    return;
+  }
   const match = eventsConfig.find((e) => e.command === command);
   if (!match) return;
   executeActions(match.action, rest);
@@ -94,8 +101,8 @@ watch(
       await unsubTileboardEvents();
       unsubTileboardEvents = null;
     }
-    const eventsConfig = configStore.config?.events as EventsConfig[] | undefined;
-    if (!connected || !eventsConfig?.length) return;
+    const eventsConfig = (configStore.config?.events as EventsConfig[] | undefined) ?? [];
+    if (!connected || (!eventsConfig.length && !configStore.config?.sendspin)) return;
     try {
       unsubTileboardEvents = await haStore.subscribeHassEvents<TileboardEvent>(
         (event) => handleTileboardEvent(event, eventsConfig),

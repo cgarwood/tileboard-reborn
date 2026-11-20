@@ -36,6 +36,7 @@
                 </q-item-section>
                 <q-item-section>Start Screensaver</q-item-section>
               </q-item>
+              <FullyKioskVolume v-if="volumeStreams.length" :streams="volumeStreams" />
             </q-list>
           </q-menu>
         </q-btn>
@@ -135,7 +136,8 @@ import { evaluateVisibility } from '../composables/useVisibility';
 import { useLayout } from '../composables/useLayout';
 import WeatherAlertDialog from '../components/dialogs/WeatherAlertDialog.vue';
 import FullyKioskBattery from '../components/FullyKioskBattery.vue';
-import type { Config } from '@/types/config';
+import FullyKioskVolume from '../components/FullyKioskVolume.vue';
+import type { Config, VolumeStream } from '@/types/config';
 import type { WeatherAlert } from '../types/weather-alerts';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
 
@@ -173,6 +175,14 @@ function goToPage(pageId: string) {
 
 const { navPosition } = useLayout();
 const headerConfig = computed(() => (configStore.config as Config | null)?.layout?.header ?? {});
+
+const DEFAULT_VOLUME_STREAMS: VolumeStream[] = ['media'];
+// Device volume needs Fully Kiosk's JavaScript interface.
+const volumeStreams = computed<VolumeStream[]>(() => {
+  const v = headerConfig.value.volume;
+  if (!window.fully || v === false) return [];
+  return Array.isArray(v) ? v : DEFAULT_VOLUME_STREAMS;
+});
 const showBottomNav = computed(() => navPages.value.length > 0 && navPosition.value === 'bottom');
 
 const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
