@@ -22,6 +22,7 @@ import { useWeatherAlertsStore } from './stores/weather-alerts';
 import { useSendspinStore } from './stores/sendspin';
 import { useActionExecutor } from './composables/useActionExecutor';
 import { applyResources } from './utils/resources';
+import { stripReloadParam } from './utils/forceReload';
 import ScreensaverOverlay from './components/screensaver/ScreensaverOverlay.vue';
 import type { ScreensaverConfig } from './types/screensaver';
 import type { WeatherAlertConfig, SendSpinConfig, EventsConfig } from './types/config';
@@ -37,6 +38,8 @@ const sendspinStore = useSendspinStore();
 const { executeActions } = useActionExecutor();
 
 const dashboardHidden = ref(false);
+
+stripReloadParam();
 
 // Global orientation classes on <html>, so any component (screensaver slides included) can
 // style for the configured orientation rather than only the device's.

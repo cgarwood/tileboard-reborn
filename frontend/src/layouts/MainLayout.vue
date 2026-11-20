@@ -17,8 +17,8 @@
         </div>
 
         <q-btn flat dense round icon="mdi-dots-vertical" aria-label="Menu">
-          <q-menu anchor="bottom right" self="top right">
-            <q-list style="min-width: 190px">
+          <q-menu anchor="bottom right" self="top right" class="header-menu">
+            <q-list dark style="min-width: 190px">
               <q-item
                 clickable
                 v-close-popup
@@ -35,6 +35,12 @@
                   <q-icon name="mdi-play-box-outline" />
                 </q-item-section>
                 <q-item-section>Start Screensaver</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="deviceInfoOpen = true">
+                <q-item-section avatar>
+                  <q-icon name="mdi-information-outline" />
+                </q-item-section>
+                <q-item-section>Device Info</q-item-section>
               </q-item>
               <FullyKioskVolume v-if="volumeStreams.length" :streams="volumeStreams" />
             </q-list>
@@ -120,11 +126,12 @@
     </q-footer>
 
     <WeatherAlertDialog v-if="selectedAlert" :alert="selectedAlert" @hide="selectedAlert = null" />
+    <DeviceInfoDialog v-if="deviceInfoOpen" @hide="deviceInfoOpen = false" />
   </q-layout>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { date } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import { useConfigStore } from '../stores/config';
@@ -141,9 +148,15 @@ import type { Config, VolumeStream } from '@/types/config';
 import type { WeatherAlert } from '../types/weather-alerts';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
 
+// Only loaded when opened from the menu.
+const DeviceInfoDialog = defineAsyncComponent(
+  () => import('../components/dialogs/DeviceInfoDialog.vue'),
+);
+
 const router = useRouter();
 const configStore = useConfigStore();
 const screensaverStore = useScreensaverStore();
+const deviceInfoOpen = ref(false);
 
 function reloadConfig() {
   if (configStore.configUrl) void configStore.loadConfig(configStore.configUrl);
@@ -247,6 +260,18 @@ function formatAlertExpiry(expires: string) {
   return date.formatDate(new Date(expires), 'h:mma dddd, MMMM Do');
 }
 </script>
+
+<style lang="scss">
+// Global: QMenu is teleported to <body>, out of reach of scoped styles.
+// No backdrop-filter, for the same reason as SendspinBar: re-blurring live content behind it is
+// expensive on low-end tablet GPUs. The default alpha is high enough to stay readable without it.
+.header-menu {
+  background: var(--header-menu-background);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+</style>
 
 <style lang="scss" scoped>
 .alert-footer-carousel {

@@ -12,6 +12,15 @@ interface FullyKiosk {
   getAudioVolume(stream: number): number;
   /** `level` in percent (0-100); Android rounds it to the stream's nearest volume step */
   setAudioVolume(level: number, stream: number): void;
+  // Optional: missing from older Fully versions, so check before calling.
+  getIp4Address?(): string;
+  getMacAddress?(): string;
+  getFullyVersion?(): string;
+  getWebviewVersion?(): string;
+  getDeviceModel?(): string;
+  getDeviceName?(): string;
+  /** Clears the WebView's HTTP cache. Doesn't reload the page. */
+  clearCache?(): void;
 }
 
 interface Window {

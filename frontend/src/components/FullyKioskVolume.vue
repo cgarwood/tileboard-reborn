@@ -1,6 +1,6 @@
 <template>
   <template v-if="sliders.length">
-    <q-separator />
+    <q-separator dark />
     <q-item-label header class="fkv__header">Volume</q-item-label>
     <q-item v-for="s in sliders" :key="s.stream" dense class="fkv__item">
       <q-item-section avatar>
@@ -21,6 +21,7 @@
           :max="100"
           :step="1"
           dense
+          dark
           label
           :label-value="`${s.level}%`"
           @update:model-value="(v) => setLevel(s, v ?? 0)"

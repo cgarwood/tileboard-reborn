@@ -30,6 +30,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   const connected = ref(false);
   const entitiesLoaded = ref(false);
   const hassUrl = ref<string | null>(null);
+  const haVersion = ref<string | null>(null);
   const error = ref<string | null>(null);
   // Shallow like `states`: per-entity tracking, and forecast arrays stay plain (not deep-proxied).
   // Entries are replaced, never mutated, so consumers of one entity don't re-run for another.
@@ -179,6 +180,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       retryAttempt = 0;
       connection.value = conn;
       connected.value = true;
+      haVersion.value = conn.haVersion;
 
       // After a successful OAuth callback the URL still contains ?auth_callback=1&code=…
       // Strip those params so a reload doesn't re-present the already-consumed code to HA.
@@ -194,6 +196,8 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       });
       conn.addEventListener('ready', () => {
         connected.value = true;
+        // HA may have been upgraded while we were disconnected.
+        haVersion.value = conn.haVersion;
         // HAWS re-sends subscribe_entities just before firing 'ready', so the next message is a snapshot.
         expectSnapshot = true;
         resubscribeForecasts();
@@ -381,6 +385,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     connected,
     entitiesLoaded,
     hassUrl,
+    haVersion,
     error,
     weatherForecasts,
     connect,

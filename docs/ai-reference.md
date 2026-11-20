@@ -176,7 +176,7 @@ resources:
 ```
 Stylesheets load in order after the app styles, so they override them. A reload applies changes to the list. Failed loads only log a warning. `type: module` is reserved for future custom widgets and is skipped.
 
-**Theming CSS variables**: `--page-background`, `--toolbar-background`, `--nav-bar-background`, `--text-light`/`-dark`/`-lighter`, `--widget-title-color`, `--widget-subtitle-color`, `--widget-border-radius`, `--section-padding`, `--section-gap`, `--{type}-widget-background`, `--{type}-widget-background-on` (sensor, switch, light, fan), `--climate-heating-background`, `--climate-cooling-background`, `--lock-widget-background-locked`, `--lock-widget-background-jammed`.
+**Theming CSS variables**: `--page-background`, `--toolbar-background`, `--nav-bar-background`, `--header-menu-background`, `--text-light`/`-dark`/`-lighter`, `--widget-title-color`, `--widget-subtitle-color`, `--widget-border-radius`, `--section-padding`, `--section-gap`, `--{type}-widget-background`, `--{type}-widget-background-on` (sensor, switch, light, fan), `--climate-heating-background`, `--climate-cooling-background`, `--lock-widget-background-locked`, `--lock-widget-background-jammed`.
 
 **Selectors**: `.widget-{type}` and the state classes `state--on`, `state--off` and `state--{slugified-state}`.
 
