@@ -14,6 +14,14 @@ import { applyEntityUpdates, type EntityUpdatesMessage } from '../utils/applyEnt
 
 const TOKENS_KEY = 'tileboard:haTokens';
 
+// HAWS has no keepalive. When the network drops without a clean close (Wi-Fi loss, tablet sleep,
+// NAT timeout) the socket stays OPEN, sends are silently buffered and replies never come. Ping
+// periodically and force a reconnect when a ping goes unanswered.
+const PING_INTERVAL_MS = 30_000;
+const PING_TIMEOUT_MS = 8_000;
+// Backoff for retrying the initial connection (HAWS only auto-reconnects an established one).
+const RETRY_MAX_MS = 30_000;
+
 export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   // Per-entity reactivity: readers of states[id] only re-run when that entity changes.
   // Never reassign this object — it's mutated in place by applyEntityUpdates().
@@ -33,11 +41,21 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   // The first subscribe_entities message (initially and after each reconnect) is a full snapshot.
   let expectSnapshot = true;
 
-  // Non-reactive: keyed by `${entityId}:${forecastType}`
+  // Non-reactive: keyed by `${entityId}:${forecastType}`. Entries (ref counts) survive disconnects;
+  // `unsubPromise` is null while not subscribed on the current socket, and resubscribeForecasts()
+  // fills it in once connected again.
   const forecastSubs = new Map<string, {
-    unsubPromise: Promise<() => Promise<void>>;
+    entityId: string;
+    forecastType: ForecastType;
+    unsubPromise: Promise<() => Promise<void>> | null;
     refCount: number;
   }>();
+
+  // Bumped by every connect()/disconnect() so a stale in-flight connect() can tell it lost the race.
+  let connectGen = 0;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let retryAttempt = 0;
+  let pingInFlight: Promise<void> | null = null;
 
   function onEntitiesMessage(msg: EntityUpdatesMessage) {
     if (expectSnapshot) {
@@ -69,8 +87,74 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     }
   }
 
+  function scheduleRetry(haUrl: string) {
+    if (retryTimer) clearTimeout(retryTimer);
+    const delay = Math.min(1000 * 2 ** retryAttempt, RETRY_MAX_MS);
+    retryAttempt++;
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      void connect(haUrl);
+    }, delay);
+  }
+
+  /** Skip the backoff wait if an initial-connection retry is pending (e.g. the network came back). */
+  function retryNow() {
+    if (!retryTimer || !hassUrl.value) return;
+    clearTimeout(retryTimer);
+    retryTimer = null;
+    void connect(hassUrl.value);
+  }
+
+  /**
+   * Verify the socket is actually alive by pinging HA. If no pong arrives in time, the socket is
+   * half-open: discard it so HAWS fires 'disconnected' and starts its reconnect loop.
+   */
+  function checkConnection(): Promise<void> {
+    const conn = connection.value;
+    if (!conn?.connected) return Promise.resolve();
+    if (pingInFlight) return pingInFlight;
+
+    pingInFlight = new Promise<void>((resolve) => {
+      const timer = setTimeout(() => {
+        if (connection.value === conn && conn.connected) {
+          console.warn(`Home Assistant did not answer a ping within ${PING_TIMEOUT_MS} ms; reconnecting`);
+          conn.reconnect(true);
+        }
+        resolve();
+      }, PING_TIMEOUT_MS);
+      // A rejection means the socket closed meanwhile; HAWS' own reconnect handles that.
+      const done = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+      conn.ping().then(done, done);
+    }).finally(() => {
+      pingInFlight = null;
+    });
+    return pingInFlight;
+  }
+
+  function subscribeForecast(conn: Connection, entityId: string, forecastType: ForecastType) {
+    return conn.subscribeMessage<{ forecast: WeatherForecast[] }>(
+      (msg) => {
+        weatherForecasts[entityId] = { ...weatherForecasts[entityId], [forecastType]: msg.forecast };
+      },
+      { type: 'weather/subscribe_forecast', forecast_type: forecastType, entity_id: entityId },
+      { resubscribe: false },
+    );
+  }
+
+  function resubscribeForecasts() {
+    const conn = connection.value;
+    if (!conn?.connected) return;
+    for (const sub of forecastSubs.values()) {
+      if (!sub.unsubPromise) sub.unsubPromise = subscribeForecast(conn, sub.entityId, sub.forecastType);
+    }
+  }
+
   async function connect(haUrl: string) {
     disconnect();
+    const gen = connectGen;
     hassUrl.value = haUrl;
     error.value = null;
 
@@ -87,6 +171,12 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       });
 
       const conn = await createConnection({ auth });
+      if (gen !== connectGen) {
+        // disconnect() or another connect() ran while this one was in flight.
+        conn.close();
+        return;
+      }
+      retryAttempt = 0;
       connection.value = conn;
       connected.value = true;
 
@@ -94,14 +184,27 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       // Strip those params so a reload doesn't re-present the already-consumed code to HA.
       stripAuthParams();
 
-      conn.addEventListener('disconnected', (_conn, code?: number) => {
+      conn.addEventListener('disconnected', () => {
         connected.value = false;
-        console.log('Home Assistant connection closed', code);
+        // States are stale until the post-reconnect snapshot arrives.
+        entitiesLoaded.value = false;
+        // Those subscriptions died with the socket (they're created with resubscribe: false).
+        for (const sub of forecastSubs.values()) sub.unsubPromise = null;
+        console.log('Home Assistant connection closed');
       });
       conn.addEventListener('ready', () => {
         connected.value = true;
-        // HAWS re-sends subscriptions just before firing 'ready', so the next message is a snapshot.
+        // HAWS re-sends subscribe_entities just before firing 'ready', so the next message is a snapshot.
         expectSnapshot = true;
+        resubscribeForecasts();
+      });
+      // HAWS stops reconnecting for good when a reconnect fails with invalid auth (e.g. the refresh
+      // token was rejected). Start over: connect() keeps the tokens if they still work, and
+      // otherwise clears them and goes through the login flow.
+      conn.addEventListener('reconnect-error', () => {
+        if (gen !== connectGen) return;
+        console.warn('Home Assistant reconnect failed with invalid auth; reconnecting from scratch');
+        void connect(haUrl);
       });
 
       // Subscribed directly rather than via HAWS' subscribeEntities(), whose collection copies all
@@ -113,7 +216,9 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       unsubscribeEntities = () => {
         void unsubPromise.then((unsub) => unsub()).catch(() => {});
       };
+      resubscribeForecasts();
     } catch (e) {
+      if (gen !== connectGen) return;
       const is400 = e instanceof Response && e.status === 400;
       if (e === ERR_INVALID_AUTH || is400) {
         // Tokens are invalid/revoked, or the auth code was already consumed (400).
@@ -124,23 +229,30 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
         void connect(haUrl);
         return;
       }
+      connected.value = false;
       if (e === ERR_HASS_HOST_REQUIRED) {
         error.value = 'Home Assistant URL is required';
-      } else {
-        error.value = e instanceof Error ? e.message : `Connection failed (code: ${String(e)})`;
+        return;
       }
-      connected.value = false;
+      error.value = e instanceof Error ? e.message : `Connection failed (code: ${String(e)})`;
+      // e.g. the network or HA isn't up yet at boot. Keep trying.
+      scheduleRetry(haUrl);
     }
   }
 
   function disconnect() {
+    connectGen++;
+    if (retryTimer) clearTimeout(retryTimer);
+    retryTimer = null;
+
     unsubscribeEntities?.();
     unsubscribeEntities = null;
 
+    // Keep the ref-counted entries so mounted consumers are resubscribed on the next connection.
     for (const sub of forecastSubs.values()) {
-      void sub.unsubPromise.then((unsub) => void unsub()).catch(() => {});
+      if (sub.unsubPromise) void sub.unsubPromise.then((unsub) => void unsub()).catch(() => {});
+      sub.unsubPromise = null;
     }
-    forecastSubs.clear();
     for (const id of Object.keys(weatherForecasts)) delete weatherForecasts[id];
 
     connection.value?.close();
@@ -151,7 +263,6 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
   }
 
   function subscribeWeatherForecast(entityId: string, forecastType: ForecastType): void {
-    if (!connection.value) return;
     const key = `${entityId}:${forecastType}`;
 
     const existing = forecastSubs.get(key);
@@ -160,14 +271,10 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
       return;
     }
 
-    const unsubPromise = connection.value.subscribeMessage<{ forecast: WeatherForecast[] }>(
-      (msg) => {
-        weatherForecasts[entityId] = { ...weatherForecasts[entityId], [forecastType]: msg.forecast };
-      },
-      { type: 'weather/subscribe_forecast', forecast_type: forecastType, entity_id: entityId },
-    );
-
-    forecastSubs.set(key, { unsubPromise, refCount: 1 });
+    // Not connected yet: resubscribeForecasts() picks the entry up once we are.
+    const conn = connection.value;
+    const unsubPromise = conn?.connected ? subscribeForecast(conn, entityId, forecastType) : null;
+    forecastSubs.set(key, { entityId, forecastType, unsubPromise, refCount: 1 });
   }
 
   function unsubscribeWeatherForecast(entityId: string, forecastType: ForecastType): void {
@@ -178,7 +285,7 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     sub.refCount--;
     if (sub.refCount > 0) return;
 
-    void sub.unsubPromise.then((unsub) => void unsub()).catch(() => {});
+    if (sub.unsubPromise) void sub.unsubPromise.then((unsub) => void unsub()).catch(() => {});
     forecastSubs.delete(key);
 
     const entityForecasts = weatherForecasts[entityId];
@@ -196,11 +303,15 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     serviceData?: Record<string, unknown>,
   ) {
     if (!connection.value) throw new Error('Not connected to Home Assistant');
+    // A tap is when a dead socket matters most: verify it now rather than at the next periodic
+    // ping, so the status flips and reconnecting starts within seconds.
+    void checkConnection();
     await callService(connection.value, domain, service, serviceData ?? {});
   }
 
   async function fireEvent(eventType: string, eventData?: Record<string, unknown>) {
     if (!connection.value) throw new Error('Not connected to Home Assistant');
+    void checkConnection();
     await connection.value.sendMessagePromise({
       type: 'fire_event',
       event_type: eventType,
@@ -213,12 +324,16 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     return connection.value.sendMessagePromise<T>(message);
   }
 
+  /**
+   * Not resubscribed automatically after a reconnect: callers re-subscribe when `connected` turns
+   * true again (HAWS' own resubscription on top of theirs would double up).
+   */
   function subscribeMessage<T>(
     callback: (msg: T) => void,
     message: { type: string; [key: string]: unknown },
   ): Promise<() => Promise<void>> {
     if (!connection.value) throw new Error('Not connected to Home Assistant');
-    return connection.value.subscribeMessage<T>(callback, message);
+    return connection.value.subscribeMessage<T>(callback, message, { resubscribe: false });
   }
 
   async function signPath(path: string, expires = 3600): Promise<string> {
@@ -230,16 +345,36 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     return `${hassUrl.value}${result.path}`;
   }
 
+  /** Like subscribeMessage(): callers re-subscribe after a reconnect. */
   function subscribeHassEvents<T = unknown>(
     callback: (event: T) => void,
     eventType?: string,
   ): Promise<() => Promise<void>> {
     if (!connection.value) throw new Error('Not connected to Home Assistant');
-    return connection.value.subscribeMessage<T>(callback, {
-      type: 'subscribe_events',
-      event_type: eventType,
-    });
+    return connection.value.subscribeMessage<T>(
+      callback,
+      { type: 'subscribe_events', event_type: eventType },
+      { resubscribe: false },
+    );
   }
+
+  // Liveness checks. The store lives as long as the app, so these are registered once.
+  setInterval(() => void checkConnection(), PING_INTERVAL_MS);
+  document.addEventListener('visibilitychange', () => {
+    // Timers are throttled or frozen while the screen is off; check as soon as it's back.
+    if (document.visibilityState !== 'visible') return;
+    retryNow();
+    void checkConnection();
+  });
+  window.addEventListener('online', () => {
+    retryNow();
+    void checkConnection();
+  });
+  window.addEventListener('offline', () => {
+    // The socket can't be alive; drop it now so the status is accurate and HAWS starts retrying.
+    const conn = connection.value;
+    if (conn?.connected) conn.reconnect(true);
+  });
 
   return {
     states,

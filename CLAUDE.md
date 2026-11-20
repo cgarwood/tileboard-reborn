@@ -77,6 +77,9 @@ haStore.subscribeMessage<T>(cb, msg) // returns unsubscribe fn
 haStore.signPath(path)               // sign a media URL
 ```
 
+- `subscribeMessage`/`subscribeHassEvents` are **not** resubscribed after a reconnect (`resubscribe: false`). Callers watch `haStore.connected` and subscribe again when it turns true; don't call an old unsubscribe after reconnecting. Weather forecasts are the exception: the store keeps their ref counts across disconnects and resubscribes them itself.
+- Liveness: HAWS has no keepalive, so the store pings HA every 30s, when the page becomes visible again, on `online`, and on each service call. A ping that goes unanswered forces `conn.reconnect(true)`. If the first connection fails, it is retried with backoff.
+
 To fetch history, see `useSensorHistory` or `SensorHistoryChart`. With `minimal_response`, `history/history_during_period` returns `{ s, lu }` per entity, where `lu` is in **seconds** (a float), not milliseconds.
 
 ## Actions

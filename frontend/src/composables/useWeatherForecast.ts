@@ -24,14 +24,11 @@ export function useWeatherForecast(
     currentSub = null;
   }
 
+  // The store keeps the subscription across disconnects and resubscribes once connected,
+  // so this only follows the entity and forecast type.
   const stopWatch = watch(
-    [() => haStore.connected, entityId, forecastType],
-    ([connected, id, type]) => {
-      if (!connected) {
-        // Store clears all data on disconnect; just reset our tracking.
-        currentSub = null;
-        return;
-      }
+    [entityId, forecastType],
+    ([id, type]) => {
       if (!id || !type) {
         doUnsubscribe();
         return;
