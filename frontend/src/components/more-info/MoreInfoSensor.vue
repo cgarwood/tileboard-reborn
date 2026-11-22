@@ -25,6 +25,7 @@ import { computed } from 'vue';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
 import SensorHistoryChart from './SensorHistoryChart.vue';
 import { time2DigitFormat } from '../../utils/formatters';
+import { formatEntityState } from '../../utils/stateDisplay';
 
 const props = defineProps<{
   entityId: string;
@@ -37,13 +38,7 @@ const props = defineProps<{
 const haStore = useHomeAssistantStore();
 const entity = computed(() => (props.entityId ? (haStore.states[props.entityId] ?? null) : null));
 
-const displayState = computed(() => {
-  const s = entity.value?.state;
-  if (s == null) return '—';
-  if (s === 'on') return 'On';
-  if (s === 'off') return 'Off';
-  return s;
-});
+const displayState = computed(() => formatEntityState(entity.value) ?? '—');
 
 const unit = computed(() => (entity.value?.attributes.unit_of_measurement as string) ?? '');
 

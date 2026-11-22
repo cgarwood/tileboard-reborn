@@ -4,9 +4,9 @@
       <div class="state-area">
         <q-icon :name="resolvedIcon" :color="resolvedIconColor" :size="iconSize" />
       </div>
-      <div v-if="(stateBadge ?? state) && !isMicro" class="state-badge">
+      <div v-if="(stateBadge ?? stateDisplay) && !isMicro" class="state-badge">
         <template v-if="stateBadge">{{ stateBadge }}</template>
-        <template v-else>{{ state }}<span v-if="unitOfMeasurement" class="state-badge__unit"> {{ unitOfMeasurement }}</span></template>
+        <template v-else>{{ stateDisplay }}<span v-if="unitOfMeasurement" class="state-badge__unit"> {{ unitOfMeasurement }}</span></template>
       </div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
@@ -31,7 +31,7 @@ import type { Widget } from '../types/widgets';
 
 const props = defineProps<{ widget: Widget }>();
 
-const { title, subtitle, icon, iconColor, backgroundStyle, entity, state, unitOfMeasurement, stateBadge } = useWidget(
+const { title, subtitle, icon, iconColor, backgroundStyle, entity, stateDisplay, unitOfMeasurement, stateBadge } = useWidget(
   () => props.widget,
 );
 

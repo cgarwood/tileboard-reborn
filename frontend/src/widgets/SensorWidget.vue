@@ -11,7 +11,7 @@
     />
     <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
-        <span class="state">{{ state ?? '—' }}</span>
+        <span class="state">{{ stateDisplay ?? '—' }}</span>
         <span v-if="unitOfMeasurement" class="text-caption q-ml-xs">{{ unitOfMeasurement }}</span>
       </div>
       <div v-if="stateBadge && !isMicro" class="state-badge">{{ stateBadge }}</div>
@@ -45,7 +45,7 @@ interface SensorChartConfig {
 const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
-const { title, subtitle, state, unitOfMeasurement, backgroundStyle, stateBadge } = useWidget(
+const { title, subtitle, stateDisplay, unitOfMeasurement, backgroundStyle, stateBadge } = useWidget(
   () => props.widget,
 );
 

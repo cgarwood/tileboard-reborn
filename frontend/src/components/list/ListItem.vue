@@ -76,6 +76,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
 import { useRestriction } from '../../composables/useRestriction';
 import { resolveWidgetProp } from '../../utils/resolveWidgetProp';
+import { formatEntityState } from '../../utils/stateDisplay';
 import type { ListItemConfig, ColorPreset } from '../../types/list-widget';
 import type { Widget } from '../../types/widgets';
 import type { PropResolveContext } from '../../utils/resolveWidgetProp';
@@ -184,7 +185,8 @@ const resolvedState = computed(() => {
   if (!entityData.value) return '';
   if (isSensor.value) {
     const unit = entityAttrs.value.unit_of_measurement as string | undefined;
-    return unit ? `${entityData.value.state} ${unit}` : entityData.value.state;
+    const text = formatEntityState(entityData.value) ?? '';
+    return unit ? `${text} ${unit}` : text;
   }
   return '';
 });

@@ -2,6 +2,7 @@ import { computed, inject, provide } from 'vue';
 import type { InjectionKey } from 'vue';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
+import { formatEntityState } from '../utils/stateDisplay';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
 import type { Widget } from '../types/widgets';
 
@@ -32,6 +33,8 @@ function createWidgetContext(widget: () => Widget) {
   });
 
   const state = computed(() => entity.value?.state ?? null);
+  /** The state worded for display (binary sensors by device class); see formatEntityState. */
+  const stateDisplay = computed(() => formatEntityState(entity.value));
 
   const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
 
@@ -75,6 +78,7 @@ function createWidgetContext(widget: () => Widget) {
     title,
     subtitle,
     state,
+    stateDisplay,
     unitOfMeasurement,
     isOn,
     cardClass,

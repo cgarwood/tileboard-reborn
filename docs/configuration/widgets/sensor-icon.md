@@ -28,6 +28,30 @@ If no `icon` is configured, the widget resolves one automatically:
 
 The current state is shown as small text in the upper-right corner of the widget with a darkened background. The unit of measurement (if any) is shown alongside it.
 
+Binary sensor states are worded by device class, the way Home Assistant shows them, so you don't need a `state_badge` template for the usual cases:
+
+| Device class | On | Off |
+|---|---|---|
+| `door`, `garage_door`, `opening`, `window` | Open | Closed |
+| `motion`, `occupancy`, `gas`, `smoke`, `sound`, `vibration`, `carbon_monoxide` | Detected | Clear |
+| `presence` | Home | Away |
+| `connectivity` | Connected | Disconnected |
+| `problem` | Problem | OK |
+| `moisture` | Wet | Dry |
+| `lock` | Unlocked | Locked |
+| `safety` | Unsafe | Safe |
+| `battery` | Low | Normal |
+| `battery_charging` | Charging | Not charging |
+| `cold` / `heat` | Cold / Hot | Normal |
+| `light` | Light detected | No light |
+| `moving` | Moving | Not moving |
+| `plug` | Plugged in | Unplugged |
+| `running` | Running | Not running |
+| `tamper` | Tampering detected | Clear |
+| `update` | Update available | Up-to-date |
+
+Other `on`/`off` states show as On/Off, and `unavailable`/`unknown` are capitalised. Other states are shown as they are. `state_badge` replaces the text, and templates and state maps still see the raw state (`on`/`off`). The `sensor` widget's value, `list` rows and the more-info dialog use the same wording.
+
 ## Examples
 
 ```yaml
