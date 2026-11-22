@@ -24,6 +24,7 @@ import ErrorWidget from '../widgets/ErrorWidget.vue';
 import ConditionalWidget from '../widgets/ConditionalWidget.vue';
 import HtmlWidget from '../widgets/HtmlWidget.vue';
 import AlertWidget from '../widgets/AlertWidget.vue';
+import GaugeWidget from '../widgets/GaugeWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
   spacer: SpacerWidget,
@@ -44,6 +45,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   conditional: ConditionalWidget,
   html: HtmlWidget,
   alert: AlertWidget,
+  gauge: GaugeWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();

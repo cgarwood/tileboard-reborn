@@ -44,6 +44,7 @@ nav:
           - Conditional: configuration/widgets/conditional.md
           - HTML: configuration/widgets/html.md
           - Alert: configuration/widgets/alert.md
+          - Gauge: configuration/widgets/gauge.md
       - Screensaver: configuration/screensaver.md
       - Restrictions: configuration/restrictions.md
       - Resources: configuration/resources.md

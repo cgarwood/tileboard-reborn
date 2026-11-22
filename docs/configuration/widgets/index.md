@@ -149,3 +149,4 @@ visibility:
 - [Conditional](conditional.md)
 - [HTML](html.md)
 - [Alert](alert.md)
+- [Gauge](gauge.md)

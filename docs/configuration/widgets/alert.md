@@ -38,7 +38,7 @@ The [common properties](index.md#common-properties) also apply. `background` rep
 | `warning` | `warn`                      | Orange | `mdi-alert-outline`         |
 | `error`   | `bad`, `critical`, `danger` | Red    | `mdi-alert-octagon-outline` |
 
-These are the same colors as [notifications](../notifications.md). Change them for the whole dashboard with the `--level-info`, `--level-success`, `--level-warning` and `--level-error` CSS variables, for example in a [resource](../resources.md) stylesheet. The widget also gets a `level--<level>` class for your own styling.
+These are the same colors as [notifications](../notifications.md) and [gauge](gauge.md) segments. Change them for the whole dashboard with the `--level-info`, `--level-success`, `--level-warning` and `--level-error` CSS variables, for example in a [resource](../resources.md) stylesheet. The widget also gets a `level--<level>` class for your own styling.
 
 ## Example: System status from a template
 

@@ -129,7 +129,7 @@ body {
 | `--{type}-widget-background-on` | Background of a widget whose entity is on, for `sensor`, `switch`, `light` and `fan` |
 | `--climate-heating-background`, `--climate-cooling-background` | Climate widget while heating or cooling |
 | `--lock-widget-background-locked`, `--lock-widget-background-jammed` | Lock widget states |
-| `--level-info`, `--level-success`, `--level-warning`, `--level-error` | Severity colors of [alert](widgets/alert.md) widgets and [notifications](notifications.md) |
+| `--level-info`, `--level-success`, `--level-warning`, `--level-error` | Severity colors of [alert](widgets/alert.md) widgets, [gauge](widgets/gauge.md) segments and [notifications](notifications.md) |
 
 To style one kind of widget, target its `.widget-{type}` class. Widgets also get state classes, such as `state--on`, `state--off` and `state--{state}`:
 
