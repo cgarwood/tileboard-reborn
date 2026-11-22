@@ -58,3 +58,15 @@ export function formatEntityState(entity: HassEntity | null | undefined): string
   }
   return COMMON_STATES[s] ?? s;
 }
+
+/**
+ * A numeric value rounded to `decimals` places (a widget's `decimals` option). Non-numeric values,
+ * and any value when `decimals` isn't a number, are returned unchanged.
+ */
+export function roundToDecimals(value: string, decimals: unknown): string {
+  if (typeof decimals !== 'number' || !Number.isFinite(decimals) || value.trim() === '')
+    return value;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return value;
+  return n.toFixed(Math.min(20, Math.max(0, Math.round(decimals))));
+}

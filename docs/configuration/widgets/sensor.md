@@ -12,10 +12,11 @@ title: Temperature
 
 ## Properties
 
-| Key      | Type             | Default | Description                                                                   |
-| -------- | ---------------- | ------- | ----------------------------------------------------------------------------- |
-| `entity` | string           | —       | Sensor entity ID                                                              |
-| `chart`  | object / `false` | —       | Enable background chart. Omit to hide, set to `{}` or a config object to show |
+| Key        | Type             | Default | Description                                                                                                                                         |
+| ---------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `entity`   | string           | —       | Sensor entity ID                                                                                                                                    |
+| `chart`    | object / `false` | —       | Enable background chart. Omit to hide, set to `{}` or a config object to show                                                                       |
+| `decimals` | number           | —       | Round a numeric state to this many decimal places. Non-numeric states are shown as they are. By default the value is shown as the entity reports it |
 
 On a one-row tile (`height: 1`), the title sits on the left and the value on the right, and the chart is hidden.
 

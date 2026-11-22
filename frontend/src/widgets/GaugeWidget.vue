@@ -48,6 +48,7 @@ import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import { levelOrColor } from '../utils/levels';
+import { roundToDecimals } from '../utils/stateDisplay';
 import type { Widget } from '../types/widgets';
 
 interface GaugeSegment {
@@ -103,8 +104,7 @@ const fraction = computed(() => {
 
 const displayValue = computed(() => {
   if (numeric.value == null) return '—';
-  const decimals = props.widget.decimals;
-  return typeof decimals === 'number' ? numeric.value.toFixed(decimals) : String(rawValue.value);
+  return roundToDecimals(String(rawValue.value), props.widget.decimals);
 });
 
 const unit = computed(() =>

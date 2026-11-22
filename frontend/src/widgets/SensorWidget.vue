@@ -11,7 +11,7 @@
     />
     <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
-        <span class="state">{{ stateDisplay ?? '—' }}</span>
+        <span class="state">{{ displayValue }}</span>
         <span v-if="unitOfMeasurement" class="text-caption q-ml-xs">{{ unitOfMeasurement }}</span>
       </div>
       <div v-if="stateBadge && !isMicro" class="state-badge">{{ stateBadge }}</div>
@@ -31,6 +31,7 @@ import { useWidget } from '../composables/useWidget';
 import { useWidgetSize } from '../composables/useWidgetSize';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
+import { roundToDecimals } from '../utils/stateDisplay';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
 import type { Widget } from '../types/widgets';
 
@@ -45,12 +46,22 @@ interface SensorChartConfig {
 const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
-const { title, subtitle, stateDisplay, unitOfMeasurement, backgroundStyle, stateBadge } = useWidget(
+const { title, subtitle, state, stateDisplay, unitOfMeasurement, backgroundStyle, stateBadge } = useWidget(
   () => props.widget,
 );
 
 const { size, bodyClass } = useWidgetSize(() => props.widget);
 const isMicro = computed(() => size.value === 'micro');
+
+// `decimals` rounds a numeric state; anything else shows as worded by stateDisplay
+const displayValue = computed(() => {
+  const decimals = props.widget.decimals;
+  if (state.value != null && typeof decimals === 'number') {
+    const rounded = roundToDecimals(state.value, decimals);
+    if (rounded !== state.value) return rounded;
+  }
+  return stateDisplay.value ?? '—';
+});
 
 const chartConfig = computed((): SensorChartConfig | null => {
   const cfg = props.widget.chart;
