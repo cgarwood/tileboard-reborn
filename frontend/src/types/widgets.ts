@@ -1,4 +1,4 @@
-import type { VisibilityConfig } from './visibility';
+import type { VisibilityCondition, VisibilityConfig } from './visibility';
 import type { MoreInfoConfig } from './more-info';
 import type { TapAction } from './actions';
 
@@ -25,3 +25,19 @@ export interface WidgetGrid {
   width?: number;
   height?: number;
 }
+
+/** One case of a `conditional` widget. The first case whose conditions pass is shown. */
+export interface ConditionalCase {
+  match?: 'all' | 'any';
+  conditions?: VisibilityCondition[];
+  /** Slot size while this case is active; falls back to the conditional's own `grid`. */
+  grid?: WidgetGrid;
+  widgets?: Widget[];
+}
+
+export type ConditionalWidget = Widget & {
+  type: 'conditional';
+  cases?: ConditionalCase[];
+  /** Widgets shown when no case matches. */
+  default?: Widget[];
+};

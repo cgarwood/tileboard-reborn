@@ -4,12 +4,8 @@
       {{ section.name }}
     </div>
     <div :style="columnStyle">
-      <div
-        v-for="{ widget: child, index } in visibleWidgets"
-        :key="index"
-        :style="itemStyle(child)"
-      >
-        <WidgetRenderer :widget="child" />
+      <div v-for="item in items" :key="item.index" :style="item.style">
+        <WidgetRenderer :widget="item.widget" />
       </div>
     </div>
   </div>
@@ -18,26 +14,14 @@
 <script setup lang="ts">
 import { computed, type CSSProperties } from 'vue';
 import WidgetRenderer from './WidgetRenderer.vue';
-import { useVisibility, evaluateVisibility } from '../composables/useVisibility';
-import { useHomeAssistantStore } from '../stores/home-assistant';
+import { useVisibility } from '../composables/useVisibility';
+import { useWidgetGrid, WIDGET_GRID_GAP } from '../composables/useWidgetGrid';
 import type { Section } from '../types/sections';
-import type { Widget } from '../types/widgets';
-import { getWidgetDefaults } from '../utils/widgetRegistry';
-
-const GAP = 8; // px
 
 const props = defineProps<{ section: Section; gridSize?: number }>();
 
-const haStore = useHomeAssistantStore();
 const { visible } = useVisibility(() => props.section.visibility);
-
-// Keyed by position in the section config (not in the filtered list) so a widget hiding
-// doesn't shift every later widget onto a different component instance.
-const visibleWidgets = computed(() =>
-  props.section.widgets
-    .map((widget, index) => ({ widget, index }))
-    .filter(({ widget }) => evaluateVisibility(widget.visibility, haStore.states)),
-);
+const { items } = useWidgetGrid(() => props.section.widgets);
 
 const gridSize = computed(() => props.gridSize ?? 64);
 
@@ -47,19 +31,9 @@ const columnStyle = computed<CSSProperties>(() => {
     display: 'grid',
     gridTemplateColumns: `repeat(${cols}, ${gridSize.value}px)`,
     gridAutoRows: `${gridSize.value}px`,
-    gap: `${GAP}px`,
+    gap: `${WIDGET_GRID_GAP}px`,
   };
 });
-
-function itemStyle(child: Widget): CSSProperties {
-  const defaults = getWidgetDefaults(child.type);
-  const w = child.grid?.width ?? defaults.width ?? 2;
-  const h = child.grid?.height ?? defaults.height ?? 2;
-  return {
-    gridColumn: `span ${w}`,
-    gridRow: `span ${h}`,
-  };
-}
 </script>
 <style lang="scss" scoped>
 .grid-section {

@@ -28,7 +28,7 @@ visibility:
       state: "on"       # or: not: "off" | above: 60 | below: 95 (numeric)
     - template: "{{ Number(states['sensor.n'].state) > 0 }}"
 ```
-Hidden widgets and sections are removed from the DOM. A hidden page is only removed from the nav rail and can still be reached by URL or a `navigate` action.
+Hidden widgets and sections are removed from the DOM, and later widgets move up (use `conditional` to keep the space). A hidden page is only removed from the nav rail and can still be reached by URL or a `navigate` action.
 
 **Icons**: MDI names with the `mdi-` prefix (`mdi-home`).
 
@@ -100,6 +100,7 @@ Size is the default `width×height`. Tap/hold defaults are listed under Actions.
   - `brightness_slider`
   - `color_presets: { presets: [{name, color_temp (K) | rgb: [r,g,b]}] }`
 - **`menu`** (4×4): a day's menu, such as a school lunch. Keys: `entity`*, `source` = `nutrislice` | `sections`, `tomorrow_entity` (nutrislice default: `entity` with `_today` replaced by `_tomorrow`), `switch_at` = `"00:00"` (HH:MM; time from which tomorrow is shown), `fallback_to_tomorrow` = true, `hide_sections` (case-insensitive; nutrislice default `[Extra Extra, Milk & Condiments]`), `attribute` = `categories` (sections source only). A `date` attribute (YYYY-MM-DD) on the entity is used to match it to a day. The `sections` source expects an attribute shaped as `{SectionName: [items]}`. Tap opens a full-day dialog (replaced if `tap_action` is set). CSS var: `--menu-widget-background`.
+- **`conditional`** (2×2): a fixed slot that shows different widgets by condition. It has no card or actions of its own. Keys: `cases`: list of `{conditions, match, widgets, grid}` (`conditions`/`match` as in visibility; no conditions = always matches; first match wins), `default`: list of widgets shown when no case matches. With no match and no `default`, the slot stays empty but keeps its size. Children are laid out on an inner grid that lines up with the section's cells, each sized by its own `grid`; overflow is clipped. The slot uses the active case's `grid`, falling back to the conditional's `grid`, so only cases with their own `grid` reflow the section. Children's `visibility` reflows only inside the slot. `visibility` on the conditional removes the whole slot. Can be nested.
 
 ## Actions
 

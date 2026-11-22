@@ -56,6 +56,8 @@ background: "{{ new Date().getHours() >= 20 ? '#1a237e' : '#333' }}"
 
 The `visibility` property controls whether a widget is rendered. Widgets with no `visibility` config are always visible. Hidden widgets are removed from the DOM entirely — they take no space and consume no resources.
 
+Because a hidden widget takes no space, the widgets after it move up. To keep the space reserved, or to swap between different widgets in the same space, use a [Conditional](conditional.md) widget.
+
 ```yaml
 visibility:
   match: all        # "all" (AND) or "any" (OR) — default: "all"
@@ -144,3 +146,4 @@ visibility:
 - [List](list.md)
 - [Lock](lock.md)
 - [Menu](menu.md)
+- [Conditional](conditional.md)

@@ -21,6 +21,7 @@ import SensorIconWidget from '../widgets/SensorIconWidget.vue';
 import LockWidget from '../widgets/LockWidget.vue';
 import MenuWidget from '../widgets/MenuWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
+import ConditionalWidget from '../widgets/ConditionalWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
   spacer: SpacerWidget,
@@ -38,6 +39,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   sensor_icon: SensorIconWidget,
   lock: LockWidget,
   menu: MenuWidget,
+  conditional: ConditionalWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();
