@@ -21,7 +21,7 @@ On a one-row tile (`height: 1`), the title sits on the left and the value on the
 
 ## Background Chart
 
-Add a `chart` key to render a smooth history area chart in the lower half of the widget background. The chart is purely decorative — no axes, labels, or tooltips are shown.
+Add a `chart` key to render a smooth history area chart along the bottom 40% of the widget background, below the value. The chart is purely decorative — no axes, labels, or tooltips are shown. It's drawn as a faint fill (20% opacity) under a 40%-opacity line, so the labels stay readable over it.
 
 ```yaml
 type: sensor
@@ -31,13 +31,13 @@ chart: {} # show chart with all defaults
 
 ### Chart options
 
-| Key         | Type                      | Default | Description                                                                                          |
-| ----------- | ------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
-| `hours`     | number                    | `24`    | How many hours of history to display                                                                 |
-| `min`       | number                    | auto    | Y-axis minimum (auto-padded if omitted)                                                              |
-| `max`       | number                    | auto    | Y-axis maximum (auto-padded if omitted)                                                              |
-| `smoothing` | number                    | `0.3`   | Curve smoothness (0–1). Higher values reduce data points and produce a more gradual line             |
-| `color`     | string / map / expression | white   | Chart line and fill color. Supports hex, `rgb()`, CSS variables, state maps, and `{{ }}` expressions |
+| Key         | Type                      | Default | Description                                                                                                                    |
+| ----------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `hours`     | number                    | `24`    | How many hours of history to display                                                                                           |
+| `min`       | number                    | auto    | Y-axis minimum (auto-padded if omitted)                                                                                        |
+| `max`       | number                    | auto    | Y-axis maximum (auto-padded if omitted)                                                                                        |
+| `smoothing` | number                    | `0.3`   | Curve smoothness (0–1). Higher values reduce data points and produce a more gradual line                                       |
+| `color`     | string / map / expression | white   | Chart line and fill color, drawn at reduced opacity. Supports hex, `rgb()`, CSS variables, state maps, and `{{ }}` expressions |
 
 ```yaml
 type: sensor

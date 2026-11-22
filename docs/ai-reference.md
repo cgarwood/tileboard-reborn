@@ -89,7 +89,7 @@ Size is the default `width×height`. Tap/hold defaults are listed under Actions.
 
 Small tiles (switch, light, fan, lock, button, sensor_icon, sensor, number): 1×1 shows a smaller icon/value and the title only. One cell high and 2+ wide is a single row: icon left, subtitle and title beside it, state badge inline on the right.
 
-- **`sensor`** (2×2): state plus unit. `chart`: absent = no chart, `false` = disabled, `{}`/`null` = defaults, or `{hours=24, min, max, smoothing=0.3 (0–1), color (dyn, default white)}`. The chart is a decorative background sparkline. One-row tile: title left, value right, no chart.
+- **`sensor`** (2×2): state plus unit. `chart`: absent = no chart, `false` = disabled, `{}`/`null` = defaults, or `{hours=24, min, max, smoothing=0.3 (0–1), color (dyn, default white)}`. The chart is a decorative background sparkline in the bottom 40%, drawn faintly (fill 20%, line 40% opacity of `color`). One-row tile: title left, value right, no chart.
 - **`sensor_icon`**: icon plus a state badge (top right, with unit). `icon_color` defaults to white. Auto-icon order: entity `icon` attribute, then device class (state-aware for binary_sensor/cover), then domain fallback.
 - **`button`** (2×2): no extra keys. Default tap is `button.press` on `entity`. Often used without an entity, with a custom `tap_action`.
 - **`switch`** (2×2): no extra keys. Tap calls `homeassistant.toggle`.

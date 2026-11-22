@@ -10,13 +10,13 @@
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      <path :d="paths.area" :fill="lineColor" fill-opacity="0.6" />
+      <path :d="paths.area" :fill="lineColor" fill-opacity="0.2" />
       <path
         :d="paths.line"
         fill="none"
         :stroke="lineColor"
-        stroke-opacity="0.9"
-        stroke-width="3.5"
+        stroke-opacity="0.4"
+        stroke-width="2.5"
         vector-effect="non-scaling-stroke"
       />
     </svg>
@@ -120,7 +120,8 @@ const paths = computed(() => {
   bottom: -2px;
   left: -2px;
   right: -2px;
-  height: 55%;
+  // Low enough that the peak stays under the (vertically centred) state value
+  height: 40%;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.6s ease;

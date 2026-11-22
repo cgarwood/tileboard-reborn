@@ -97,6 +97,11 @@ const chartColor = computed(() => {
 </style>
 
 <style lang="scss" scoped>
+// Keeps the labels readable where they cross the chart on a bright background
+.label-group {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
 // One-row tile: title on the left, value on the right
 .widget-body--short {
   .state-area {
