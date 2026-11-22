@@ -1,7 +1,10 @@
 <template>
   <BaseWidget :widget="widget" :style="backgroundStyle">
-    <div class="widget-gauge__dial" :class="{ 'widget-gauge__dial--labelled': title || subtitle }">
-      <svg viewBox="0 0 100 100" class="widget-gauge__svg" role="img" :aria-label="ariaLabel">
+    <div
+      class="widget-gauge__dial"
+      :class="labelLines ? `widget-gauge__dial--labelled-${labelLines}` : undefined"
+    >
+      <svg :viewBox="viewBox" class="widget-gauge__svg" role="img" :aria-label="ariaLabel">
         <circle
           cx="50"
           cy="50"
@@ -72,6 +75,12 @@ const max = computed(() => num(props.widget.max, 100));
 const shape = computed(() => (props.widget.shape === 'arc' ? 'arc' : 'ring'));
 const sweepLength = computed(() => CIRCUMFERENCE * (shape.value === 'arc' ? 0.75 : 1));
 const startAngle = computed(() => (shape.value === 'arc' ? 135 : -90));
+// The arc's ends (with their round caps) reach y ≈ 83, so the empty bottom of the circle is
+// cropped off. The arc then scales up to fill the space a full ring would leave unused.
+const viewBox = computed(() => (shape.value === 'arc' ? '0 3 100 82' : '0 0 100 100'));
+
+/** How many label lines sit under the dial (title and/or subtitle). */
+const labelLines = computed(() => (title.value ? 1 : 0) + (subtitle.value ? 1 : 0));
 
 const rawValue = computed(() =>
   props.widget.value !== undefined
@@ -138,9 +147,14 @@ const ariaLabel = computed(() => `${displayValue.value}${unit.value ?? ''}`);
   position: absolute;
   inset: 8px;
 
-  // Leave room for the title in the bottom-left corner
-  &--labelled {
+  // Leave room for the labels in the bottom-left corner: 6px offset plus each line
+  // (title 0.85rem, subtitle 0.7rem, both at line-height 1.2)
+  &--labelled-1 {
     bottom: 26px;
+  }
+
+  &--labelled-2 {
+    bottom: 38px;
   }
 }
 
