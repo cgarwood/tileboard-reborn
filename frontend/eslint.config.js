@@ -5,7 +5,7 @@ import pluginQuasar from '@quasar/app-vite/eslint'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import prettierSkipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 
-export default defineConfigWithVueTs(
+const config = defineConfigWithVueTs(
   {
     /**
      * Ignore the following files.
@@ -84,3 +84,15 @@ export default defineConfigWithVueTs(
 
   prettierSkipFormatting
 )
+
+// @vue/eslint-config-typescript decides which .vue files get type information by scanning the disk
+// for `lang="ts"` when this config loads. The `quasar dev` checker keeps one ESLint instance
+// running, so a component created after it started isn't on that list: the type-aware rules then
+// throw on it and take the dev server down. Every component here is TypeScript, so give the
+// type-checked .vue setup to all of them instead of the startup snapshot.
+const vueTypeChecking = config.find(
+  (c) => c.name === '@vue/typescript/default-project-service-for-vue-files',
+)
+if (vueTypeChecking) vueTypeChecking.files = ['**/*.vue']
+
+export default config
