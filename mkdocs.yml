@@ -45,6 +45,7 @@ nav:
           - HTML: configuration/widgets/html.md
           - Alert: configuration/widgets/alert.md
           - Gauge: configuration/widgets/gauge.md
+          - Hero: configuration/widgets/hero.md
       - Screensaver: configuration/screensaver.md
       - Restrictions: configuration/restrictions.md
       - Resources: configuration/resources.md

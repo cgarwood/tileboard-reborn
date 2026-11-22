@@ -150,3 +150,4 @@ visibility:
 - [HTML](html.md)
 - [Alert](alert.md)
 - [Gauge](gauge.md)
+- [Hero](hero.md)

@@ -157,12 +157,18 @@ function onActivity() {
 
 const ACTIVITY_EVENTS = ['mousedown', 'keydown', 'touchstart', 'wheel'] as const;
 
+// Capture phase, so a control that stops propagation (e.g. a hero chip, so its card doesn't also
+// react) still counts as activity
 onMounted(() => {
-  ACTIVITY_EVENTS.forEach((event) => window.addEventListener(event, onActivity, { passive: true }));
+  ACTIVITY_EVENTS.forEach((event) =>
+    window.addEventListener(event, onActivity, { passive: true, capture: true }),
+  );
 });
 
 onUnmounted(() => {
-  ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, onActivity));
+  ACTIVITY_EVENTS.forEach((event) =>
+    window.removeEventListener(event, onActivity, { capture: true }),
+  );
 });
 </script>
 
