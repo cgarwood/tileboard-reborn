@@ -127,4 +127,5 @@ Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action, an 
 | `useScreensaverStore` | Screensaver activation, slides |
 | `useWeatherAlertsStore` | HA weatheralerts sensor, footer carousel |
 | `useSendspinStore` | Music player protocol (Sendspin) |
+| `useNotificationsStore` | Text notifications from the built-in `notify` tileboard event: banner/critical queues, history in localStorage |
 | `useIssuesStore` | Problems shown in the header badge / Issues dialog. `report(source, message, { detail, level, notify })` is safe to call from inside computeds (deduped, queued) |

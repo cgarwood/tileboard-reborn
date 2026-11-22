@@ -10,6 +10,7 @@
   >
     <ScreensaverOverlay v-if="screensaverStore.active" />
   </transition>
+  <NotificationOverlay />
 </template>
 
 <script setup lang="ts">
@@ -25,6 +26,8 @@ import { useActionExecutor } from './composables/useActionExecutor';
 import { applyResources } from './utils/resources';
 import { stripReloadParam } from './utils/forceReload';
 import ScreensaverOverlay from './components/screensaver/ScreensaverOverlay.vue';
+import NotificationOverlay from './components/notifications/NotificationOverlay.vue';
+import { useNotificationsStore } from './stores/notifications';
 import type { ScreensaverConfig } from './types/screensaver';
 import type { WeatherAlertConfig, SendSpinConfig, EventsConfig } from './types/config';
 
@@ -36,6 +39,7 @@ const haStore = useHomeAssistantStore();
 const screensaverStore = useScreensaverStore();
 const weatherAlertsStore = useWeatherAlertsStore();
 const sendspinStore = useSendspinStore();
+const notificationsStore = useNotificationsStore();
 const { executeActions } = useActionExecutor();
 
 const dashboardHidden = ref(false);
@@ -69,6 +73,11 @@ function handleTileboardEvent(event: TileboardEvent, eventsConfig: EventsConfig[
     if (configStore.config?.sendspin && typeof rest.message === 'string') {
       sendspinStore.queueAnnouncement(rest.message);
     }
+    return;
+  }
+  // Built-in: a text notification (banner, or a card for critical), see notifications store
+  if (command === 'notify') {
+    notificationsStore.receive(rest);
     return;
   }
   const match = eventsConfig.find((e) => e.command === command);
@@ -106,7 +115,9 @@ watch(
       unsubTileboardEvents = null;
     }
     const eventsConfig = (configStore.config?.events as EventsConfig[] | undefined) ?? [];
-    if (!connected || (!eventsConfig.length && !configStore.config?.sendspin)) return;
+    // Events the config asked for itself; notifications are on by default, so they don't count
+    const explicit = eventsConfig.length > 0 || !!configStore.config?.sendspin;
+    if (!connected || (!explicit && !notificationsStore.enabled)) return;
     try {
       unsubTileboardEvents = await haStore.subscribeHassEvents<TileboardEvent>(
         (event) => handleTileboardEvent(event, eventsConfig),
@@ -114,10 +125,14 @@ watch(
       );
     } catch (e) {
       console.error('[Events] Failed to subscribe to tileboard events', e);
-      useIssuesStore().report(
-        'events',
-        `Couldn't subscribe to tileboard events: ${describeError(e)}`,
-      );
+      // HA only lets admin users subscribe to custom events. Not worth a permanent warning on
+      // dashboards that never asked for events and may never be sent a notification.
+      if (explicit) {
+        useIssuesStore().report(
+          'events',
+          `Couldn't subscribe to tileboard events: ${describeError(e)}`,
+        );
+      }
     }
   },
 );

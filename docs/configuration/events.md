@@ -28,7 +28,10 @@ events:
 
 Events with a `command` that isn't in the list are ignored.
 
-`sendspin_announcement` is a built-in command used by [Sendspin](sendspin.md#announcements) to show announcement text. It works without an entry in this list.
+Two commands are built in and work without an entry in this list:
+
+- `notify` shows a text [notification](notifications.md).
+- `sendspin_announcement` is used by [Sendspin](sendspin.md#announcements) to show announcement text.
 
 ## Sending an Event from Home Assistant
 
@@ -49,7 +52,7 @@ automation:
 
 You can also test it from **Developer Tools → Events**: enter `tileboard` as the event type and `command: show_cameras` as the event data.
 
-Every dashboard that is open and has a matching `command` reacts to the event. To send a command to one tablet only, give it a `command` name that only that display's config uses, such as `kitchen_screensaver`.
+Every dashboard that is open and has a matching `command` reacts to the event. To send a command to one tablet only, give it a `command` name that only that display's config uses, such as `kitchen_screensaver`. (The built-in `notify` command has its own `target` option instead.)
 
 ## Passing Data
 

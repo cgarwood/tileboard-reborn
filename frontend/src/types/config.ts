@@ -14,6 +14,13 @@ export type Config = {
   pages: PagesConfig[];
   events: EventsConfig[];
   resources?: ResourceConfig[];
+  /** `false` turns notifications off. */
+  notifications?: NotificationsConfig | false;
+};
+
+export type NotificationsConfig = {
+  /** Seconds an info/warning banner stays up. Default 10 */
+  duration?: number;
 };
 
 export type LayoutConfig = {
@@ -30,6 +37,8 @@ export type HeaderConfig = {
   battery?: boolean;
   /** Badge that appears when there are problems to look at, opening the Issues dialog. Default true */
   issues?: boolean;
+  /** Bell with the unread count, opening the notification history. Default true */
+  notifications?: boolean;
   /**
    * Device volume sliders in the header menu. `true` (default) shows media only; a list picks which streams to show, in order; `false` hides them.
    */

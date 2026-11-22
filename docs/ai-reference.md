@@ -46,6 +46,7 @@ resources: [...]
 weather_alerts: {entity}
 sendspin: {server, name}
 events: [{command, action}]
+notifications: {duration} | false
 ```
 
 ## Pages
@@ -57,6 +58,7 @@ Layout (top-level `layout`):
 - `nav_position: auto|left|bottom = auto`. `auto` = `left` rail in landscape, `bottom` bar in portrait. Bottom bar background: page `nav_background` → `toolbar_background` → `--nav-bar-background` CSS var (default `var(--toolbar-background)`).
 - `header.battery: bool = true`. Fully Kiosk battery level and charging status in the top bar. Set false on battery-less devices that report a fake level.
 - `header.issues: bool = true`. Red/amber badge with a count in the top bar when there are issues; opens the Issues dialog (also in the ⋮ menu). See Issues.
+- `header.notifications: bool = true`. Bell with unread count, shown once a notification has arrived; opens the history. See Notifications.
 - `header.volume: bool | list = true`. Fully Kiosk device volume sliders (with mute toggle) in the header ⋮ menu. `true` = `[media]`; a list picks streams/order from `media|notification|alarm|system|ring`; `false` hides. Sendspin/web audio use `media`.
 
 Section keys: `name` (header label), `width` (grid columns, default 4), `widgets` (list), `visibility`, `style` (inline CSS object), `name_style` (inline CSS object for the header).
@@ -211,8 +213,17 @@ events:
       action: navigate
       page: cameras
 ```
-Listens for HA events of type `tileboard`. Fire one with `event: tileboard`, `event_data: {command: show_cameras, ...}`. Unmatched commands are ignored (`sendspin_announcement` is built in, see Sendspin). Every open dashboard with a matching `command` reacts; there is no per-device targeting, so use a command name unique to one display's config. Extra event-data fields reach `javascript` actions as `data` (`data.brightness`). Other action types use their config as written. `more_info` does nothing here. Events fired while disconnected are missed. HA only sends custom events to admin users.
+Listens for HA events of type `tileboard`. Fire one with `event: tileboard`, `event_data: {command: show_cameras, ...}`. Unmatched commands are ignored (`notify` and `sendspin_announcement` are built in, see Notifications and Sendspin). Every open dashboard with a matching `command` reacts; there is no per-device targeting, so use a command name unique to one display's config. Extra event-data fields reach `javascript` actions as `data` (`data.brightness`). Other action types use their config as written. `more_info` does nothing here. Events fired while disconnected are missed. HA only sends custom events to admin users.
 
 ## Issues
 
 Problems are shown on the dashboard, not just the console. Issues dialog (header badge or ⋮ menu) lists: template compile/runtime errors (with the expression), rejected service calls/events and taps while disconnected, `javascript` action errors, unknown action types, failed Reload Config, unparseable widget `css`, bad `resources` entries/stylesheets, screensaver image load failures, tileboard event subscription failures, and HA/Sendspin disconnected for more than 10 s (removed when reconnected). Each issue is listed once; template/config issues clear on config reload; max 50. Only failures of something the user just did (tap, Reload Config) also show a toast at the top. The server reports config load errors (YAML file/line/column, missing secret) as `{ "error": "..." }`; at startup a failed config load shows an error page that retries after 5/10/20/30 s then every 60 s, with a button to the config picker. A failed Reload Config keeps the current config.
+
+## Notifications
+
+Built-in `tileboard` event command `notify` (no `events` entry needed). Event data: `message`, `title` (one required), `level` = `info` | `warning` | `critical`, `icon` (mdi-*; default per level), `duration` (s, banner only), `target` (name or list; matches the server config name from `?config=<name>`, the config's top-level `id`, or the TileBoard ID from Device Info; omitted = every dashboard).
+```yaml
+- event: tileboard
+  event_data: {command: notify, title: Laundry, message: Washer is done, target: kitchen}
+```
+info/warning: banner at the top, timed (default 10 s, `notifications.duration`), tap to dismiss, queued one at a time. critical: full-screen red card until Dismiss. Both show over the screensaver without stopping it. History: last 50, stored on the tablet (survives reloads), bell in the header with unread count (appears once one arrives; `header.notifications: false` hides it), also in the ⋮ menu. Read = banner tapped, critical dismissed, or history list closed. `notifications: false` ignores them. Needs an HA admin user (custom events).

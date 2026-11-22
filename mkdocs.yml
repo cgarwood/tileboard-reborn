@@ -49,6 +49,7 @@ nav:
       - Weather Alerts: configuration/weather-alerts.md
       - Sendspin: configuration/sendspin.md
       - Events: configuration/events.md
+      - Notifications: configuration/notifications.md
       - Issues and Errors: configuration/issues.md
   - Development: development.md
 

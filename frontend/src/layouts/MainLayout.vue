@@ -17,6 +17,26 @@
         </div>
 
         <q-btn
+          v-if="showNotificationsBell"
+          flat
+          dense
+          round
+          :icon="notificationsStore.unreadCount ? 'mdi-bell-badge-outline' : 'mdi-bell-outline'"
+          class="header-notifications-btn"
+          aria-label="Notifications"
+          @click="notificationsOpen = true"
+        >
+          <q-badge
+            v-if="notificationsStore.unreadCount"
+            floating
+            rounded
+            color="light-blue-3"
+            text-color="black"
+            :label="notificationsStore.unreadCount"
+          />
+        </q-btn>
+
+        <q-btn
           v-if="showIssuesBadge"
           flat
           dense
@@ -57,6 +77,20 @@
                   <q-icon name="mdi-play-box-outline" />
                 </q-item-section>
                 <q-item-section>Start Screensaver</q-item-section>
+              </q-item>
+              <q-item
+                v-if="notificationsStore.enabled"
+                clickable
+                v-close-popup
+                @click="notificationsOpen = true"
+              >
+                <q-item-section avatar>
+                  <q-icon name="mdi-bell-outline" />
+                </q-item-section>
+                <q-item-section>Notifications</q-item-section>
+                <q-item-section v-if="notificationsStore.unreadCount" side>
+                  <q-badge rounded :label="notificationsStore.unreadCount" />
+                </q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="issuesOpen = true">
                 <q-item-section avatar>
@@ -159,6 +193,7 @@
     <WeatherAlertDialog v-if="selectedAlert" :alert="selectedAlert" @hide="selectedAlert = null" />
     <DeviceInfoDialog v-if="deviceInfoOpen" @hide="deviceInfoOpen = false" />
     <IssuesDialog v-if="issuesOpen" @hide="issuesOpen = false" />
+    <NotificationsDialog v-if="notificationsOpen" @hide="notificationsOpen = false" />
   </q-layout>
 </template>
 
@@ -171,6 +206,7 @@ import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useScreensaverStore } from '../stores/screensaver';
 import { useWeatherAlertsStore } from '../stores/weather-alerts';
 import { describeError, useIssuesStore } from '../stores/issues';
+import { useNotificationsStore } from '../stores/notifications';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import { evaluateVisibility } from '../composables/useVisibility';
 import { useLayout } from '../composables/useLayout';
@@ -186,6 +222,9 @@ const DeviceInfoDialog = defineAsyncComponent(
   () => import('../components/dialogs/DeviceInfoDialog.vue'),
 );
 const IssuesDialog = defineAsyncComponent(() => import('../components/dialogs/IssuesDialog.vue'));
+const NotificationsDialog = defineAsyncComponent(
+  () => import('../components/dialogs/NotificationsDialog.vue'),
+);
 
 const router = useRouter();
 const configStore = useConfigStore();
@@ -242,6 +281,16 @@ const volumeStreams = computed<VolumeStream[]>(() => {
   if (!window.fully || v === false) return [];
   return Array.isArray(v) ? v : DEFAULT_VOLUME_STREAMS;
 });
+const notificationsStore = useNotificationsStore();
+const notificationsOpen = ref(false);
+// Appears once something has arrived, so dashboards that never get notifications don't show it
+const showNotificationsBell = computed(
+  () =>
+    headerConfig.value.notifications !== false &&
+    notificationsStore.enabled &&
+    notificationsStore.history.length > 0,
+);
+
 const showIssuesBadge = computed(
   () => headerConfig.value.issues !== false && issuesStore.issues.length > 0,
 );
@@ -369,6 +418,13 @@ function formatAlertExpiry(expires: string) {
   color: white;
 }
 
+.header-notifications-btn .q-badge,
+.header-issues-btn .q-badge {
+  top: 0;
+  right: -2px;
+  font-weight: 600;
+}
+
 .header-issues-btn {
   &--error {
     color: #ff8a80;
@@ -376,12 +432,6 @@ function formatAlertExpiry(expires: string) {
 
   &--warning {
     color: #ffd54f;
-  }
-
-  .q-badge {
-    top: 0;
-    right: -2px;
-    font-weight: 600;
   }
 }
 

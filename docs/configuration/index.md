@@ -52,6 +52,7 @@ layout: # optional; see Pages > Layout and orientation
   header:
     battery: true # Fully Kiosk battery/charging status in the top bar
     issues: true # badge that opens the Issues dialog when there are problems
+    notifications: true # bell with the unread notification count
     volume: true # Fully Kiosk volume sliders in the top bar menu; or a list, e.g. [media, alarm]
 
 pages:
