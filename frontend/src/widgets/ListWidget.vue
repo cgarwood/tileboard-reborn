@@ -7,7 +7,6 @@
             <ListItem v-for="(item, idx) in items" :key="idx" :item="item" />
           </q-list>
         </q-scroll-area>
-
       </div>
 
       <div class="label-group">
@@ -80,6 +79,7 @@ const items = computed<ListItemConfig[]>(
     position: relative;
     bottom: auto;
     left: auto;
+    right: auto;
     padding: 4px 6px 6px;
     flex-shrink: 0;
   }

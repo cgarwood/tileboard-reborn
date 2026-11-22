@@ -27,6 +27,9 @@
   position: absolute;
   bottom: 6px;
   left: 6px;
+  // A right edge, so a long title or subtitle ellipsizes instead of running off the card.
+  // Widgets with something in the bottom-right corner (e.g. +/− buttons) move it in further.
+  right: 6px;
   display: flex;
   flex-direction: column;
 }
@@ -46,6 +49,9 @@
   font-weight: 600;
   opacity: 0.7;
   letter-spacing: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 :where(.widget .state) {
@@ -84,6 +90,7 @@
 :where(.widget .widget-body--micro .label-group) {
   bottom: 3px;
   left: 4px;
+  right: 4px;
 }
 
 :where(.widget .widget-body--micro .title) {
@@ -109,12 +116,6 @@
   order: 1;
   flex: 1 1 auto;
   min-width: 0;
-}
-
-:where(.widget .widget-body--short .subtitle) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 :where(.widget .widget-body--short .state-badge) {

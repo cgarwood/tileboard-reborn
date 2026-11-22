@@ -43,7 +43,6 @@
         <div class="title ellipsis">{{ title }}</div>
       </div>
     </q-card-section>
-
   </BaseWidget>
   <MoreInfoCalendarEvent
     v-if="selectedItem"
@@ -212,6 +211,7 @@ function formatEventTime(event: CalendarEvent): string {
     position: relative;
     bottom: auto;
     left: auto;
+    right: auto;
     padding: 4px 6px 6px;
     flex-shrink: 0;
   }
@@ -250,5 +250,4 @@ function formatEventTime(event: CalendarEvent): string {
     text-overflow: ellipsis;
   }
 }
-
 </style>

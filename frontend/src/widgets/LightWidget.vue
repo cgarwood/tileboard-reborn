@@ -14,15 +14,26 @@
         />
       </div>
 
-      <div v-if="badgeText && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ badgeText }}</div>
-      <div class="label-group">
+      <div
+        v-if="badgeText && !isMicro"
+        class="state-badge"
+        :class="{ 'state-badge--restricted': isLocked }"
+      >
+        {{ badgeText }}
+      </div>
+      <div
+        class="label-group"
+        :class="{ 'label-group--beside-controls': supportsDimming && size === 'normal' }"
+      >
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
       </div>
 
       <div v-if="supportsDimming && showControls" class="dim-controls" @click.stop>
         <q-btn
-          flat dense round
+          flat
+          dense
+          round
           icon="mdi-plus"
           size="xs"
           color="white"
@@ -30,7 +41,9 @@
           @click.stop="adjustBrightness(step)"
         />
         <q-btn
-          flat dense round
+          flat
+          dense
+          round
           icon="mdi-minus"
           size="xs"
           color="white"
@@ -59,7 +72,9 @@ import type { Widget } from '../types/widgets';
 const props = defineProps<{ widget: Widget }>();
 
 const haStore = useHomeAssistantStore();
-const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = useWidget(() => props.widget);
+const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = useWidget(
+  () => props.widget,
+);
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
 const { size, width, bodyClass, iconSize } = useWidgetSize(() => props.widget);
@@ -90,7 +105,9 @@ const iconOpacity = computed(() => {
 
 const step = computed(() => (props.widget.step as number | undefined) ?? 10);
 
-const iconName = computed(() => icon.value ?? (isOn.value ? 'mdi-lightbulb' : 'mdi-lightbulb-off-outline'));
+const iconName = computed(
+  () => icon.value ?? (isOn.value ? 'mdi-lightbulb' : 'mdi-lightbulb-off-outline'),
+);
 
 const badgeText = computed(() => {
   if (stateBadge.value != null) return stateBadge.value;
@@ -141,6 +158,11 @@ function handleClick() {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+// Keep the labels clear of the +/− column in the bottom-right corner
+.label-group--beside-controls {
+  right: 34px;
 }
 
 // One-row tile: the buttons sit side by side after the badge

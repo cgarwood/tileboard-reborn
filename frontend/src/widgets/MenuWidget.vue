@@ -121,6 +121,7 @@ function handleClick() {
     position: relative;
     bottom: auto;
     left: auto;
+    right: auto;
     padding: 4px 6px 6px;
     flex-shrink: 0;
   }

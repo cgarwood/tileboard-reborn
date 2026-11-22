@@ -4,7 +4,7 @@
     <div class="widget-html__content" v-html="html" />
     <div v-if="showTitle || subtitle" class="label-group">
       <div v-if="subtitle" class="subtitle">{{ subtitle }}</div>
-      <div v-if="showTitle" class="title">{{ title }}</div>
+      <div v-if="showTitle" class="title ellipsis">{{ title }}</div>
     </div>
   </BaseWidget>
 </template>

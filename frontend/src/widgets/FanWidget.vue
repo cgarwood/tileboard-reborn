@@ -26,7 +26,7 @@
       >
         {{ badgeText }}
       </div>
-      <div class="label-group">
+      <div class="label-group" :class="{ 'label-group--beside-controls': size === 'normal' }">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
       </div>
@@ -144,6 +144,11 @@ function handleClick() {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+// Keep the labels clear of the +/− column in the bottom-right corner
+.label-group--beside-controls {
+  right: 34px;
 }
 
 // One-row tile: the buttons sit side by side after the badge

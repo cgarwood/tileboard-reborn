@@ -12,8 +12,14 @@
         </div>
       </div>
 
-      <div v-if="stateBadge && size === 'normal'" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge }}</div>
-      <div class="label-group">
+      <div
+        v-if="stateBadge && size === 'normal'"
+        class="state-badge"
+        :class="{ 'state-badge--restricted': isLocked }"
+      >
+        {{ stateBadge }}
+      </div>
+      <div class="label-group" :class="{ 'label-group--beside-controls': size === 'normal' }">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
       </div>
@@ -63,9 +69,8 @@ const props = defineProps<{ widget: Widget }>();
 
 const $q = useQuasar();
 const haStore = useHomeAssistantStore();
-const { title, subtitle, state, unitOfMeasurement, entity, backgroundStyle, stateBadge } = useWidget(
-  () => props.widget,
-);
+const { title, subtitle, state, unitOfMeasurement, entity, backgroundStyle, stateBadge } =
+  useWidget(() => props.widget);
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
 const { size, bodyClass } = useWidgetSize(() => props.widget);
@@ -148,6 +153,11 @@ function handleClick() {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+// Keep the labels clear of the +/− column in the bottom-right corner
+.label-group--beside-controls {
+  right: 34px;
 }
 
 // One-row tile: value over the title on the left, the +/− buttons side by side on the right
