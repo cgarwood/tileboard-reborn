@@ -4,11 +4,11 @@
     :style="[backgroundStyle, { cursor: 'pointer' }]"
     @click="handleClick"
   >
-    <q-card-section class="widget-body q-pa-sm">
+    <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
         <q-icon
           :name="iconName"
-          :size="isMicro ? '28px' : '40px'"
+          :size="iconSize"
           color="white"
           :class="{
             'fan-spin': isOn,
@@ -31,7 +31,7 @@
         <div class="title ellipsis">{{ title }}</div>
       </div>
 
-      <div v-if="!isMicro" class="speed-controls" @click.stop>
+      <div v-if="showControls" class="speed-controls" @click.stop>
         <q-btn
           flat
           dense
@@ -66,6 +66,7 @@ registerWidgetDefaults('fan', { width: 2, height: 2 });
 import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
+import { useWidgetSize } from '../composables/useWidgetSize';
 import { useRestriction } from '../composables/useRestriction';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
@@ -78,11 +79,12 @@ const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = use
 );
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
-const isMicro = computed(() => {
-  const w = props.widget.grid?.width ?? 2;
-  const h = props.widget.grid?.height ?? 2;
-  return w <= 1 && h <= 1;
-});
+const { size, width, bodyClass, iconSize } = useWidgetSize(() => props.widget);
+const isMicro = computed(() => size.value === 'micro');
+// A one-row tile only has room for the +/− buttons (in a row) when it's at least 3 wide
+const showControls = computed(
+  () => size.value === 'normal' || (size.value === 'short' && width.value >= 3),
+);
 
 const percentage = computed(() => (entity.value?.attributes.percentage as number | undefined) ?? 0);
 
@@ -142,6 +144,15 @@ function handleClick() {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+// One-row tile: the buttons sit side by side after the badge
+.widget-body--short .speed-controls {
+  position: static;
+  order: 3;
+  flex: none;
+  flex-direction: row;
+  gap: 0;
 }
 
 @keyframes fan-rotate {

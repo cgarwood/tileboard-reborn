@@ -1,8 +1,8 @@
 <template>
   <BaseWidget :widget="widget" :style="backgroundStyle">
-    <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
+    <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
-        <q-icon :name="resolvedIcon" :color="resolvedIconColor" :size="isMicro ? '28px' : '40px'" />
+        <q-icon :name="resolvedIcon" :color="resolvedIconColor" :size="iconSize" />
       </div>
       <div v-if="(stateBadge ?? state) && !isMicro" class="state-badge">
         <template v-if="stateBadge">{{ stateBadge }}</template>
@@ -25,6 +25,7 @@ registerWidgetDefaults('sensor_icon', { width: 2, height: 2 });
 import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
+import { useWidgetSize } from '../composables/useWidgetSize';
 import { getEntityIcon } from '../utils/haIcons';
 import type { Widget } from '../types/widgets';
 
@@ -34,11 +35,8 @@ const { title, subtitle, icon, iconColor, backgroundStyle, entity, state, unitOf
   () => props.widget,
 );
 
-const isMicro = computed(() => {
-  const w = props.widget.grid?.width ?? 2;
-  const h = props.widget.grid?.height ?? 2;
-  return w <= 1 && h <= 1;
-});
+const { size, bodyClass, iconSize } = useWidgetSize(() => props.widget);
+const isMicro = computed(() => size.value === 'micro');
 
 const resolvedIcon = computed(() => {
   // 1. Config icon (state-map / template / static)

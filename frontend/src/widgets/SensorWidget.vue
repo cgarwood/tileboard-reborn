@@ -1,7 +1,7 @@
 <template>
   <BaseWidget :widget="widget" :style="backgroundStyle">
     <SensorWidgetChart
-      v-if="chartConfig && widget.entity"
+      v-if="chartConfig && widget.entity && size !== 'short'"
       :entity-id="widget.entity"
       :hours="chartConfig.hours"
       :min="chartConfig.min"
@@ -9,7 +9,7 @@
       :smoothing="chartConfig.smoothing"
       :color="chartColor"
     />
-    <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
+    <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
         <span class="state">{{ state ?? '—' }}</span>
         <span v-if="unitOfMeasurement" class="text-caption q-ml-xs">{{ unitOfMeasurement }}</span>
@@ -28,6 +28,7 @@ import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import SensorWidgetChart from '../components/widgets/SensorWidgetChart.vue';
 import { useWidget } from '../composables/useWidget';
+import { useWidgetSize } from '../composables/useWidgetSize';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
@@ -48,11 +49,8 @@ const { title, subtitle, state, unitOfMeasurement, backgroundStyle, stateBadge }
   () => props.widget,
 );
 
-const isMicro = computed(() => {
-  const w = props.widget.grid?.width ?? 2;
-  const h = props.widget.grid?.height ?? 2;
-  return w <= 1 && h <= 1;
-});
+const { size, bodyClass } = useWidgetSize(() => props.widget);
+const isMicro = computed(() => size.value === 'micro');
 
 const chartConfig = computed((): SensorChartConfig | null => {
   const cfg = props.widget.chart;
@@ -94,6 +92,23 @@ const chartColor = computed(() => {
 
   &.state--on {
     background: var(--sensor-widget-background-on);
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+// One-row tile: title on the left, value on the right
+.widget-body--short {
+  .state-area {
+    order: 2;
+  }
+
+  .state {
+    font-size: 1.25rem;
+  }
+
+  .state-badge {
+    order: 3;
   }
 }
 </style>

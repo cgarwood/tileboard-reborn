@@ -89,3 +89,41 @@
 :where(.widget .widget-body--micro .title) {
   font-size: 0.65rem;
 }
+
+// One row (1 high, 2+ wide): icon on the left, labels beside it, the state badge inline on the
+// right. Laid out as a flex row so the labels shrink and ellipsize around whatever else is shown.
+// Widgets with extra parts (controls) give them an `order` above the badge's.
+:where(.widget .widget-body--short) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:where(.widget .widget-body--short .state-area) {
+  position: static;
+  flex: none;
+}
+
+:where(.widget .widget-body--short .label-group) {
+  position: static;
+  order: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+:where(.widget .widget-body--short .subtitle) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:where(.widget .widget-body--short .state-badge) {
+  position: static;
+  order: 2;
+  flex: none;
+  max-width: 50%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.7rem;
+}

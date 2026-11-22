@@ -27,6 +27,8 @@ title: Kitchen
 step: 5       # fine-grained control
 ```
 
+On a one-row tile (`height: 1`), the +/− controls show side by side on the right when the tile is at least 3 wide, and are hidden at 2×1.
+
 ## More-info Dialog
 
 Long-pressing opens a detail panel with:

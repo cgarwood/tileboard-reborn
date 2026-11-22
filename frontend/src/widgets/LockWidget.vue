@@ -2,11 +2,11 @@
   <BaseWidget :widget="widget" :style="backgroundStyle">
     <q-card-section
       class="widget-body q-pa-sm"
-      :class="{ 'widget-body--micro': isMicro }"
+      :class="bodyClass"
       @click="handleClick"
     >
       <div class="state-area">
-        <q-icon :name="resolvedIcon" :color="resolvedIconColor" :size="isMicro ? '28px' : '40px'" />
+        <q-icon :name="resolvedIcon" :color="resolvedIconColor" :size="iconSize" />
       </div>
       <div v-if="(stateBadge ?? state) && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge ?? state }}</div>
       <div class="label-group">
@@ -26,6 +26,7 @@ registerWidgetDefaults('lock', { width: 2, height: 2 });
 import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
+import { useWidgetSize } from '../composables/useWidgetSize';
 import { useRestriction } from '../composables/useRestriction';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
@@ -46,11 +47,8 @@ const { title, subtitle, icon, iconColor, backgroundStyle, state, stateBadge } =
 );
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
-const isMicro = computed(() => {
-  const w = props.widget.grid?.width ?? 2;
-  const h = props.widget.grid?.height ?? 2;
-  return w <= 1 && h <= 1;
-});
+const { size, bodyClass, iconSize } = useWidgetSize(() => props.widget);
+const isMicro = computed(() => size.value === 'micro');
 
 const resolvedIcon = computed(() => icon.value ?? STATE_ICONS[state.value ?? ''] ?? 'mdi-lock');
 

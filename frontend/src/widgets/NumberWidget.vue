@@ -4,7 +4,7 @@
     :style="[backgroundStyle, { cursor: 'pointer' }]"
     @click="handleClick"
   >
-    <q-card-section class="widget-body q-pa-sm">
+    <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
         <div class="number-display">
           <span class="state">{{ displayValue }}</span>
@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <div v-if="stateBadge && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge }}</div>
+      <div v-if="stateBadge && size === 'normal'" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge }}</div>
       <div class="label-group">
         <div v-if="subtitle && !isMicro" class="subtitle">{{ subtitle }}</div>
         <div class="title ellipsis">{{ title }}</div>
@@ -54,6 +54,7 @@ import { computed } from 'vue';
 import { useQuasar } from 'quasar';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
+import { useWidgetSize } from '../composables/useWidgetSize';
 import { useRestriction } from '../composables/useRestriction';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
@@ -67,11 +68,8 @@ const { title, subtitle, state, unitOfMeasurement, entity, backgroundStyle, stat
 );
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
-const isMicro = computed(() => {
-  const w = props.widget.grid?.width ?? 2;
-  const h = props.widget.grid?.height ?? 2;
-  return w <= 1 && h <= 1;
-});
+const { size, bodyClass } = useWidgetSize(() => props.widget);
+const isMicro = computed(() => size.value === 'micro');
 
 const numValue = computed(() => {
   const n = parseFloat(state.value ?? '');
@@ -150,5 +148,41 @@ function handleClick() {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+}
+
+// One-row tile: value over the title on the left, the +/− buttons side by side on the right
+.widget-body--short {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 8px;
+
+  .state-area {
+    position: static;
+    grid-area: 1 / 1;
+    justify-content: flex-start;
+  }
+
+  .number-display {
+    line-height: 1.1;
+  }
+
+  .state {
+    font-size: 1.25rem;
+  }
+
+  .label-group {
+    position: static;
+    grid-area: 2 / 1;
+    min-width: 0;
+  }
+
+  .speed-controls {
+    position: static;
+    grid-area: 1 / 2 / 3 / 3;
+    flex-direction: row;
+    gap: 0;
+  }
 }
 </style>

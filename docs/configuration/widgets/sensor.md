@@ -17,6 +17,8 @@ title: Temperature
 | `entity` | string           | —       | Sensor entity ID                                                              |
 | `chart`  | object / `false` | —       | Enable background chart. Omit to hide, set to `{}` or a config object to show |
 
+On a one-row tile (`height: 1`), the title sits on the left and the value on the right, and the chart is hidden.
+
 ## Background Chart
 
 Add a `chart` key to render a smooth history area chart in the lower half of the widget background. The chart is purely decorative — no axes, labels, or tooltips are shown.

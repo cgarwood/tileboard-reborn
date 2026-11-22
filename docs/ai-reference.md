@@ -87,17 +87,19 @@ Section keys: `name` (header label), `width` (grid columns, default 4), `widgets
 
 Size is the default `width×height`. Tap/hold defaults are listed under Actions.
 
-- **`sensor`** (2×2): state plus unit. `chart`: absent = no chart, `false` = disabled, `{}`/`null` = defaults, or `{hours=24, min, max, smoothing=0.3 (0–1), color (dyn, default white)}`. The chart is a decorative background sparkline.
+Small tiles (switch, light, fan, lock, button, sensor_icon, sensor, number): 1×1 shows a smaller icon/value and the title only. One cell high and 2+ wide is a single row: icon left, subtitle and title beside it, state badge inline on the right.
+
+- **`sensor`** (2×2): state plus unit. `chart`: absent = no chart, `false` = disabled, `{}`/`null` = defaults, or `{hours=24, min, max, smoothing=0.3 (0–1), color (dyn, default white)}`. The chart is a decorative background sparkline. One-row tile: title left, value right, no chart.
 - **`sensor_icon`**: icon plus a state badge (top right, with unit). `icon_color` defaults to white. Auto-icon order: entity `icon` attribute, then device class (state-aware for binary_sensor/cover), then domain fallback.
 - **`button`** (2×2): no extra keys. Default tap is `button.press` on `entity`. Often used without an entity, with a custom `tap_action`.
 - **`switch`** (2×2): no extra keys. Tap calls `homeassistant.toggle`.
-- **`light`** (2×2): `step` = 10. Brightness % change for the on-widget +/− controls. Badge shows brightness.
+- **`light`** (2×2): `step` = 10. Brightness % change for the on-widget +/− controls. Badge shows brightness. One-row tile: +/− in a row when width ≥ 3, hidden at 2×1.
 - **`climate`** (4×2): `features: {mode=true, setpoint=true, fan_mode=true}`. Layout depends on size: compact (small), wide (width ≥ 4), vertical (height ≥ 4). In `heat_cool` mode, +/− moves both setpoints.
 - **`camera`** (2×2): `stream_mode` = `snapshot` | `stream` (HLS). `snapshot_interval` = 5 (seconds). Tap opens fullscreen.
 - **`weather`** (2×4): no extra keys. Layouts are compact, wide (w ≥ 4, horizontal forecast) or vertical (h ≥ 4, forecast list).
 - **`calendar`** (4×4): `calendars`: list of `{entity*, color, name}`. `color` defaults to the entity's color attribute, then a rotating palette. Tapping an event opens an event dialog.
-- **`fan`** (2×2): no extra keys. Tap toggles. +/− change speed %.
-- **`number`** (2×2): works with `number` / `input_number`. Step, min and max come from entity attributes. +/− step the value. Tap opens a value prompt.
+- **`fan`** (2×2): no extra keys. Tap toggles. +/− change speed %. One-row tile: +/− in a row when width ≥ 3, hidden at 2×1.
+- **`number`** (2×2): works with `number` / `input_number`. Step, min and max come from entity attributes. +/− step the value. Tap opens a value prompt. One-row tile: value over title on the left, +/− in a row on the right, no badge.
 - **`lock`** (2×2): no extra keys. Tap calls `lock.lock`/`lock.unlock`. States: locked, unlocked, locking, unlocking, jammed. Usually paired with `restriction`.
 - **`list`** (4×4): `items`: list of rows. Row keys: `entity`, `name` (dyn), `caption` (dyn), `icon` (dyn), `state` (dyn, right-hand text), `restriction`, `refresh_interval` (ms; only needed for faster-than-minute templates), `features`: list of
   - `brightness_slider`

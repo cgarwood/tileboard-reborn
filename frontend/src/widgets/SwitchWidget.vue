@@ -1,12 +1,12 @@
 <template>
   <BaseWidget :widget="widget" :style="[backgroundStyle, { cursor: 'pointer' }]" @click="handleClick">
-    <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
+    <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
         <q-icon
           :name="iconName"
           :style="iconColor ? { color: iconColor } : undefined"
           :color="iconColor ? undefined : (isOn ? 'white' : 'grey-5')"
-          :size="isMicro ? '28px' : '40px'"
+          :size="iconSize"
         />
       </div>
       <div v-if="stateBadge && !isMicro" class="state-badge" :class="{ 'state-badge--restricted': isLocked }">{{ stateBadge }}</div>
@@ -23,6 +23,7 @@ import { computed } from 'vue';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
+import { useWidgetSize } from '../composables/useWidgetSize';
 import { useRestriction } from '../composables/useRestriction';
 import type { Widget } from '../types/widgets';
 
@@ -34,11 +35,8 @@ const { title, subtitle, isOn, icon, iconColor, backgroundStyle, stateBadge } = 
 const iconName = computed(() => icon.value ?? (isOn.value ? 'mdi-toggle-switch' : 'mdi-toggle-switch-off'));
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
 
-const isMicro = computed(() => {
-  const w = props.widget.grid?.width ?? 2;
-  const h = props.widget.grid?.height ?? 2;
-  return w <= 1 && h <= 1;
-});
+const { size, bodyClass, iconSize } = useWidgetSize(() => props.widget);
+const isMicro = computed(() => size.value === 'micro');
 
 function toggle() {
   if (!props.widget.entity) return;

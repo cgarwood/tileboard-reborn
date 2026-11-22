@@ -22,6 +22,8 @@ The step size, minimum, and maximum are read automatically from the entity's `st
 - **Tap**: opens a number input dialog to enter a specific value
 - **Long press**: opens the more-info dialog
 
+On a one-row tile (`height: 1`), the value sits above the title on the left and the +/− buttons sit side by side on the right. The state badge is hidden.
+
 ## Examples
 
 **Volume control:**

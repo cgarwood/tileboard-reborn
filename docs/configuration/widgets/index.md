@@ -22,6 +22,13 @@ All widgets support these top-level config keys:
 | `class` | string / expression | Additional CSS class |
 | `style` | object | Inline CSS overrides |
 
+## Small Sizes
+
+Widgets that show one big icon or value (`switch`, `light`, `fan`, `lock`, `button`, `sensor_icon`, `sensor`, `number`) adapt to small tiles:
+
+- **1×1:** a smaller icon or value with the title only. The subtitle, state badge and +/− controls are hidden.
+- **One cell high, two or more wide (e.g. 2×1):** a single row. The icon sits on the left with the subtitle and title beside it, and the state badge shows on the right. Each widget's page lists what changes for it.
+
 ## Dynamic Properties
 
 `title`, `subtitle`, `background`, `icon`, `icon_color`, and `class` all support three forms:

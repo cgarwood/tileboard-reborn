@@ -4,11 +4,11 @@
     :style="[backgroundStyle, { cursor: 'pointer' }]"
     @click="handleClick"
   >
-    <q-card-section class="widget-body q-pa-sm" :class="{ 'widget-body--micro': isMicro }">
+    <q-card-section class="widget-body q-pa-sm" :class="bodyClass">
       <div class="state-area">
         <q-icon
           :name="iconName"
-          :size="isMicro ? '28px' : '40px'"
+          :size="iconSize"
           :style="iconColor ? { color: iconColor } : { color: 'white' }"
         />
       </div>
@@ -29,6 +29,7 @@ registerWidgetDefaults('button', { width: 2, height: 2 });
 import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
+import { useWidgetSize } from '../composables/useWidgetSize';
 import { useRestriction } from '../composables/useRestriction';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
@@ -38,11 +39,8 @@ const haStore = useHomeAssistantStore();
 const { title, subtitle, icon, iconColor, backgroundStyle } = useWidget(() => props.widget);
 const { withUnlock } = useRestriction(() => props.widget);
 
-const isMicro = computed(() => {
-  const w = props.widget.grid?.width ?? 2;
-  const h = props.widget.grid?.height ?? 2;
-  return w <= 1 && h <= 1;
-});
+const { size, bodyClass, iconSize } = useWidgetSize(() => props.widget);
+const isMicro = computed(() => size.value === 'micro');
 
 const iconName = computed(() => icon.value ?? 'mdi-gesture-tap');
 

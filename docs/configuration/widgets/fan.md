@@ -19,6 +19,8 @@ This widget has no widget-specific config keys beyond the [common properties](in
 - **Tap**: toggles fan on/off
 - **+/−**: adjusts fan speed percentage
 
+On a one-row tile (`height: 1`), the +/− controls show side by side on the right when the tile is at least 3 wide, and are hidden at 2×1.
+
 ## Examples
 
 **Basic fan:**
