@@ -80,13 +80,13 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .notification--info {
-  --notification-color: rgb(25, 118, 210);
+  --notification-color: var(--level-info);
 }
 .notification--warning {
-  --notification-color: rgb(239, 140, 0);
+  --notification-color: var(--level-warning);
 }
 .notification--critical {
-  --notification-color: rgb(198, 40, 40);
+  --notification-color: var(--level-error);
 }
 
 .notification-banner {
@@ -180,7 +180,7 @@ onUnmounted(() => {
     gap: 12px;
     padding: 36px 32px 28px;
     border-radius: 18px;
-    background: rgb(198, 40, 40);
+    background: var(--level-error);
     color: #fff;
     text-align: center;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);

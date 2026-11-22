@@ -32,6 +32,12 @@
   --climate-heating-background: #{$deep-orange-9};
   --climate-cooling-background: #{$blue-9};
 
+  // Severity levels: alert widgets, gauge segments and notifications
+  --level-info: rgb(25, 118, 210);
+  --level-success: rgb(46, 125, 50);
+  --level-warning: rgb(239, 140, 0);
+  --level-error: rgb(198, 40, 40);
+
   --text-light: #fff;
   --text-dark: #000;
   --text-lighter: #{$grey-6};

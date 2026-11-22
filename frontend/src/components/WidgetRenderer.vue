@@ -23,6 +23,7 @@ import MenuWidget from '../widgets/MenuWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
 import ConditionalWidget from '../widgets/ConditionalWidget.vue';
 import HtmlWidget from '../widgets/HtmlWidget.vue';
+import AlertWidget from '../widgets/AlertWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
   spacer: SpacerWidget,
@@ -42,6 +43,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   menu: MenuWidget,
   conditional: ConditionalWidget,
   html: HtmlWidget,
+  alert: AlertWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();
