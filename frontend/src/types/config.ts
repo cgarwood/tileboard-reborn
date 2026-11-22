@@ -28,6 +28,8 @@ export type LayoutConfig = {
 export type HeaderConfig = {
   /** Battery level and charging status. Default true */
   battery?: boolean;
+  /** Badge that appears when there are problems to look at, opening the Issues dialog. Default true */
+  issues?: boolean;
   /**
    * Device volume sliders in the header menu. `true` (default) shows media only; a list picks which streams to show, in order; `false` hides them.
    */

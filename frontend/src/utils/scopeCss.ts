@@ -1,3 +1,5 @@
+import { describeError, useIssuesStore } from '../stores/issues';
+
 /**
  * Scopes config-authored CSS to one element: every selector is prefixed with `.{scopeClass}`, and
  * `:scope` in a selector stands for that element itself.
@@ -12,6 +14,9 @@ export function scopeCss(css: string, scopeClass: string): string {
     sheet.replaceSync(css);
   } catch (e) {
     console.error('[scopeCss] Could not parse CSS:', e);
+    useIssuesStore().report('config', `Couldn't parse widget CSS: ${describeError(e)}`, {
+      detail: css,
+    });
     return '';
   }
   return scopeRules(sheet.cssRules, `.${scopeClass}`);

@@ -71,7 +71,7 @@ const haStore = useHomeAssistantStore();
 haStore.states           // HassEntities keyed by entity_id
 haStore.connected
 haStore.entitiesLoaded   // true after first subscribeEntities callback; reset on disconnect
-haStore.callService(domain, service, data)
+haStore.callService(domain, service, data) // never rejects: failures are reported (toast + Issues); resolves to success
 haStore.sendMessage<T>(msg)          // one-shot WS command
 haStore.subscribeMessage<T>(cb, msg) // returns unsubscribe fn
 haStore.signPath(path)               // sign a media URL
@@ -127,3 +127,4 @@ Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action or a
 | `useScreensaverStore` | Screensaver activation, slides |
 | `useWeatherAlertsStore` | HA weatheralerts sensor, footer carousel |
 | `useSendspinStore` | Music player protocol (Sendspin) |
+| `useIssuesStore` | Problems shown in the header badge / Issues dialog. `report(source, message, { detail, level, notify })` is safe to call from inside computeds (deduped, queued) |

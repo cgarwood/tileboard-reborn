@@ -2,6 +2,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, watch } from 'vue';
 import type { HABrowseMediaResult, ScreensaverConfig, Slide } from '../types/screensaver';
 import { useHomeAssistantStore } from './home-assistant';
+import { describeError, useIssuesStore } from './issues';
 
 const SLIDE_SPEED_DEFAULT = 7;
 
@@ -66,6 +67,10 @@ export const useScreensaverStore = defineStore('screensaver', () => {
       );
     } catch (e) {
       console.error('Screensaver: failed to load slides', e);
+      useIssuesStore().report(
+        'screensaver',
+        `Couldn't load screensaver images: ${describeError(e)}`,
+      );
     }
   }
 

@@ -11,6 +11,7 @@ import {
 import type { HassEntities, AuthData } from 'home-assistant-js-websocket';
 import type { ForecastType, WeatherForecast } from '../types/weather';
 import { applyEntityUpdates, type EntityUpdatesMessage } from '../utils/applyEntityUpdates';
+import { describeError, useIssuesStore } from './issues';
 
 const TOKENS_KEY = 'tileboard:haTokens';
 
@@ -301,25 +302,57 @@ export const useHomeAssistantStore = defineStore('homeAssistant', () => {
     }
   }
 
+  /**
+   * Calls a service. Never rejects: these run from taps, so a failure is shown as a toast and
+   * listed in the Issues dialog instead. Resolves to whether the call succeeded.
+   */
   async function callHassService(
     domain: string,
     service: string,
     serviceData?: Record<string, unknown>,
-  ) {
-    if (!connection.value) throw new Error('Not connected to Home Assistant');
-    // A tap is when a dead socket matters most: verify it now rather than at the next periodic
-    // ping, so the status flips and reconnecting starts within seconds.
-    void checkConnection();
-    await callService(connection.value, domain, service, serviceData ?? {});
+  ): Promise<boolean> {
+    const name = `${domain}.${service}`;
+    try {
+      if (!connection.value) throw new Error('Not connected to Home Assistant');
+      // A tap is when a dead socket matters most: verify it now rather than at the next periodic
+      // ping, so the status flips and reconnecting starts within seconds.
+      void checkConnection();
+      await callService(connection.value, domain, service, serviceData ?? {});
+      return true;
+    } catch (e) {
+      reportUserActionError(`${name} failed`, e, serviceData);
+      return false;
+    }
   }
 
-  async function fireEvent(eventType: string, eventData?: Record<string, unknown>) {
-    if (!connection.value) throw new Error('Not connected to Home Assistant');
-    void checkConnection();
-    await connection.value.sendMessagePromise({
-      type: 'fire_event',
-      event_type: eventType,
-      event_data: eventData ?? {},
+  /** Fires an event. Like callService, failures are reported rather than thrown. */
+  async function fireEvent(
+    eventType: string,
+    eventData?: Record<string, unknown>,
+  ): Promise<boolean> {
+    try {
+      if (!connection.value) throw new Error('Not connected to Home Assistant');
+      void checkConnection();
+      await connection.value.sendMessagePromise({
+        type: 'fire_event',
+        event_type: eventType,
+        event_data: eventData ?? {},
+      });
+      return true;
+    } catch (e) {
+      reportUserActionError(`Event ${eventType} failed`, e, eventData);
+      return false;
+    }
+  }
+
+  function reportUserActionError(what: string, e: unknown, data?: Record<string, unknown>) {
+    console.error(`[Home Assistant] ${what}`, e, data);
+    const reason = describeError(e);
+    const target = typeof data?.entity_id === 'string' ? data.entity_id : undefined;
+    useIssuesStore().report('action', `${what}: ${reason}`, {
+      detail: target,
+      key: `action\n${what}\n${reason}\n${target ?? ''}`,
+      notify: true,
     });
   }
 

@@ -1,11 +1,13 @@
 import { useRouter } from 'vue-router';
 import { useHomeAssistantStore } from '../stores/home-assistant';
+import { describeError, useIssuesStore } from '../stores/issues';
 import { useScreensaverStore } from '../stores/screensaver';
 import type { TapAction } from '../types/actions';
 
 export function useActionExecutor() {
   const haStore = useHomeAssistantStore();
   const screensaverStore = useScreensaverStore();
+  const issuesStore = useIssuesStore();
   const router = useRouter();
 
   function executeActions(
@@ -34,6 +36,10 @@ export function useActionExecutor() {
           new Function('data', action.data)(context); // eslint-disable-line @typescript-eslint/no-implied-eval
         } catch (e) {
           console.error('[executeAction] JavaScript error:', e);
+          issuesStore.report('action', `JavaScript action failed: ${describeError(e)}`, {
+            detail: action.data,
+            notify: true,
+          });
         }
       } else if (action.action === 'event') {
         void haStore.fireEvent(action.event, action.data);
@@ -46,7 +52,12 @@ export function useActionExecutor() {
       } else if (action.action === 'screensaver') {
         screensaverStore.active = true;
       } else {
+        const type = String((action as { action?: unknown }).action);
         console.warn('[executeAction] Unknown action type:', action);
+        issuesStore.report('config', `Unknown action type "${type}"`, {
+          level: 'warning',
+          notify: true,
+        });
       }
     }
   }

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from aiohttp import web
@@ -67,7 +68,14 @@ async def config_handler(request: web.Request) -> web.Response:
     # This also keeps names like ".." out of the path.
     if name not in config_names():
         raise web.HTTPNotFound()
-    return web.json_response(load_config(name), headers={"Access-Control-Allow-Origin": "*"})
+    headers = {"Access-Control-Allow-Origin": "*"}
+    try:
+        config = load_config(name)
+    except Exception as exc:  # noqa: BLE001 - any load failure is reported to the dashboard
+        # YAML errors name the file by absolute path; show it relative to the configs folder
+        message = str(exc).replace(str(CONFIGS_DIR) + os.sep, "")
+        return web.json_response({"error": message}, status=500, headers=headers)
+    return web.json_response(config, headers=headers)
 
 
 async def config_list_handler(request: web.Request) -> web.Response:

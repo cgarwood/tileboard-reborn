@@ -1,5 +1,6 @@
 import type { HassEntities } from 'home-assistant-js-websocket';
 import { useMinuteClock } from '../composables/useMinuteClock';
+import { describeError, useIssuesStore } from '../stores/issues';
 
 export interface PropResolveContext {
   state: string | null;
@@ -32,12 +33,20 @@ export function usesTime(expr: string): boolean {
   return /\bDate/.test(expr);
 }
 
+/** Logs a template that failed to compile or run, and lists it in the Issues dialog. */
+export function reportTemplateError(expr: string, error: unknown): void {
+  console.error('[template] Error in expression:', expr, error);
+  useIssuesStore().report('template', `Template error: ${describeError(error)}`, {
+    detail: `{{ ${expr} }}`,
+  });
+}
+
 function compile(expr: string): TemplateFn | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     return new Function('state', 'attributes', 'entity', 'states', `return (${expr})`) as TemplateFn;
   } catch (e) {
-    console.error('[resolveWidgetProp] Template error in expression:', expr, e);
+    reportTemplateError(expr, e);
     return null;
   }
 }
@@ -105,7 +114,7 @@ export function resolveWidgetProp(
       const str = String(result); //eslint-disable-line @typescript-eslint/no-base-to-string
       out += formatValue ? formatValue(str) : str;
     } catch (e) {
-      console.error('[resolveWidgetProp] Template error in expression:', seg.expr, e);
+      reportTemplateError(seg.expr, e);
     }
   }
   return out;

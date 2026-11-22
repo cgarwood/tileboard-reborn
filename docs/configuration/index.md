@@ -37,7 +37,7 @@ To set a device up without using the dropdown, add `?config=<folder name>` to th
 http://<server>:9090/?config=living_room
 ```
 
-The device loads that config and remembers it. If the config doesn't exist or fails to load, onboarding opens with it preselected and shows the error. The parameter also works after the `#` (`http://<server>:9090/#/?config=living_room`).
+The device loads that config and remembers it. If the config fails to load, an error page shows the reason and keeps retrying, with a button to choose another config. See [Issues and Errors](issues.md#config-errors). The parameter also works after the `#` (`http://<server>:9090/#/?config=living_room`).
 
 ## Top-Level `config.yaml` Structure
 
@@ -51,6 +51,7 @@ layout: # optional; see Pages > Layout and orientation
   nav_position: auto # auto | left | bottom
   header:
     battery: true # Fully Kiosk battery/charging status in the top bar
+    issues: true # badge that opens the Issues dialog when there are problems
     volume: true # Fully Kiosk volume sliders in the top bar menu; or a list, e.g. [media, alarm]
 
 pages:

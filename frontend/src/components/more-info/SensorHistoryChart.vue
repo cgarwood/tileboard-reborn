@@ -21,6 +21,7 @@ import {
   Decimation,
 } from 'chart.js';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
+import { describeError, useIssuesStore } from '../../stores/issues';
 import { timeFormat } from '../../utils/formatters';
 
 ChartJS.register(LinearScale, PointElement, LineElement, Filler, Tooltip, Decimation);
@@ -63,6 +64,9 @@ async function fetchHistory() {
       .map((p) => ({ t: p.lu, v: parseFloat(p.s) }));
   } catch (e) {
     console.error('[SensorHistoryChart] Failed to fetch history:', e);
+    useIssuesStore().report('homeassistant', `Couldn't load history: ${describeError(e)}`, {
+      detail: props.entityId,
+    });
   } finally {
     loading.value = false;
   }

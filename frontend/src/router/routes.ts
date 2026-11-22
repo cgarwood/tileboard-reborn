@@ -6,6 +6,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/OnboardingPage.vue'),
   },
   {
+    path: '/config-error',
+    component: () => import('@/pages/ConfigErrorPage.vue'),
+  },
+  {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     children: [

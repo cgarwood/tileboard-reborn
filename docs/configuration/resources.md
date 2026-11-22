@@ -15,7 +15,7 @@ resources:
 | `url` | Address of the file. A path such as `/local/theme.css` is loaded from the TileBoard server that served the config, so it works even when the dashboard itself is opened from somewhere else. Full `https://` URLs work too. |
 | `type` | `css`. Optional when the URL ends in `.css`. Required otherwise, such as for Google Fonts URLs. |
 
-Stylesheets load after the dashboard's own styles, in the order listed, so your rules override the defaults. When you reload the config, changes to the list apply straight away. Stylesheets that are still listed stay loaded, and ones you remove are taken away. If a file fails to load, the dashboard carries on without it and logs a warning in the browser console.
+Stylesheets load after the dashboard's own styles, in the order listed, so your rules override the defaults. When you reload the config, changes to the list apply straight away. Stylesheets that are still listed stay loaded, and ones you remove are taken away. If a file fails to load, the dashboard carries on without it and lists a warning in the [Issues](issues.md) dialog.
 
 `type: module` is reserved for custom widgets, which aren't supported yet. Entries with that type are skipped.
 

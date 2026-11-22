@@ -3,6 +3,7 @@ import { computed, ref, shallowRef, watch } from 'vue';
 import type { SendspinPlayer, ControllerCommand, ServerStateMetadata } from '@sendspin/sendspin-js';
 import type { SendSpinConfig } from '../types/config';
 import { getTileboardId } from '../utils/tileboardId';
+import { describeError, useIssuesStore } from './issues';
 
 export const useSendspinStore = defineStore('sendspin', () => {
   const player = shallowRef<SendspinPlayer | null>(null);
@@ -84,6 +85,7 @@ export const useSendspinStore = defineStore('sendspin', () => {
     } catch (e) {
       connecting.value = false;
       console.error('[Sendspin] Failed to load player', e);
+      useIssuesStore().report('sendspin', `Couldn't load the Sendspin player: ${describeError(e)}`);
       return;
     } finally {
       initializing = false;
@@ -139,6 +141,9 @@ export const useSendspinStore = defineStore('sendspin', () => {
       .catch((e: unknown) => {
         connecting.value = false;
         console.error('[Sendspin] Connection failed', e);
+        useIssuesStore().report('sendspin', `Sendspin connection failed: ${describeError(e)}`, {
+          detail: config.server,
+        });
       });
   }
 

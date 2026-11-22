@@ -50,14 +50,20 @@ export default defineRouter((/* { store, ssrContext } */) => {
       return;
     }
 
+    if (to.path === '/config-error') {
+      // Only meaningful after a failed load (not, say, after reloading the page on it)
+      return configStore.failedUrl ? undefined : '/';
+    }
+    // The config error page retries the failed load, then continues to where this was headed
+    const configError = { path: '/config-error', query: { redirect: to.path } };
+
     const hashName = typeof to.query.config === 'string' ? to.query.config.trim() : '';
     const requested = searchName || hashName;
     if (requested) {
       try {
         await configStore.loadConfig(serverConfigUrl(requested));
       } catch {
-        // Show the error on onboarding, with the requested config preselected
-        return { path: '/onboarding', query: { config: requested } };
+        return configError;
       }
       if (!hashName) return;
       const query = { ...to.query };
@@ -72,7 +78,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
         await configStore.loadConfig(configStore.configUrl);
         return;
       } catch {
-        // Fall through to onboarding if auto-load fails
+        return configError;
       }
     }
     return '/onboarding';

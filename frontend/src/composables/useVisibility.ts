@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import type { HassEntities } from 'home-assistant-js-websocket';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { VisibilityCondition, VisibilityConfig } from '../types/visibility';
-import { usesTime } from '../utils/resolveWidgetProp';
+import { reportTemplateError, usesTime } from '../utils/resolveWidgetProp';
 import { useMinuteClock } from './useMinuteClock';
 
 type ConditionFn = (states: HassEntities) => boolean;
@@ -24,7 +24,7 @@ function compileCondition(template: string) {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     fn = new Function('states', `return !!(${expr})`) as ConditionFn;
   } catch (e) {
-    console.error('[useVisibility] Template error:', expr, e);
+    reportTemplateError(expr, e);
   }
   compiled = { expr, fn, usesTime: usesTime(expr) };
   conditionCache.set(template, compiled);
@@ -41,7 +41,7 @@ function evaluateCondition(cond: VisibilityCondition, states: HassEntities): boo
     try {
       return fn(states);
     } catch (e) {
-      console.error('[useVisibility] Template error:', expr, e);
+      reportTemplateError(expr, e);
       return false;
     }
   }

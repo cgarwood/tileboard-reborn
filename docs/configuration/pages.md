@@ -69,6 +69,7 @@ layout:
   nav_position: auto    # auto | left | bottom
   header:
     battery: true
+    issues: true
     volume: true        # true | false | list of streams
 ```
 
@@ -77,6 +78,7 @@ layout:
 | `orientation` | `auto` | `auto` follows the device's orientation. Set `landscape` or `portrait` to force one. |
 | `nav_position` | `auto` | Where the page navigation goes. `auto` uses a rail on the `left` in landscape and a bar at the `bottom` in portrait. |
 | `header.battery` | `true` | Show the device's battery level and charging status in the top bar. It only appears when the dashboard runs in Fully Kiosk Browser. Set `false` for devices without a battery that still report a fixed level, such as the Lenovo ThinkSmart View. |
+| `header.issues` | `true` | Show a badge in the top bar when there are problems, such as template errors or failed service calls. Tapping it opens the Issues dialog. See [Issues and Errors](issues.md). |
 | `header.volume` | `true` | Device volume sliders in the top bar's menu (⋮). They only appear when the dashboard runs in Fully Kiosk Browser. `true` shows only the media volume. A list picks which to show and their order, from `media`, `notification`, `alarm`, `system` and `ring`. `false` hides them. [Sendspin](sendspin.md) and other dashboard audio play at the media volume. |
 
 In portrait:

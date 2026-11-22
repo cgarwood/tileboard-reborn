@@ -16,6 +16,28 @@
           </div>
         </div>
 
+        <q-btn
+          v-if="showIssuesBadge"
+          flat
+          dense
+          round
+          icon="mdi-alert-circle-outline"
+          class="header-issues-btn"
+          :class="
+            issuesStore.errorCount ? 'header-issues-btn--error' : 'header-issues-btn--warning'
+          "
+          aria-label="Issues"
+          @click="issuesOpen = true"
+        >
+          <q-badge
+            floating
+            rounded
+            :color="issuesStore.errorCount ? 'red-4' : 'amber-5'"
+            text-color="black"
+            :label="issuesStore.issues.length"
+          />
+        </q-btn>
+
         <q-btn flat dense round icon="mdi-dots-vertical" aria-label="Menu">
           <q-menu anchor="bottom right" self="top right" class="header-menu">
             <q-list dark style="min-width: 190px">
@@ -35,6 +57,15 @@
                   <q-icon name="mdi-play-box-outline" />
                 </q-item-section>
                 <q-item-section>Start Screensaver</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="issuesOpen = true">
+                <q-item-section avatar>
+                  <q-icon name="mdi-alert-circle-outline" />
+                </q-item-section>
+                <q-item-section>Issues</q-item-section>
+                <q-item-section v-if="issuesStore.issues.length" side>
+                  <q-badge rounded :label="issuesStore.issues.length" />
+                </q-item-section>
               </q-item>
               <q-item clickable v-close-popup @click="deviceInfoOpen = true">
                 <q-item-section avatar>
@@ -127,6 +158,7 @@
 
     <WeatherAlertDialog v-if="selectedAlert" :alert="selectedAlert" @hide="selectedAlert = null" />
     <DeviceInfoDialog v-if="deviceInfoOpen" @hide="deviceInfoOpen = false" />
+    <IssuesDialog v-if="issuesOpen" @hide="issuesOpen = false" />
   </q-layout>
 </template>
 
@@ -138,6 +170,7 @@ import { useConfigStore } from '../stores/config';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useScreensaverStore } from '../stores/screensaver';
 import { useWeatherAlertsStore } from '../stores/weather-alerts';
+import { describeError, useIssuesStore } from '../stores/issues';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import { evaluateVisibility } from '../composables/useVisibility';
 import { useLayout } from '../composables/useLayout';
@@ -152,14 +185,27 @@ import type { PropResolveContext } from '../utils/resolveWidgetProp';
 const DeviceInfoDialog = defineAsyncComponent(
   () => import('../components/dialogs/DeviceInfoDialog.vue'),
 );
+const IssuesDialog = defineAsyncComponent(() => import('../components/dialogs/IssuesDialog.vue'));
 
 const router = useRouter();
 const configStore = useConfigStore();
 const screensaverStore = useScreensaverStore();
 const deviceInfoOpen = ref(false);
 
-function reloadConfig() {
-  if (configStore.configUrl) void configStore.loadConfig(configStore.configUrl);
+const issuesStore = useIssuesStore();
+const issuesOpen = ref(false);
+
+async function reloadConfig() {
+  if (!configStore.configUrl) return;
+  try {
+    await configStore.loadConfig(configStore.configUrl);
+  } catch (e) {
+    // The current dashboard keeps running on the config it already has
+    issuesStore.report('config', 'Config reload failed', {
+      detail: describeError(e),
+      notify: true,
+    });
+  }
 }
 const haStore = useHomeAssistantStore();
 const route = useRoute();
@@ -196,6 +242,10 @@ const volumeStreams = computed<VolumeStream[]>(() => {
   if (!window.fully || v === false) return [];
   return Array.isArray(v) ? v : DEFAULT_VOLUME_STREAMS;
 });
+const showIssuesBadge = computed(
+  () => headerConfig.value.issues !== false && issuesStore.issues.length > 0,
+);
+
 const showBottomNav = computed(() => navPages.value.length > 0 && navPosition.value === 'bottom');
 
 const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
@@ -317,6 +367,22 @@ function formatAlertExpiry(expires: string) {
   font-size: 0.9rem;
   font-weight: 500;
   color: white;
+}
+
+.header-issues-btn {
+  &--error {
+    color: #ff8a80;
+  }
+
+  &--warning {
+    color: #ffd54f;
+  }
+
+  .q-badge {
+    top: 0;
+    right: -2px;
+    font-weight: 600;
+  }
 }
 
 .header-ha-status {

@@ -1,4 +1,10 @@
 import type { ResourceConfig, ResourceType } from '../types/config';
+import { useIssuesStore } from '../stores/issues';
+
+function warn(message: string) {
+  console.warn(`[Resources] ${message}`);
+  useIssuesStore().report('resource', message, { level: 'warning' });
+}
 
 const ATTR = 'data-tileboard-resource';
 
@@ -17,7 +23,7 @@ function inferType(url: URL): ResourceType | undefined {
 function resolve(entry: unknown, base: string): Resolved | null {
   const config = entry as Partial<ResourceConfig> | null;
   if (!config || typeof config.url !== 'string' || !config.url) {
-    console.warn('[Resources] Ignoring entry without a url', entry);
+    warn('Ignoring a resource entry without a url');
     return null;
   }
   let url: URL;
@@ -26,14 +32,12 @@ function resolve(entry: unknown, base: string): Resolved | null {
     // often served from a different origin than the tileboard server.
     url = new URL(config.url, base);
   } catch {
-    console.warn(`[Resources] Invalid url "${config.url}"`);
+    warn(`Invalid resource url "${config.url}"`);
     return null;
   }
   const type = config.type ?? inferType(url);
   if (type !== 'css' && type !== 'module') {
-    console.warn(
-      `[Resources] Can't determine the type of "${config.url}"; set type: css or type: module`,
-    );
+    warn(`Can't determine the type of resource "${config.url}"; set type: css or type: module`);
     return null;
   }
   return { key: `${type} ${url.href}`, href: url.href, type };
@@ -42,16 +46,14 @@ function resolve(entry: unknown, base: string): Resolved | null {
 function createElement(resource: Resolved): HTMLElement | null {
   if (resource.type === 'module') {
     // Reserved for custom widgets
-    console.warn(`[Resources] type: module is not supported yet; skipping ${resource.href}`);
+    warn(`Resources with type: module aren't supported yet; skipping ${resource.href}`);
     return null;
   }
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = resource.href;
   link.setAttribute(ATTR, resource.key);
-  link.addEventListener('error', () =>
-    console.warn(`[Resources] Failed to load stylesheet ${resource.href}`),
-  );
+  link.addEventListener('error', () => warn(`Failed to load stylesheet ${resource.href}`));
   return link;
 }
 

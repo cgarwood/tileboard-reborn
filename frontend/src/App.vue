@@ -20,6 +20,7 @@ import { useHomeAssistantStore } from './stores/home-assistant';
 import { useScreensaverStore } from './stores/screensaver';
 import { useWeatherAlertsStore } from './stores/weather-alerts';
 import { useSendspinStore } from './stores/sendspin';
+import { describeError, useIssuesStore } from './stores/issues';
 import { useActionExecutor } from './composables/useActionExecutor';
 import { applyResources } from './utils/resources';
 import { stripReloadParam } from './utils/forceReload';
@@ -113,6 +114,10 @@ watch(
       );
     } catch (e) {
       console.error('[Events] Failed to subscribe to tileboard events', e);
+      useIssuesStore().report(
+        'events',
+        `Couldn't subscribe to tileboard events: ${describeError(e)}`,
+      );
     }
   },
 );
