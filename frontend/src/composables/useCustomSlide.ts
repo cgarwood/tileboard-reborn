@@ -1,6 +1,7 @@
 import { computed } from 'vue';
 import type { ComputedRef } from 'vue';
 import { useHomeAssistantStore } from '../stores/home-assistant';
+import { escapeHtml } from '../utils/escapeHtml';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
 import type { PropResolveContext } from '../utils/resolveWidgetProp';
 import { evaluateVisibility } from './useVisibility';
@@ -17,18 +18,6 @@ export interface CustomSlideContent {
   footer?: string;
   /** Author's markup with `{{ }}` results escaped. Replaces the built-in layout when set. */
   html?: string;
-}
-
-const ESCAPES: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;',
-};
-
-export function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (c) => ESCAPES[c]!);
 }
 
 /**

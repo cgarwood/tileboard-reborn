@@ -147,3 +147,4 @@ visibility:
 - [Lock](lock.md)
 - [Menu](menu.md)
 - [Conditional](conditional.md)
+- [HTML](html.md)

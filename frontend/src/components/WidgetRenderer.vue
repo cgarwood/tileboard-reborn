@@ -22,6 +22,7 @@ import LockWidget from '../widgets/LockWidget.vue';
 import MenuWidget from '../widgets/MenuWidget.vue';
 import ErrorWidget from '../widgets/ErrorWidget.vue';
 import ConditionalWidget from '../widgets/ConditionalWidget.vue';
+import HtmlWidget from '../widgets/HtmlWidget.vue';
 
 const WIDGET_MAP: Record<string, unknown> = {
   spacer: SpacerWidget,
@@ -40,6 +41,7 @@ const WIDGET_MAP: Record<string, unknown> = {
   lock: LockWidget,
   menu: MenuWidget,
   conditional: ConditionalWidget,
+  html: HtmlWidget,
 };
 
 const props = defineProps<{ widget: Widget }>();

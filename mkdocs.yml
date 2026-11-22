@@ -42,6 +42,7 @@ nav:
           - List: configuration/widgets/list.md
           - Menu: configuration/widgets/menu.md
           - Conditional: configuration/widgets/conditional.md
+          - HTML: configuration/widgets/html.md
       - Screensaver: configuration/screensaver.md
       - Restrictions: configuration/restrictions.md
       - Resources: configuration/resources.md
