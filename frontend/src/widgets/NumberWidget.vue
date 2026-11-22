@@ -64,6 +64,7 @@ import { useWidgetSize } from '../composables/useWidgetSize';
 import { useRestriction } from '../composables/useRestriction';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
+import { roundToDecimals, stepDecimals } from '../utils/stateDisplay';
 
 const props = defineProps<{ widget: Widget }>();
 
@@ -81,15 +82,22 @@ const numValue = computed(() => {
   return isNaN(n) ? 0 : n;
 });
 
-const displayValue = computed(() => state.value ?? '—');
-
 const step = computed(() => (entity.value?.attributes.step as number | undefined) ?? 1);
+// Shown with the step's precision (step 1 → "71", step 0.25 → "71.25")
+const decimals = computed(() => stepDecimals(step.value));
+
+const displayValue = computed(() =>
+  state.value != null ? roundToDecimals(state.value, decimals.value) : '—',
+);
 const minValue = computed(() => (entity.value?.attributes.min as number | undefined) ?? -Infinity);
 const maxValue = computed(() => (entity.value?.attributes.max as number | undefined) ?? Infinity);
 
 function setValue(value: number) {
   if (!props.widget.entity) return;
-  const clamped = Math.max(minValue.value, Math.min(maxValue.value, value));
+  // Rounded to the step's precision, so float error from +/− (71.1 + 0.1) isn't sent
+  const clamped = Number(
+    Math.max(minValue.value, Math.min(maxValue.value, value)).toFixed(decimals.value),
+  );
   const domain = props.widget.entity.split('.')[0] ?? 'number';
   void haStore.callService(domain, 'set_value', {
     entity_id: props.widget.entity,

@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useHomeAssistantStore } from '../../stores/home-assistant';
+import { stepDecimals } from '../../utils/stateDisplay';
 
 const props = defineProps<{ entityId: string }>();
 
@@ -63,10 +64,9 @@ watch(currentValue, (v) => {
   inputValue.value = v;
 });
 
-const displayValue = computed(() => {
-  const v = currentValue.value;
-  return Number.isInteger(step.value) ? v.toString() : v.toFixed(1);
-});
+// Shown with the step's precision (step 1 → "71", step 0.25 → "71.25")
+const decimals = computed(() => stepDecimals(step.value));
+const displayValue = computed(() => currentValue.value.toFixed(decimals.value));
 
 const serviceDomain = computed(() => props.entityId.split('.')[0] ?? 'number');
 
@@ -79,7 +79,10 @@ function setValue(v: number | null) {
 }
 
 function adjust(delta: number) {
-  const next = Math.min(max.value, Math.max(min.value, sliderValue.value + delta));
+  // Rounded to the step's precision, so float error from repeated steps isn't sent
+  const next = Number(
+    Math.min(max.value, Math.max(min.value, sliderValue.value + delta)).toFixed(decimals.value),
+  );
   sliderValue.value = next;
   inputValue.value = next;
   setValue(next);

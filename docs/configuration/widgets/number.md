@@ -14,7 +14,7 @@ title: Volume
 
 This widget has no widget-specific config keys beyond the [common properties](index.md#common-properties).
 
-The step size, minimum, and maximum are read automatically from the entity's `step`, `min`, and `max` attributes.
+The step size, minimum, and maximum are read automatically from the entity's `step`, `min`, and `max` attributes. The value is shown with the step's precision: with step 1 a state of `71.0` shows as "71", step 0.5 shows "71.5" and step 0.25 shows "71.25". The more-info dialog does the same.
 
 ## Default Behavior
 

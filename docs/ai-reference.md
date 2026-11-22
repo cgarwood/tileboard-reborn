@@ -99,7 +99,7 @@ Small tiles (switch, light, fan, lock, button, sensor_icon, sensor, number): 1×
 - **`weather`** (2×4): no extra keys. Layouts are compact, wide (w ≥ 4, horizontal forecast) or vertical (h ≥ 4, forecast list).
 - **`calendar`** (4×4): `calendars`: list of `{entity*, color, name}`. `color` defaults to the entity's color attribute, then a rotating palette. Tapping an event opens an event dialog.
 - **`fan`** (2×2): no extra keys. Tap toggles. +/− change speed %. One-row tile: +/− in a row when width ≥ 3, hidden at 2×1.
-- **`number`** (2×2): works with `number` / `input_number`. Step, min and max come from entity attributes. +/− step the value. Tap opens a value prompt. One-row tile: value over title on the left, +/− in a row on the right, no badge.
+- **`number`** (2×2): works with `number` / `input_number`. Step, min and max come from entity attributes. The value is shown to the step's precision (step 1 → "71", 0.25 → "71.25"), here and in more-info. +/− step the value. Tap opens a value prompt. One-row tile: value over title on the left, +/− in a row on the right, no badge.
 - **`lock`** (2×2): no extra keys. Tap calls `lock.lock`/`lock.unlock`. States: locked, unlocked, locking, unlocking, jammed. Usually paired with `restriction`.
 - **`list`** (4×4): `items`: list of rows. Row keys: `entity`, `name` (dyn), `caption` (dyn), `icon` (dyn), `state` (dyn, right-hand text), `restriction`, `refresh_interval` (ms; only needed for faster-than-minute templates), `features`: list of
   - `brightness_slider`

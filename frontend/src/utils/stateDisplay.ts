@@ -70,3 +70,11 @@ export function roundToDecimals(value: string, decimals: unknown): string {
   if (!Number.isFinite(n)) return value;
   return n.toFixed(Math.min(20, Math.max(0, Math.round(decimals))));
 }
+
+/** Decimal places in a number entity's `step` (1 → 0, 0.5 → 1, 0.25 → 2, 1e-7 → 7). */
+export function stepDecimals(step: unknown): number {
+  if (typeof step !== 'number' || !Number.isFinite(step) || step <= 0) return 0;
+  const [mantissa = '', exponent] = String(step).split('e');
+  const fraction = mantissa.split('.')[1]?.length ?? 0;
+  return Math.max(0, fraction - Number(exponent ?? 0));
+}
