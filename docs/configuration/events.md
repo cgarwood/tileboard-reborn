@@ -79,6 +79,6 @@ Other action types don't read the event data. Their settings are used exactly as
 
 ## Notes
 
-- `more_info` actions have no effect when run from an event.
+- A `more_info` action run from an event needs an `entity`, since there's no widget to take it from.
 - TileBoard only receives events while it is connected to Home Assistant. Events fired while it's disconnected are missed.
 - Home Assistant only sends custom event types to administrator accounts. If nothing happens, check that the user TileBoard connects as is an administrator.

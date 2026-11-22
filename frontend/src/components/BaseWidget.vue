@@ -26,12 +26,6 @@
     <slot v-else />
     <q-icon name="mdi-lock" size="14px" v-if="isLocked" class="widget-lock-badge" />
   </q-card>
-  <MoreInfoDialog
-    v-if="moreInfoOpen"
-    :widget="widget"
-    :entity-id-override="moreInfoEntityId"
-    @hide="moreInfoOpen = false"
-  />
 </template>
 
 <script lang="ts">
@@ -39,16 +33,14 @@ export default { inheritAttrs: false };
 </script>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref } from 'vue';
+import { computed } from 'vue';
 import type { Widget } from '../types/widgets';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
 import { normalizeActions, useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
+import { useMoreInfoStore } from '../stores/more-info';
 import { slugifyState } from '../utils/slugifyState';
-
-// Only needed once a widget is held; loading it lazily keeps it (and Chart.js) out of the dashboard bundle.
-const MoreInfoDialog = defineAsyncComponent(() => import('./more-info/MoreInfoDialog.vue'));
 
 const props = defineProps<{ widget: Widget }>();
 
@@ -70,14 +62,11 @@ const _class = computed(() => [
   entityMissing.value ? 'missing-entity' : null,
 ]);
 
-const moreInfoOpen = ref(false);
-const moreInfoEntityId = ref<string | undefined>(undefined);
+const moreInfoStore = useMoreInfoStore();
 
+// The dialog is shared (rendered by App.vue); this widget supplies its title and settings
 function openMoreInfo(entityId?: string) {
-  // Nothing to show for a widget without an entity, unless the action names one
-  if (!(entityId ?? props.widget.more_info?.entity_id ?? props.widget.entity)) return;
-  moreInfoEntityId.value = entityId;
-  moreInfoOpen.value = true;
+  moreInfoStore.open(entityId, props.widget);
 }
 
 const tapActions = computed(() => normalizeActions(props.widget.tap_action));
@@ -86,8 +75,8 @@ const hasTapAction = computed(
   () => tapActions.value.length > 0 && tapActions.value[0]!.action !== 'none',
 );
 
-// A configured tap_action runs here, for every widget type, so `more_info` can open this
-// widget's dialog. Widgets only handle their default tap, when tap_action is unset.
+// A configured tap_action runs here, for every widget type, so `more_info` opens with this
+// widget's title and settings. Widgets only handle their default tap, when tap_action is unset.
 function onTap() {
   if (!hasTapAction.value) return;
   withUnlock(() => executeActions(tapActions.value, {}, openMoreInfo));

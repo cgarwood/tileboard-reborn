@@ -11,6 +11,13 @@
     <ScreensaverOverlay v-if="screensaverStore.active" />
   </transition>
   <NotificationOverlay />
+  <MoreInfoDialog
+    v-if="moreInfoStore.target"
+    :key="moreInfoStore.target.id"
+    :widget="moreInfoStore.target.widget"
+    :entity-id-override="moreInfoStore.target.entityId"
+    @hide="moreInfoStore.close()"
+  />
 </template>
 
 <script setup lang="ts">
@@ -28,11 +35,17 @@ import { stripReloadParam } from './utils/forceReload';
 import ScreensaverOverlay from './components/screensaver/ScreensaverOverlay.vue';
 import NotificationOverlay from './components/notifications/NotificationOverlay.vue';
 import { useNotificationsStore } from './stores/notifications';
+import { useMoreInfoStore } from './stores/more-info';
 import type { ScreensaverConfig } from './types/screensaver';
 import type { WeatherAlertConfig, SendSpinConfig, EventsConfig } from './types/config';
 
 // Only rendered when Sendspin is configured.
 const SendspinBar = defineAsyncComponent(() => import('./components/sendspin/SendspinBar.vue'));
+// The one more-info dialog, opened through the more-info store. Loaded on first use, which keeps
+// it (and Chart.js) out of the dashboard bundle.
+const MoreInfoDialog = defineAsyncComponent(
+  () => import('./components/more-info/MoreInfoDialog.vue'),
+);
 
 const configStore = useConfigStore();
 const haStore = useHomeAssistantStore();
@@ -40,6 +53,7 @@ const screensaverStore = useScreensaverStore();
 const weatherAlertsStore = useWeatherAlertsStore();
 const sendspinStore = useSendspinStore();
 const notificationsStore = useNotificationsStore();
+const moreInfoStore = useMoreInfoStore();
 const { executeActions } = useActionExecutor();
 
 const dashboardHidden = ref(false);

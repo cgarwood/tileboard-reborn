@@ -215,7 +215,7 @@ events:
       action: navigate
       page: cameras
 ```
-Listens for HA events of type `tileboard`. Fire one with `event: tileboard`, `event_data: {command: show_cameras, ...}`. Unmatched commands are ignored (`notify` and `sendspin_announcement` are built in, see Notifications and Sendspin). Every open dashboard with a matching `command` reacts; there is no per-device targeting, so use a command name unique to one display's config. Extra event-data fields reach `javascript` actions as `data` (`data.brightness`). Other action types use their config as written. `more_info` does nothing here. Events fired while disconnected are missed. HA only sends custom events to admin users.
+Listens for HA events of type `tileboard`. Fire one with `event: tileboard`, `event_data: {command: show_cameras, ...}`. Unmatched commands are ignored (`notify` and `sendspin_announcement` are built in, see Notifications and Sendspin). Every open dashboard with a matching `command` reacts; there is no per-device targeting, so use a command name unique to one display's config. Extra event-data fields reach `javascript` actions as `data` (`data.brightness`). Other action types use their config as written. `more_info` needs an `entity` here (no widget to default to). Events fired while disconnected are missed. HA only sends custom events to admin users.
 
 ## Issues
 

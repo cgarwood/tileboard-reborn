@@ -41,7 +41,8 @@ import MoreInfoClimate from './MoreInfoClimate.vue';
 import MoreInfoWeather from './MoreInfoWeather.vue';
 
 const props = defineProps<{
-  widget: Widget;
+  /** Widget it was opened from, if any; without one the dialog describes the entity alone. */
+  widget?: Widget | undefined;
   entityIdOverride?: string;
 }>();
 const emit = defineEmits<{ hide: [] }>();
@@ -51,7 +52,8 @@ const dialogOpen = ref(true);
 const haStore = useHomeAssistantStore();
 
 const entityId = computed(
-  () => props.entityIdOverride ?? props.widget.more_info?.entity_id ?? props.widget.entity ?? null,
+  () =>
+    props.entityIdOverride ?? props.widget?.more_info?.entity_id ?? props.widget?.entity ?? null,
 );
 
 const entity = computed(() => (entityId.value ? (haStore.states[entityId.value] ?? null) : null));
@@ -61,14 +63,16 @@ const entity = computed(() => (entityId.value ? (haStore.states[entityId.value] 
 const showsOtherEntity = computed(
   () =>
     !!props.entityIdOverride &&
-    props.entityIdOverride !== (props.widget.more_info?.entity_id ?? props.widget.entity),
+    props.entityIdOverride !== (props.widget?.more_info?.entity_id ?? props.widget?.entity),
 );
 
 const moreInfoConfig = computed<MoreInfoConfig>(() =>
-  showsOtherEntity.value ? {} : (props.widget.more_info ?? {}),
+  showsOtherEntity.value ? {} : (props.widget?.more_info ?? {}),
 );
-const widgetTitle = computed(() => (showsOtherEntity.value ? undefined : props.widget.title));
-const widgetSubtitle = computed(() => (showsOtherEntity.value ? undefined : props.widget.subtitle));
+const widgetTitle = computed(() => (showsOtherEntity.value ? undefined : props.widget?.title));
+const widgetSubtitle = computed(() =>
+  showsOtherEntity.value ? undefined : props.widget?.subtitle,
+);
 
 const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
 const resolveCtx = computed<PropResolveContext>(() => ({

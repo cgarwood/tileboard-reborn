@@ -50,7 +50,7 @@ const { title, subtitle, state, backgroundStyle, ... } = useWidget(() => props.w
 
 - Renders as a `q-card flat bordered` with `overflow: hidden` and `position: relative`. The border is a real 1px border, so absolutely-positioned children stop at the padding edge.
 - **entitiesLoaded guard:** it shows the missing-entity placeholder only when `haStore.entitiesLoaded && !(entity in states)`. Entities arrive asynchronously after connection, so anything else that reports a missing entity must check `entitiesLoaded` the same way.
-- Opens `MoreInfoDialog` on hold by default, or on tap when `tap_action: more_info`.
+- Opens the more-info dialog on hold by default, or on tap when `tap_action: more_info`, through `useMoreInfoStore().open(entityId, widget)`.
 
 ## resolveWidgetProp
 
@@ -88,14 +88,14 @@ Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action, an 
 
 ## More-Info Dialog
 
-`MoreInfoDialog` picks a view by entity domain: `light`, `climate`, `number` and `weather` each have their own `MoreInfo*` component, and everything else uses `MoreInfoSensor` (with an optional history chart). Per-widget config is `widget.more_info` (`types/more-info.ts`). `MoreInfoCalendarEvent` is a standalone dialog that takes event props directly and doesn't go through `MoreInfoDialog`.
+There is one `MoreInfoDialog`, rendered by `App.vue` and opened with `useMoreInfoStore().open(entityId?, widget?)` from anywhere (widgets, parts inside a widget, actions run from events). The `widget` supplies the dialog's title, subtitle and `more_info` settings; without one it describes the entity alone. `executeActions` uses the store for `more_info` when no opener is passed. It picks a view by entity domain: `light`, `climate`, `number` and `weather` each have their own `MoreInfo*` component, and everything else uses `MoreInfoSensor` (with an optional history chart). Per-widget config is `widget.more_info` (`types/more-info.ts`). `MoreInfoCalendarEvent` is a standalone dialog that takes event props directly and doesn't go through `MoreInfoDialog`.
 
 ## Styling Conventions
 
 - Scoped SCSS in components by default. BEM-like names (`.widget-sensor__chart`).
 - Default widget layout classes (`.widget-body`, `.state-area`, `.label-group`, `.title`, `.subtitle`, `.state`, `.state-badge`, `.widget-body--micro`) are in `css/_widget.scss`, which `quasar.config.ts` `css` loads globally. Widgets must **not** `@use` it.
   - Every default selector is wrapped in `:where(.widget …)` (zero specificity), so any scoped rule in a widget overrides it. A global `.widget-{type} .title` overrides it for one widget type.
-  - `BaseWidget` renders two root nodes (card + dialog), so a widget's scoped styles don't reach the card root. Target the card with a global `.widget-{type}` rule.
+  - Style the card itself with a global `.widget-{type}` rule. Scoped styles can't reach it from widgets that render a second root next to `BaseWidget` (see Fragment root nodes).
 - Theme variables: `--widget-title-color`, `--widget-subtitle-color`, `--page-background`, `--section-gap`, per-widget `--{type}-widget-background`, etc.
 - Orientation: `useLayout()` resolves the top-level `layout` config (`orientation`, `nav_position`, both default `auto`). `App.vue` mirrors it as `layout--portrait`/`layout--landscape`/`layout--nav-bottom` classes on `<html>`. Style for it with `:root.layout--portrait .foo` in scoped SCSS, not `@media (orientation)`, so a forced orientation applies too. Don't use `:global(.layout--portrait) .foo` or a nested `:global(...) { }` block: Vue's compiler drops everything after `:global()`, so the rules land on `<html>` itself.
 - BaseWidget adds state classes automatically: `state--on`, `state--off`, `state--{slugified-state}`.
@@ -103,7 +103,7 @@ Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action, an 
 
 ## Charts
 
-- **`components/more-info/SensorHistoryChart.vue`**: the interactive Chart.js chart. It is only reachable through `MoreInfoDialog`, which `BaseWidget` loads with `defineAsyncComponent`, so Chart.js stays out of the dashboard bundle. **Never import Chart.js from widgets.**
+- **`components/more-info/SensorHistoryChart.vue`**: the interactive Chart.js chart. It is only reachable through `MoreInfoDialog`, which `App.vue` loads with `defineAsyncComponent`, so Chart.js stays out of the dashboard bundle. **Never import Chart.js from widgets.**
 - **`components/widgets/SensorWidgetChart.vue`**: the decorative background sparkline for `SensorWidget`. Plain inline SVG with `pointer-events: none`. `color` goes straight into the SVG `stroke`/`fill`, so `var()` works.
   - Data comes from `composables/useSensorHistory.ts`. Series are shared per (entity, hours, buckets) and update live in place. They stay cached for 10 minutes after the last chart unmounts, and reload on (re)connect once `entitiesLoaded`.
 - `widget.chart` can be absent (no chart), `false` (disabled), `{}` or `null` (all defaults), or `{ hours, min, max, smoothing, color }`.

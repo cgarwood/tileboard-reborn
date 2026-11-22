@@ -2,6 +2,7 @@ import { useRouter } from 'vue-router';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { describeError, useIssuesStore } from '../stores/issues';
 import { useScreensaverStore } from '../stores/screensaver';
+import { useMoreInfoStore } from '../stores/more-info';
 import type { ActionConfig, TapAction } from '../types/actions';
 
 /** The config value as a list of action objects, expanding shorthands like `more_info`. */
@@ -14,6 +15,7 @@ export function useActionExecutor() {
   const haStore = useHomeAssistantStore();
   const screensaverStore = useScreensaverStore();
   const issuesStore = useIssuesStore();
+  const moreInfoStore = useMoreInfoStore();
   const router = useRouter();
 
   function executeActions(
@@ -28,7 +30,10 @@ export function useActionExecutor() {
       if (action.action === 'none') {
         return;
       } else if (action.action === 'more_info') {
-        onMoreInfo?.(action.entity);
+        // Widgets pass their own opener so the dialog gets their title and settings. Without one
+        // (events, for example), the action's `entity` is shown on its own.
+        if (onMoreInfo) onMoreInfo(action.entity);
+        else moreInfoStore.open(action.entity);
       } else if (action.action === 'service') {
         const dot = action.service.indexOf('.');
         if (dot === -1) continue;
