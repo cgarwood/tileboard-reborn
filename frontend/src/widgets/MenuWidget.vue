@@ -42,7 +42,6 @@ import MenuDayDialog from '../components/menu/MenuDayDialog.vue';
 import { useWidget } from '../composables/useWidget';
 import { useMenu } from '../composables/useMenu';
 import { useRestriction } from '../composables/useRestriction';
-import { useActionExecutor } from '../composables/useActionExecutor';
 import type { Widget } from '../types/widgets';
 import type { MenuConfig } from '../types/menu';
 import { shortDateFormat } from '../utils/formatters';
@@ -52,7 +51,6 @@ const props = defineProps<{ widget: Widget }>();
 const { title, subtitle, backgroundStyle } = useWidget(() => props.widget);
 const { day, date, menu } = useMenu(() => props.widget as Widget & MenuConfig);
 const { withUnlock } = useRestriction(() => props.widget);
-const { executeActions } = useActionExecutor();
 
 const dayLabel = computed(
   () => `${day.value === 'today' ? 'Today' : 'Tomorrow'} · ${shortDateFormat.format(date.value)}`,
@@ -60,13 +58,11 @@ const dayLabel = computed(
 
 const dialogOpen = ref(false);
 
+// A configured tap_action is run by BaseWidget; this is only the default tap
 function handleClick() {
+  if (props.widget.tap_action !== undefined) return;
   withUnlock(() => {
-    if (props.widget.tap_action !== undefined) {
-      executeActions(props.widget.tap_action);
-    } else {
-      dialogOpen.value = true;
-    }
+    dialogOpen.value = true;
   });
 }
 </script>

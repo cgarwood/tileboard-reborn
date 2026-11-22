@@ -42,3 +42,9 @@ export type TapAction =
   | ScreensaverAction
   | MoreInfoAction
   | NoneAction;
+
+/** An action that needs no other keys can be written as just its name, e.g. `tap_action: more_info`. */
+export type ActionShorthand = 'more_info' | 'none' | 'screensaver';
+
+/** `tap_action`, `hold_action` and event `action` values: one action or a list, run in order. */
+export type ActionConfig = TapAction | ActionShorthand | (TapAction | ActionShorthand)[];

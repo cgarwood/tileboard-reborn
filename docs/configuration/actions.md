@@ -4,6 +4,12 @@ Actions define what happens when a widget is tapped or long-pressed. They are co
 
 Both properties accept a single action or a list of actions. When a list is provided, actions are executed in order.
 
+Actions that take no other keys (`more_info`, `none` and `screensaver`) can be written as just their name:
+
+```yaml
+tap_action: more_info
+```
+
 ```yaml
 # Single action
 tap_action:
@@ -86,7 +92,7 @@ tap_action:
 
 ### `more_info`
 
-Opens the more-info dialog for an entity. Defaults to the widget's own entity if `entity` is omitted.
+Opens the more-info dialog for an entity. Defaults to the widget's own entity if `entity` is omitted. For another entity, the dialog shows that entity's own name and the default dialog settings, not the widget's `title` or `more_info` options.
 
 ```yaml
 tap_action:

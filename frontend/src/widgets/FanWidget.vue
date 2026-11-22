@@ -67,7 +67,6 @@ import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
-import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
 
@@ -78,7 +77,6 @@ const { title, subtitle, icon, isOn, entity, backgroundStyle, stateBadge } = use
   () => props.widget,
 );
 const { withUnlock, isLocked } = useRestriction(() => props.widget);
-const { executeActions } = useActionExecutor();
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;
@@ -115,13 +113,11 @@ function adjustSpeed(delta: number) {
   });
 }
 
+// A configured tap_action is run by BaseWidget; this is only the default tap
 function handleClick() {
+  if (props.widget.tap_action !== undefined) return;
   withUnlock(() => {
-    if (props.widget.tap_action !== undefined) {
-      executeActions(props.widget.tap_action);
-    } else {
-      toggle();
-    }
+    toggle();
   });
 }
 </script>

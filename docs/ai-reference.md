@@ -106,13 +106,13 @@ Size is the default `width×height`. Tap/hold defaults are listed under Actions.
 
 ## Actions
 
-`tap_action` / `hold_action` take one action or a list (run in order). Setting `tap_action` replaces the widget's default tap. `action: none` disables the gesture.
+`tap_action` / `hold_action` take one action or a list (run in order), on every widget type. Setting `tap_action` replaces the widget's default tap. `action: none` disables the gesture. Actions with no other keys can be written as a bare string: `tap_action: more_info` (also `none`, `screensaver`).
 
 | `action` | Keys |
 |---|---|
 | `service` | `service` (`domain.service`), `data` |
 | `navigate` | `page` (page id) or `url` (external) |
-| `more_info` | `entity` (optional; defaults to widget entity) |
+| `more_info` | `entity` (optional; defaults to widget entity; another entity gets its own name and default dialog settings) |
 | `none` | — |
 | `screensaver` | — (activates it) |
 | `event` | `event` (type), `data` (fires an HA event) |

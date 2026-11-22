@@ -84,7 +84,7 @@ To fetch history, see `useSensorHistory` or `SensorHistoryChart`. With `minimal_
 
 ## Actions
 
-Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action or an array. `action: 'none'` stops execution. The widget's default tap behavior runs only when `tap_action` is unset. Run actions with `useActionExecutor().executeActions(actions, {}, openMoreInfo)`.
+Types are in `types/actions.ts`. `tap_action`/`hold_action` take one action, an action name shorthand (`more_info`, `none`, `screensaver`) or an array; `normalizeActions()` expands them. `action: 'none'` stops execution. `BaseWidget` runs a configured `tap_action` for every widget type (so `more_info` can open its dialog); a widget's own click handler must only do its default tap, and return early when `tap_action` is set. Run actions with `useActionExecutor().executeActions(actions, {}, openMoreInfo)`.
 
 ## More-Info Dialog
 

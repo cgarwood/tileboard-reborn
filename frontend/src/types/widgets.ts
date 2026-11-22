@@ -1,6 +1,6 @@
 import type { VisibilityCondition, VisibilityConfig } from './visibility';
 import type { MoreInfoConfig } from './more-info';
-import type { TapAction } from './actions';
+import type { ActionConfig } from './actions';
 
 export type Widget = {
   type: string;
@@ -16,8 +16,8 @@ export type Widget = {
   restriction?: string;
   visibility?: VisibilityConfig;
   more_info?: MoreInfoConfig;
-  tap_action?: TapAction | TapAction[];
-  hold_action?: TapAction | TapAction[];
+  tap_action?: ActionConfig;
+  hold_action?: ActionConfig;
   [key: string]: unknown;
 };
 

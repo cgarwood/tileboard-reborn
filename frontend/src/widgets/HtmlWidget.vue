@@ -1,10 +1,5 @@
 <template>
-  <BaseWidget
-    :widget="widget"
-    :class="scopeClass"
-    :style="[backgroundStyle, hasTapAction ? { cursor: 'pointer' } : {}]"
-    @click="handleClick"
-  >
+  <BaseWidget :widget="widget" :class="scopeClass" :style="backgroundStyle">
     <!-- Markup comes from the dashboard config; interpolated {{ }} values are escaped -->
     <div class="widget-html__content" v-html="html" />
     <div v-if="showTitle || subtitle" class="label-group">
@@ -23,8 +18,6 @@ registerWidgetDefaults('html', { width: 2, height: 2 });
 import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
-import { useRestriction } from '../composables/useRestriction';
-import { useActionExecutor } from '../composables/useActionExecutor';
 import { useScopedCss } from '../composables/useScopedCss';
 import { escapeHtml } from '../utils/escapeHtml';
 import { resolveWidgetProp } from '../utils/resolveWidgetProp';
@@ -36,8 +29,6 @@ const { title, subtitle, backgroundStyle, resolveCtx } = useWidget(() => props.w
 // Only when configured: `title` otherwise falls back to the entity's name, and an HTML widget
 // usually draws its own labels.
 const showTitle = computed(() => props.widget.title != null && title.value !== '');
-const { withUnlock } = useRestriction(() => props.widget);
-const { executeActions } = useActionExecutor();
 const { scopeClass } = useScopedCss(() => props.widget.css as string | undefined);
 
 const html = computed(() => {
@@ -47,14 +38,6 @@ const html = computed(() => {
     typeof raw === 'object' && raw !== null ? resolveWidgetProp(raw, resolveCtx.value) : raw;
   return resolveWidgetProp(markup, resolveCtx.value, escapeHtml) ?? '';
 });
-
-const hasTapAction = computed(() => props.widget.tap_action !== undefined);
-
-function handleClick() {
-  const action = props.widget.tap_action;
-  if (action === undefined) return;
-  withUnlock(() => executeActions(action));
-}
 </script>
 
 <style lang="scss">

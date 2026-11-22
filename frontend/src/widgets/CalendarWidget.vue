@@ -11,7 +11,7 @@
                 :key="item.key"
                 clickable
                 class="cal-widget__item"
-                @click="openDetail(item)"
+                @click.stop="openDetail(item)"
               >
                 <div class="cal-widget__color-bar" :style="{ background: item.color }" />
                 <q-item-section>

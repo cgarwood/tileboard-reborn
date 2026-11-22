@@ -30,7 +30,6 @@ import { computed } from 'vue';
 import BaseWidget from '../components/BaseWidget.vue';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
-import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import type { Widget } from '../types/widgets';
 
@@ -38,7 +37,6 @@ const props = defineProps<{ widget: Widget }>();
 const haStore = useHomeAssistantStore();
 const { title, subtitle, icon, iconColor, backgroundStyle } = useWidget(() => props.widget);
 const { withUnlock } = useRestriction(() => props.widget);
-const { executeActions } = useActionExecutor();
 
 const isMicro = computed(() => {
   const w = props.widget.grid?.width ?? 2;
@@ -48,16 +46,11 @@ const isMicro = computed(() => {
 
 const iconName = computed(() => icon.value ?? 'mdi-gesture-tap');
 
-function execute() {
-  if (props.widget.entity) {
-    void haStore.callService('button', 'press', { entity_id: props.widget.entity });
-    return;
-  }
-  executeActions(props.widget.tap_action);
-}
-
+// A configured tap_action is run by BaseWidget; this is only the default tap
 function handleClick() {
-  withUnlock(execute);
+  const entity = props.widget.entity;
+  if (props.widget.tap_action !== undefined || !entity) return;
+  withUnlock(() => void haStore.callService('button', 'press', { entity_id: entity }));
 }
 </script>
 

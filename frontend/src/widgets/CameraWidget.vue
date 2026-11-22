@@ -43,7 +43,6 @@ import BaseWidget from '../components/BaseWidget.vue';
 import CameraDialog from '../components/camera/CameraDialog.vue';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
-import { useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { useConfigStore } from '../stores/config';
 import { useScreensaverStore } from '../stores/screensaver';
@@ -60,7 +59,6 @@ const pageVisible = useDocumentVisible();
 
 const { title, subtitle } = useWidget(() => props.widget);
 const { withUnlock } = useRestriction(() => props.widget);
-const { executeActions } = useActionExecutor();
 
 const haUrl = computed(() => {
   const url = (configStore.config as Config | null)?.ha_url ?? '';
@@ -161,14 +159,12 @@ const feedSrc = computed<string | null>((previous) => {
 
 const dialogOpen = ref(false);
 
+// A configured tap_action is run by BaseWidget; this is only the default tap
 function handleClick() {
+  if (props.widget.tap_action !== undefined) return;
   withUnlock(() => {
-    if (props.widget.tap_action !== undefined) {
-      executeActions(props.widget.tap_action);
-    } else {
-      if (!entityId.value || !streamUrl.value) return;
-      dialogOpen.value = true;
-    }
+    if (!entityId.value || !streamUrl.value) return;
+    dialogOpen.value = true;
   });
 }
 </script>

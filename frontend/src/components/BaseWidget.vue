@@ -8,11 +8,13 @@
       {
         height: '100%',
         overflow: 'hidden',
+        ...(hasTapAction ? { cursor: 'pointer' } : {}),
         '--widget-title-color': titleColor ?? undefined,
         '--widget-subtitle-color': subtitleColor ?? undefined,
       },
       ...cardStyle,
     ]"
+    @click="onTap"
   >
     <template v-if="entityMissing">
       <div class="widget-missing-entity">
@@ -41,7 +43,7 @@ import { computed, defineAsyncComponent, ref } from 'vue';
 import type { Widget } from '../types/widgets';
 import { useWidget } from '../composables/useWidget';
 import { useRestriction } from '../composables/useRestriction';
-import { useActionExecutor } from '../composables/useActionExecutor';
+import { normalizeActions, useActionExecutor } from '../composables/useActionExecutor';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { slugifyState } from '../utils/slugifyState';
 
@@ -72,8 +74,23 @@ const moreInfoOpen = ref(false);
 const moreInfoEntityId = ref<string | undefined>(undefined);
 
 function openMoreInfo(entityId?: string) {
+  // Nothing to show for a widget without an entity, unless the action names one
+  if (!(entityId ?? props.widget.more_info?.entity_id ?? props.widget.entity)) return;
   moreInfoEntityId.value = entityId;
   moreInfoOpen.value = true;
+}
+
+const tapActions = computed(() => normalizeActions(props.widget.tap_action));
+// `none` first means nothing runs, so it shouldn't ask for a PIN or look tappable either
+const hasTapAction = computed(
+  () => tapActions.value.length > 0 && tapActions.value[0]!.action !== 'none',
+);
+
+// A configured tap_action runs here, for every widget type, so `more_info` can open this
+// widget's dialog. Widgets only handle their default tap, when tap_action is unset.
+function onTap() {
+  if (!hasTapAction.value) return;
+  withUnlock(() => executeActions(tapActions.value, {}, openMoreInfo));
 }
 
 function onHold() {

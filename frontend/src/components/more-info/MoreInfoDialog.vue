@@ -56,7 +56,19 @@ const entityId = computed(
 
 const entity = computed(() => (entityId.value ? (haStore.states[entityId.value] ?? null) : null));
 
-const moreInfoConfig = computed<MoreInfoConfig>(() => props.widget.more_info ?? {});
+// A more_info action naming another entity: the widget's title, subtitle and more_info settings
+// describe the widget's own entity, so this one gets its own name and the default dialog.
+const showsOtherEntity = computed(
+  () =>
+    !!props.entityIdOverride &&
+    props.entityIdOverride !== (props.widget.more_info?.entity_id ?? props.widget.entity),
+);
+
+const moreInfoConfig = computed<MoreInfoConfig>(() =>
+  showsOtherEntity.value ? {} : (props.widget.more_info ?? {}),
+);
+const widgetTitle = computed(() => (showsOtherEntity.value ? undefined : props.widget.title));
+const widgetSubtitle = computed(() => (showsOtherEntity.value ? undefined : props.widget.subtitle));
 
 const NULL_ENTITY = { state: null as unknown as string, attributes: {} };
 const resolveCtx = computed<PropResolveContext>(() => ({
@@ -70,7 +82,7 @@ const dialogTitle = computed(() => {
   const override = moreInfoConfig.value.title;
   if (override) return resolveWidgetProp(override, resolveCtx.value) ?? '';
   return (
-    resolveWidgetProp(props.widget.title, resolveCtx.value) ??
+    resolveWidgetProp(widgetTitle.value, resolveCtx.value) ??
     entity.value?.attributes.friendly_name ??
     entityId.value ??
     'More Info'
@@ -80,7 +92,7 @@ const dialogTitle = computed(() => {
 const dialogSubtitle = computed(() => {
   const override = moreInfoConfig.value.subtitle;
   if (override) return resolveWidgetProp(override, resolveCtx.value);
-  return resolveWidgetProp(props.widget.subtitle, resolveCtx.value);
+  return resolveWidgetProp(widgetSubtitle.value, resolveCtx.value);
 });
 
 const headerBgStyle = computed(() => {

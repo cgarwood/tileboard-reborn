@@ -2,7 +2,13 @@ import { useRouter } from 'vue-router';
 import { useHomeAssistantStore } from '../stores/home-assistant';
 import { describeError, useIssuesStore } from '../stores/issues';
 import { useScreensaverStore } from '../stores/screensaver';
-import type { TapAction } from '../types/actions';
+import type { ActionConfig, TapAction } from '../types/actions';
+
+/** The config value as a list of action objects, expanding shorthands like `more_info`. */
+export function normalizeActions(actions: ActionConfig | undefined): TapAction[] {
+  const list = Array.isArray(actions) ? actions : actions ? [actions] : [];
+  return list.map((a) => (typeof a === 'string' ? { action: a } : a));
+}
 
 export function useActionExecutor() {
   const haStore = useHomeAssistantStore();
@@ -11,11 +17,11 @@ export function useActionExecutor() {
   const router = useRouter();
 
   function executeActions(
-    actions: TapAction | TapAction[] | undefined,
+    actions: ActionConfig | undefined,
     context: Record<string, unknown> = {},
     onMoreInfo?: (entityId?: string) => void,
   ) {
-    const list = Array.isArray(actions) ? actions : actions ? [actions] : [];
+    const list = normalizeActions(actions);
     if (!list.length) return;
 
     for (const action of list) {

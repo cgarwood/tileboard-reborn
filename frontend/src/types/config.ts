@@ -92,9 +92,9 @@ import type { Page } from './page';
 
 export type PagesConfig = Page;
 
-import type { TapAction } from './actions';
+import type { ActionConfig } from './actions';
 
 export type EventsConfig = {
   command: string;
-  action: TapAction | TapAction[];
+  action: ActionConfig;
 };
