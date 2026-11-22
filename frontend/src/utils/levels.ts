@@ -29,8 +29,12 @@ export function parseLevel(value: unknown): Level | null {
   return typeof value === 'string' ? (ALIASES[value.trim().toLowerCase()] ?? null) : null;
 }
 
-/** A level name becomes its theme color; anything else is taken as a CSS color. */
-export function levelOrColor(value: string): string {
+/**
+ * A level name becomes its theme color; anything else is taken as a CSS color. `bright` picks the
+ * lighter shade meant for lines and rings on dark tiles.
+ */
+export function levelOrColor(value: string, shade: 'base' | 'bright' = 'base'): string {
   const level = parseLevel(value);
-  return level ? `var(--level-${level})` : value;
+  if (!level) return value;
+  return shade === 'bright' ? `var(--level-${level}-bright)` : `var(--level-${level})`;
 }

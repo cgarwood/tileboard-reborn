@@ -113,13 +113,14 @@ const segments = computed<GaugeSegment[]>(() => {
     .sort((a, b) => a.from - b.from);
 });
 
-// `color` wins; otherwise the highest segment the value reaches; otherwise the info color
+// `color` wins; otherwise the highest segment the value reaches; otherwise the info color.
+// Level names use the lighter ring shades, which read better on the dark tile.
 const color = computed(() => {
   const configured = resolveWidgetProp(props.widget.color, resolveCtx.value);
-  if (configured) return levelOrColor(configured);
+  if (configured) return levelOrColor(configured, 'bright');
   const value = numeric.value;
   const segment = value == null ? undefined : segments.value.filter((s) => value >= s.from).pop();
-  return levelOrColor(segment?.color ?? 'info');
+  return levelOrColor(segment?.color ?? 'info', 'bright');
 });
 
 const ariaLabel = computed(() => `${displayValue.value}${unit.value ?? ''}`);

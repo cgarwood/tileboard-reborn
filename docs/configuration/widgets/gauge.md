@@ -42,7 +42,7 @@ segments:
   - { from: 85, color: error }
 ```
 
-A color can be a level name (`info`, `success`, `warning`, `error`, and their aliases such as `good` or `critical`), which uses the same colors as [alert](alert.md) widgets and [notifications](../notifications.md), or any CSS color such as `"#ff9800"` or `"var(--my-color)"`.
+A color can be a level name (`info`, `success`, `warning`, `error`, and their aliases such as `good` or `critical`) or any CSS color such as `"#ff9800"` or `"var(--my-color)"`. Level names use a slightly lighter shade of the [alert](alert.md) and [notification](../notifications.md) colors, which stands out better on the gauge's dark background: the `--level-info-bright`, `--level-success-bright`, `--level-warning-bright` and `--level-error-bright` CSS variables.
 
 `color` sets a single color, and can be a template:
 

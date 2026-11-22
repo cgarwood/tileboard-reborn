@@ -38,6 +38,11 @@
   --level-success: rgb(46, 125, 50);
   --level-warning: rgb(239, 140, 0);
   --level-error: rgb(198, 40, 40);
+  // Lighter shades for lines and rings on dark tiles (gauge), where the base colors look dull
+  --level-info-bright: rgb(66, 165, 245);
+  --level-success-bright: rgb(102, 187, 106);
+  --level-warning-bright: rgb(255, 167, 38);
+  --level-error-bright: rgb(239, 83, 80);
 
   --text-light: #fff;
   --text-dark: #000;
