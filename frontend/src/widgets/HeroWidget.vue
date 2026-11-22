@@ -341,10 +341,12 @@ function onChipHold(chip: HeroChipConfig) {
   opacity: 0.75;
 }
 
+// Secondary to the title and subtitle: between the chips and the subtitle in size
 .widget-hero__message {
   margin-top: 10px;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   line-height: 1.3;
+  opacity: 0.85;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -429,6 +431,7 @@ function onChipHold(chip: HeroChipConfig) {
 
   .widget-hero__message {
     margin-top: 4px;
+    font-size: 0.8rem;
     -webkit-line-clamp: 1;
   }
 
@@ -447,7 +450,7 @@ function onChipHold(chip: HeroChipConfig) {
   }
 
   .widget-hero__message {
-    font-size: 1.25rem;
+    font-size: 1rem;
     -webkit-line-clamp: 3;
   }
 }
